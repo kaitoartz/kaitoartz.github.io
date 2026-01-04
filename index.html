@@ -1,10 +1,260 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Mi Pagina Nueva</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaitoArtz | Terminal de Acceso</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- VARIABLES DE COLOR (Aquí controlas el estilo) --- */
+        :root {
+            --bg-color: #ffffff; /* Fondo blanco */
+            --text-primary: #0a0a0a; /* Negro casi puro */
+            --text-secondary: #555555; /* Gris técnico */
+            --neon-accent: #FF3D00; /* Naranjo Fluor (Safety Orange) */
+            --border-width: 2px;
+        }
+
+        /* --- RESET Y ESTILOS BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif; /* Fuente principal */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Un fondo sutil de grilla técnica */
+            background-image: 
+                linear-gradient(var(--text-secondary) 1px, transparent 1px),
+                linear-gradient(90deg, var(--text-secondary) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center center;
+            /* Hacemos la grilla muy muy suave */
+            background-blend-mode: screen;
+            opacity: 1;
+        }
+        
+        /* Capa para suavizar la grilla de fondo */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.92);
+            z-index: -1;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin: 40px auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- HEADER / PERFIL --- */
+        .profile-section {
+            margin-bottom: 40px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            /* Borde técnico cortado */
+            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+            background-color: var(--text-primary); /* Color de fondo si no hay foto */
+            background-image: url('TU_FOTO_DE_PERFIL.jpg'); /* <<< PON TU FOTO AQUÍ */
+            background-size: cover;
+            background-position: center;
+            border: var(--border-width) solid var(--text-primary);
+            position: relative;
+        }
+
+        /* Efecto de escaneo sobre la foto */
+        .profile-img::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(transparent 50%, rgba(255, 61, 0, 0.2) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .user-name {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .user-bio {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 5px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* --- SECCIÓN DE ENLACES (DATA BLOCKS) --- */
+        .links-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .link-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            background: var(--bg-color);
+            border: var(--border-width) solid var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* Forma Techwear: esquina cortada */
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 95% 100%, 0 100%);
+        }
+
+        /* Elementos decorativos del bloque */
+        .link-text { position: relative; z-index: 2; }
+        .link-icon { font-size: 1.2rem; position: relative; z-index: 2; }
+
+        /* --- INTERACTIVIDAD (HOVER) --- */
+        .link-block:hover {
+            background: var(--text-primary);
+            color: var(--neon-accent);
+            border-color: var(--neon-accent);
+            transform: translateX(5px); /* Pequeño desplazamiento lateral */
+            box-shadow: -5px 5px 0px var(--neon-accent); /* Sombra dura neon */
+        }
+
+        /* Pequeña línea decorativa al lado izquierdo */
+        .link-block::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 5px; height: 100%;
+            background: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .link-block:hover::before {
+            background: var(--neon-accent);
+        }
+
+        /* --- REDES SOCIALES (FOOTER) --- */
+        .social-footer {
+            margin-top: 50px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .social-icon {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            text-decoration: none;
+            border: 2px solid var(--text-primary);
+            width: 45px; height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            /* Forma hexagonal técnica */
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+
+        .social-icon:hover {
+            background: var(--text-primary);
+            color: var(--neon-accent);
+            border-color: var(--neon-accent);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* --- DECORACIÓN EXTRA --- */
+        .system-status {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .status-light {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--neon-accent);
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
+
+    </style>
 </head>
 <body>
-    <h1>Wena cabros, esta wea está funcionando 🤙</h1>
-    <p>Pronto migrando desde Beacons...</p>
+
+    <div class="container">
+        <div class="profile-section">
+            <div class="profile-img"></div> 
+            <h1 class="user-name">KaitoArtz</h1> <p class="user-bio">VR Developer | Tech Artist | Research Support</p> </div>
+
+        <div class="links-container">
+            <a href="LINK_A_TU_PORTAFOLIO_ITCHIO" class="link-block" target="_blank">
+                <span class="link-text">>> PORTAFOLIO ITCH.IO</span>
+                <i class="fa-solid fa-gamepad link-icon"></i>
+            </a>
+
+            <a href="LINK_A_TU_LINKEDIN" class="link-block" target="_blank">
+                <span class="link-text">Is/ LINKEDIN PROFILE</span>
+                <i class="fa-brands fa-linkedin-in link-icon"></i>
+            </a>
+
+            <a href="OTRO_ENLACE_TUYO" class="link-block" target="_blank">
+                <span class="link-text">[_] PROYECTOS VR</span>
+                <i class="fa-solid fa-vr-cardboard link-icon"></i>
+            </a>
+
+             </div>
+
+        <div class="social-footer">
+            <a href="LINK_GITHUB" target="_blank" class="social-icon">
+                <i class="fa-brands fa-github"></i>
+            </a>
+            <a href="LINK_OTRA_RED" target="_blank" class="social-icon">
+                <i class="fa-brands fa-instagram"></i>
+            </a>
+            <a href="MAILTO:TU_CORREO" class="social-icon">
+                <i class="fa-solid fa-envelope"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="system-status">
+        <span class="status-light"></span>SYSTEM STATUS: ONLINE
+    </div>
+
 </body>
 </html>
