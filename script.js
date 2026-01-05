@@ -710,8 +710,8 @@ class Terminal {
             quit: () => this.close(),
             theme: (arg) => this.toggleTheme(arg),
             audio: (arg) => this.audioControl(arg),
+            matrix: () => this.toggleMatrix(),
             konami: () => this.konamiCode(),
-            matrix: () => this.matrixEffect(),
             hack: () => this.hackEffect(),
             time: () => this.showTime(),
             whoami: () => this.whoami(),
@@ -815,12 +815,12 @@ Available commands:<br>
 • projects - Show recent projects<br>
 • contact - Contact information<br>
 • theme [dark/light] - Switch theme<br>
-• audio [play/stop] - Control background music<br>
+• audio [play/stop/test] - Control background music<br>
+• matrix - Toggle Matrix rain effect<br>
 • time - Show current system time<br>
 • whoami - Display user info<br>
 • ls - List files<br>
 • cat [file] - Read file contents<br>
-• matrix - Enable Matrix effect<br>
 • hack - Simulate hacking sequence<br>
 • clear - Clear terminal<br>
 • exit/quit - Close terminal<br>
@@ -911,6 +911,17 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
             this.addOutput(`Analyser Node: ${audioManager.analyserNode ? '✓ Connected' : '✗ Not connected'}`);
         } else {
             this.addOutput(`Usage: audio [play/stop/test]<br>  play - Start background music<br>  stop - Stop background music<br>  test - Show audio system status`);
+        }
+    }
+
+    toggleMatrix() {
+        const isActive = matrixRain.toggle();
+        if (isActive) {
+            this.addOutput(`<span style="color: #39FF14;">Matrix rain ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Matrix rain DEACTIVATED</span>`);
+            audioManager.playSound('click');
         }
     }
 
@@ -1497,11 +1508,282 @@ class TimelineManager {
     }
 }
 
+// ========== MATRIX RAIN EFFECT ==========
+class MatrixRain {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.columns = 0;
+        this.drops = [];
+        this.fontSize = 14;
+        this.characters = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.animationId = null;
+        this.isActive = false;
+    }
+
+    init() {
+        this.canvas = document.getElementById('matrixCanvas');
+        if (!this.canvas) return;
+
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        
+        window.addEventListener('resize', () => this.resize());
+        
+        // Start automatically
+        this.start();
+        console.log('Matrix Rain initialized');
+    }
+
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        
+        this.columns = Math.floor(this.canvas.width / this.fontSize);
+        this.drops = Array(this.columns).fill(1);
+    }
+
+    draw() {
+        // Semi-transparent black for trailing effect
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Green text
+        this.ctx.fillStyle = '#39FF14';
+        this.ctx.font = `${this.fontSize}px monospace`;
+
+        for (let i = 0; i < this.drops.length; i++) {
+            const text = this.characters[Math.floor(Math.random() * this.characters.length)];
+            const x = i * this.fontSize;
+            const y = this.drops[i] * this.fontSize;
+
+            this.ctx.fillText(text, x, y);
+
+            // Reset drop to top randomly
+            if (y > this.canvas.height && Math.random() > 0.975) {
+                this.drops[i] = 0;
+            }
+
+            this.drops[i]++;
+        }
+
+        if (this.isActive) {
+            this.animationId = requestAnimationFrame(() => this.draw());
+        }
+    }
+
+    start() {
+        if (this.isActive) return;
+        this.isActive = true;
+        this.canvas.style.opacity = '0.15';
+        this.draw();
+    }
+
+    stop() {
+        this.isActive = false;
+        this.canvas.style.opacity = '0';
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+    toggle() {
+        if (this.isActive) {
+            this.stop();
+            return false;
+        } else {
+            this.start();
+            return true;
+        }
+    }
+}
+
+// ========== PARALLAX MANAGER ==========
+class ParallaxManager {
+    constructor() {
+        this.layers = [];
+        this.lastScrollY = 0;
+        this.ticking = false;
+    }
+
+    init() {
+        this.layers = document.querySelectorAll('.parallax-layer');
+        if (this.layers.length === 0) return;
+
+        window.addEventListener('scroll', () => this.requestTick());
+        console.log('Parallax initialized with', this.layers.length, 'layers');
+    }
+
+    requestTick() {
+        if (!this.ticking) {
+            window.requestAnimationFrame(() => this.update());
+            this.ticking = true;
+        }
+    }
+
+    update() {
+        this.lastScrollY = window.scrollY;
+        
+        this.layers.forEach(layer => {
+            const speed = parseFloat(layer.dataset.speed) || 0.5;
+            const yPos = -(this.lastScrollY * speed);
+            layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
+        });
+
+        this.ticking = false;
+    }
+}
+
+// ========== CONTACT FORM MANAGER ==========
+class ContactFormManager {
+    constructor() {
+        this.form = null;
+        this.nameInput = null;
+        this.emailInput = null;
+        this.messageInput = null;
+        this.submitBtn = null;
+        this.statusDiv = null;
+    }
+
+    init() {
+        this.form = document.querySelector('.contact-form');
+        if (!this.form) return;
+
+        this.nameInput = document.getElementById('contactName');
+        this.emailInput = document.getElementById('contactEmail');
+        this.messageInput = document.getElementById('contactMessage');
+        this.submitBtn = document.getElementById('submitBtn');
+        this.statusDiv = document.getElementById('formStatus');
+
+        this.attachListeners();
+    }
+
+    attachListeners() {
+        // Real-time validation
+        this.nameInput.addEventListener('blur', () => this.validateField(this.nameInput, 'name'));
+        this.emailInput.addEventListener('blur', () => this.validateField(this.emailInput, 'email'));
+        this.messageInput.addEventListener('blur', () => this.validateField(this.messageInput, 'message'));
+
+        // Form submission
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+
+        // Clear errors on input
+        [this.nameInput, this.emailInput, this.messageInput].forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('error');
+                const errorDiv = input.nextElementSibling;
+                if (errorDiv && errorDiv.classList.contains('form-error')) {
+                    errorDiv.classList.remove('show');
+                    errorDiv.textContent = '';
+                }
+            });
+        });
+    }
+
+    validateField(input, type) {
+        const value = input.value.trim();
+        const errorDiv = input.nextElementSibling;
+        let error = '';
+
+        switch(type) {
+            case 'name':
+                if (value.length < 2) error = 'ERROR: NAME_IDENTIFIER TOO SHORT';
+                break;
+            case 'email':
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) error = 'ERROR: INVALID EMAIL_PROTOCOL';
+                break;
+            case 'message':
+                if (value.length < 10) error = 'ERROR: MESSAGE_PAYLOAD INSUFFICIENT';
+                break;
+        }
+
+        if (error) {
+            input.classList.add('error');
+            errorDiv.textContent = error;
+            errorDiv.classList.add('show');
+            audioManager.playSound('error');
+            return false;
+        }
+
+        return true;
+    }
+
+    validateAll() {
+        const nameValid = this.validateField(this.nameInput, 'name');
+        const emailValid = this.validateField(this.emailInput, 'email');
+        const messageValid = this.validateField(this.messageInput, 'message');
+        return nameValid && emailValid && messageValid;
+    }
+
+    async handleSubmit(e) {
+        e.preventDefault();
+
+        if (!this.validateAll()) {
+            this.showStatus('VALIDATION_ERROR: CHECK ALL FIELDS', 'error');
+            return;
+        }
+
+        this.submitBtn.disabled = true;
+        this.submitBtn.classList.add('transmitting');
+        this.showStatus('TRANSMITTING_DATA...', 'transmitting');
+
+        const formData = {
+            name: this.nameInput.value.trim(),
+            email: this.emailInput.value.trim(),
+            message: this.messageInput.value.trim(),
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            // Simulate transmission (replace with actual FormSpree/EmailJS)
+            await this.simulateTransmission(formData);
+            
+            this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
+            audioManager.playSound('success');
+            notificationManager.show('Message transmitted successfully!', 'success');
+            this.form.reset();
+            
+        } catch (error) {
+            this.showStatus('TRANSMISSION_FAILED: TRY AGAIN', 'error');
+            audioManager.playSound('error');
+            notificationManager.show('Transmission error. Please retry.', 'error');
+        } finally {
+            this.submitBtn.disabled = false;
+            this.submitBtn.classList.remove('transmitting');
+        }
+    }
+
+    async simulateTransmission(data) {
+        // TODO: Replace with actual FormSpree or EmailJS integration
+        // For now, simulate async transmission
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                console.log('Contact Form Data:', data);
+                resolve();
+            }, 2000);
+        });
+    }
+
+    showStatus(message, type) {
+        this.statusDiv.textContent = message;
+        this.statusDiv.className = 'form-status show ' + type;
+        
+        setTimeout(() => {
+            this.statusDiv.classList.remove('show');
+        }, 5000);
+    }
+}
+
 const skillsRadar = new SkillsRadar();
 const projectsManager = new ProjectsManager();
 const notificationManager = new NotificationManager();
 const audioVisualizer = new AudioVisualizer();
 const timelineManager = new TimelineManager();
+const matrixRain = new MatrixRain();
+const parallaxManager = new ParallaxManager();
+const contactFormManager = new ContactFormManager();
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('%c>> DOM: Ready', 'color: #39FF14; font-family: monospace;');
@@ -1537,6 +1819,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             timelineManager.init();
             console.log('%c>> INIT: Timeline ✓', 'color: #39FF14; font-family: monospace;');
+            
+            contactFormManager.init();
+            console.log('%c>> INIT: Contact Form ✓', 'color: #39FF14; font-family: monospace;');
+            
+            parallaxManager.init();
+            console.log('%c>> INIT: Parallax ✓', 'color: #39FF14; font-family: monospace;');
+            
+            matrixRain.init();
+            console.log('%c>> INIT: Matrix Rain ✓', 'color: #39FF14; font-family: monospace;');
             
             // Terminal button click handler
             const terminalButton = document.getElementById('terminalButton');

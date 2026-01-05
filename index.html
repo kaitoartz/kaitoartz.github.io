@@ -51,6 +51,23 @@
         </div>
     </div>
 
+    <!-- MATRIX RAIN CANVAS -->
+    <canvas id="matrixCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -4; pointer-events: none; opacity: 0.15;"></canvas>
+
+    <!-- PARALLAX LAYERS -->
+    <div class="parallax-layer" data-speed="0.2" style="z-index: -3;">
+        <div class="parallax-shape shape-1"></div>
+        <div class="parallax-shape shape-2"></div>
+    </div>
+    <div class="parallax-layer" data-speed="0.5" style="z-index: -2;">
+        <div class="parallax-shape shape-3"></div>
+        <div class="parallax-shape shape-4"></div>
+    </div>
+    <div class="parallax-layer" data-speed="0.8" style="z-index: -1;">
+        <div class="parallax-shape shape-5"></div>
+        <div class="parallax-shape shape-6"></div>
+    </div>
+
     <!-- MAIN DASHBOARD -->
     <div class="dashboard">
         
@@ -76,7 +93,7 @@
                 <span id="systemTime">00:00:00</span>
             </div>
             
-            <h1 class="main-title">KAITOARTZ</h1>
+            <h1 class="main-title glitch" data-text="KAITOARTZ">KAITOARTZ</h1>
             <p class="main-subtitle">VR DEVELOPER // TECH ARTIST // RESEARCH SUPPORT</p>
             
             <div class="serial-number">S/N: KA-0226-MX07</div>
@@ -131,7 +148,7 @@
         </section>
 
         <!-- LINK BLOCKS -->
-        <a href="LINK_A_TU_PORTAFOLIO_ITCHIO" target="_blank" class="grid-item link-block" data-id="01">
+        <a href="https://kaitoartz.itch.io/" target="_blank" class="grid-item link-block" data-id="01">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -143,7 +160,7 @@
             <div class="link-id">ID_01</div>
         </a>
 
-        <a href="LINK_A_TU_LINKEDIN" target="_blank" class="grid-item link-block" data-id="02">
+        <a href="https://www.linkedin.com/in/kaitoarts" target="_blank" class="grid-item link-block" data-id="02">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -155,7 +172,7 @@
             <div class="link-id">ID_02</div>
         </a>
 
-        <a href="LINK_GITHUB" target="_blank" class="grid-item link-block" data-id="03">
+        <a href="https://github.com/kaitoartz/" target="_blank" class="grid-item link-block" data-id="03">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -179,7 +196,7 @@
             <div class="link-id">ID_04</div>
         </a>
 
-        <a href="LINK_OTRA_RED" target="_blank" class="grid-item link-block" data-id="05">
+        <a href="https://www.instagram.com/kaitoartzz/" target="_blank" class="grid-item link-block" data-id="05">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -191,7 +208,7 @@
             <div class="link-id">ID_05</div>
         </a>
 
-        <a href="MAILTO:TU_CORREO" class="grid-item link-block" data-id="06">
+        <a href="MAILTO:kaitoartz.info@gmail.com" class="grid-item link-block" data-id="06">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -211,7 +228,7 @@
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
             
-            <div class="block-label">SKILLS_MATRIX // <span class="label-code">v1.2.7</span></div>
+            <div class="block-label glitch" data-text="SKILLS_MATRIX">SKILLS_MATRIX // <span class="label-code">v1.2.7</span></div>
             <canvas id="skillsRadar" width="300" height="300"></canvas>
             <div class="skills-legend">
                 <div class="legend-item"><span class="legend-dot" style="background: var(--accent-color);"></span>VR/AR</div>
@@ -228,7 +245,7 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             
-            <div class="block-label">ACTIVE_PROJECTS // <span class="label-code">ARCHIVE_07</span></div>
+            <div class="block-label glitch" data-text="ACTIVE_PROJECTS">ACTIVE_PROJECTS // <span class="label-code">ARCHIVE_07</span></div>
             <div class="projects-grid" id="projectsGrid">
                 <!-- Projects will be added dynamically -->
             </div>
@@ -256,10 +273,48 @@
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
             
-            <div class="block-label">EXPERIENCE_LOG // <span class="label-code">TIMELINE</span></div>
+            <div class="block-label glitch" data-text="EXPERIENCE_LOG">EXPERIENCE_LOG // <span class="label-code">TIMELINE</span></div>
             <div class="timeline-container" id="timelineContainer">
                 <!-- Timeline items will be added dynamically -->
             </div>
+        </section>
+
+        <!-- CONTACT FORM -->
+        <section class="grid-item contact-block">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+            <div class="scan-line"></div>
+            
+            <div class="block-label glitch" data-text="CONTACT_FORM">CONTACT_FORM // <span class="label-code">SECURE_CHANNEL</span></div>
+            
+            <form id="contactForm" class="contact-form">
+                <div class="form-group">
+                    <label for="contactName">NAME_IDENTIFIER:</label>
+                    <input type="text" id="contactName" name="name" required placeholder="John_Doe">
+                    <div class="form-error" id="nameError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactEmail">EMAIL_ADDRESS:</label>
+                    <input type="email" id="contactEmail" name="email" required placeholder="user@domain.ext">
+                    <div class="form-error" id="emailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactMessage">MESSAGE_PAYLOAD:</label>
+                    <textarea id="contactMessage" name="message" required rows="4" placeholder="Enter transmission..."></textarea>
+                    <div class="form-error" id="messageError"></div>
+                </div>
+                
+                <button type="submit" class="form-submit" id="submitBtn">
+                    <span class="submit-icon">▶</span>
+                    <span class="submit-text">TRANSMIT_DATA</span>
+                </button>
+                
+                <div class="form-status" id="formStatus"></div>
+            </form>
         </section>
 
         <!-- CONSOLE BLOCK -->
