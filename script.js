@@ -1737,8 +1737,18 @@ class ContactFormManager {
         };
 
         try {
-            // Simulate transmission (replace with actual FormSpree/EmailJS)
-            await this.simulateTransmission(formData);
+            // Send to Formspree
+            const response = await fetch('https://formspree.io/f/mgovdlpb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
             
             this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
             audioManager.playSound('success');
@@ -1746,6 +1756,7 @@ class ContactFormManager {
             this.form.reset();
             
         } catch (error) {
+            console.error('Form submission error:', error);
             this.showStatus('TRANSMISSION_FAILED: TRY AGAIN', 'error');
             audioManager.playSound('error');
             notificationManager.show('Transmission error. Please retry.', 'error');
@@ -1753,17 +1764,6 @@ class ContactFormManager {
             this.submitBtn.disabled = false;
             this.submitBtn.classList.remove('transmitting');
         }
-    }
-
-    async simulateTransmission(data) {
-        // TODO: Replace with actual FormSpree or EmailJS integration
-        // For now, simulate async transmission
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                console.log('Contact Form Data:', data);
-                resolve();
-            }, 2000);
-        });
     }
 
     showStatus(message, type) {
