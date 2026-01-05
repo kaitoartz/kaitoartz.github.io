@@ -198,9 +198,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== BOOT SEQUENCE ==========
 // ========== BOOT SEQUENCE ==========
 function startBootSequence() {
+    console.log('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
+    
     const loadProgress = document.getElementById('loadProgress');
     const bootOverlay = document.querySelector('.boot-overlay');
     const dashboard = document.querySelector('.dashboard');
+    
+    if (!loadProgress || !bootOverlay || !dashboard) {
+        console.error('Boot elements not found!');
+        return;
+    }
+    
     let progress = 0;
 
     const loadInterval = setInterval(() => {
@@ -209,14 +217,25 @@ function startBootSequence() {
         
         if (progress >= 100) {
             clearInterval(loadInterval);
+            console.log('%c>> BOOT: Complete (100%)', 'color: #39FF14; font-family: monospace;');
+            
             setTimeout(() => {
                 bootOverlay.classList.add('complete');
+                
                 setTimeout(() => {
+                    console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
                     dashboard.classList.add('visible');
                     bootOverlay.style.display = 'none';
+                    
                     setTimeout(() => {
-                        document.getElementById('terminalButton')?.classList.add('visible');
-                        technicalBackground.show();
+                        const terminalBtn = document.getElementById('terminalButton');
+                        if (terminalBtn) terminalBtn.classList.add('visible');
+                        
+                        if (typeof technicalBackground !== 'undefined' && technicalBackground.show) {
+                            technicalBackground.show();
+                        }
+                        
+                        console.log('%c>> BOOT: System ready ✓', 'color: #39FF14; font-family: monospace;');
                     }, 300);
                 }, 1000);
             }, 500);
@@ -229,8 +248,12 @@ const updateSystemTime = () => {
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
-setInterval(updateSystemTime, 1000);
-updateSystemTime();
+
+// Start time updates after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    updateSystemTime();
+    setInterval(updateSystemTime, 1000);
+});
 
 // ========== ANIMATED COUNTERS ==========
 // ========== UTILITY FUNCTIONS ==========
@@ -1481,32 +1504,58 @@ const audioVisualizer = new AudioVisualizer();
 const timelineManager = new TimelineManager();
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('%c>> DOM: Ready', 'color: #39FF14; font-family: monospace;');
+    
     setTimeout(() => {
-        if (window.innerWidth > 767) {
-            cursorManager.init();
+        try {
+            if (window.innerWidth > 767) {
+                cursorManager.init();
+                console.log('%c>> INIT: Cursor ✓', 'color: #39FF14; font-family: monospace;');
+            }
+            
+            volumeController.init();
+            console.log('%c>> INIT: Volume ✓', 'color: #39FF14; font-family: monospace;');
+            
+            terminal.init();
+            console.log('%c>> INIT: Terminal ✓', 'color: #39FF14; font-family: monospace;');
+            
+            shortcutsManager.init();
+            console.log('%c>> INIT: Shortcuts ✓', 'color: #39FF14; font-family: monospace;');
+            
+            technicalBackground.init();
+            console.log('%c>> INIT: Tech Background ✓', 'color: #39FF14; font-family: monospace;');
+            
+            // Initialize new features
+            skillsRadar.init();
+            console.log('%c>> INIT: Skills Radar ✓', 'color: #39FF14; font-family: monospace;');
+            
+            projectsManager.init();
+            console.log('%c>> INIT: Projects ✓', 'color: #39FF14; font-family: monospace;');
+            
+            notificationManager.init();
+            console.log('%c>> INIT: Notifications ✓', 'color: #39FF14; font-family: monospace;');
+            
+            timelineManager.init();
+            console.log('%c>> INIT: Timeline ✓', 'color: #39FF14; font-family: monospace;');
+            
+            // Terminal button click handler
+            const terminalButton = document.getElementById('terminalButton');
+            if (terminalButton) {
+                terminalButton.addEventListener('click', () => {
+                    terminal.open();
+                });
+            }
+            
+            // Welcome notification after boot
+            setTimeout(() => {
+                if (document.querySelector('.dashboard').classList.contains('visible')) {
+                    notificationManager.success('SYSTEM_ONLINE', 'All systems initialized successfully');
+                }
+            }, 3000);
+            
+            console.log('%c>> SYSTEM: All modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
+        } catch (error) {
+            console.error('%c>> ERROR: Init failed', 'color: #FF6B6B; font-family: monospace;', error);
         }
-        volumeController.init();
-        terminal.init();
-        shortcutsManager.init();
-        technicalBackground.init();
-        
-        // Initialize new features
-        skillsRadar.init();
-        projectsManager.init();
-        notificationManager.init();
-        timelineManager.init();
-        
-        // Terminal button click handler
-        const terminalButton = document.getElementById('terminalButton');
-        if (terminalButton) {
-            terminalButton.addEventListener('click', () => {
-                terminal.open();
-            });
-        }
-        
-        // Welcome notification after boot
-        setTimeout(() => {
-            notificationManager.success('SYSTEM_ONLINE', 'All systems initialized successfully');
-        }, 2000);
     }, 100);
 });
