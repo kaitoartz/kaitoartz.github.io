@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #111;
+            color: #39FF14;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 15px 30px;
+            background: #000;
+            border: 2px solid #39FF14;
+            color: #39FF14;
+            font-family: monospace;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #39FF14;
+            color: #000;
+        }
+        #status {
+            padding: 15px;
+            border: 1px solid #39FF14;
+            min-height: 100px;
+        }
+        .log {
+            margin: 5px 0;
+        }
+        .success { color: #39FF14; }
+        .error { color: #ff3939; }
+        .info { color: #00ffff; }
+    </style>
+</head>
+<body>
+    <h1>🎵 AUDIO TEST SECTOR_07</h1>
+    
+    <button onclick="testAudio()">▶ TEST AUDIO</button>
+    <button onclick="stopAudio()">⏹ STOP AUDIO</button>
+    
+    <div id="status">
+        <div class="log info">Click "TEST AUDIO" to start...</div>
+    </div>
+    
+    <script>
+        let audio = null;
+        let audioContext = null;
+        
+        function addLog(message, type = 'info') {
+            const status = document.getElementById('status');
+            const log = document.createElement('div');
+            log.className = 'log ' + type;
+            log.textContent = '>> ' + message;
+            status.appendChild(log);
+            status.scrollTop = status.scrollHeight;
+        }
+        
+        function testAudio() {
+            addLog('Initializing audio test...', 'info');
+            
+            // Create AudioContext
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                addLog('AudioContext created ✓', 'success');
+            }
+            
+            // Create Audio element
+            if (audio) {
+                audio.pause();
+            }
+            
+            addLog('Loading: assets/audio/background.mp3', 'info');
+            audio = new Audio('assets/audio/background.mp3');
+            audio.volume = 0.5;
+            audio.loop = true;
+            
+            // Event listeners
+            audio.addEventListener('loadeddata', () => {
+                addLog('Audio loaded! Duration: ' + audio.duration.toFixed(2) + 's', 'success');
+            });
+            
+            audio.addEventListener('canplay', () => {
+                addLog('Audio ready to play', 'success');
+            });
+            
+            audio.addEventListener('playing', () => {
+                addLog('♫ PLAYING! Volume: ' + (audio.volume * 100) + '%', 'success');
+            });
+            
+            audio.addEventListener('error', (e) => {
+                addLog('ERROR: ' + (e.target.error ? e.target.error.message : 'Unknown error'), 'error');
+            });
+            
+            // Try to play
+            addLog('Attempting to play...', 'info');
+            audio.play()
+                .then(() => {
+                    addLog('Play started successfully!', 'success');
+                })
+                .catch(error => {
+                    addLog('Play failed: ' + error.message, 'error');
+                });
+        }
+        
+        function stopAudio() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                addLog('Audio stopped', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

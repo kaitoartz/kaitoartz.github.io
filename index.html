@@ -63,6 +63,10 @@
             <div class="tech-ruler top"></div>
             <div class="tech-ruler bottom"></div>
             
+            <!-- Hex Indicators -->
+            <div class="hex-indicator" style="top: 20px; left: 20px;"></div>
+            <div class="hex-indicator" style="bottom: 20px; left: 20px;"></div>
+            
             <div class="status-bar">
                 <span class="status-indicator"></span>
                 <span>ONLINE</span>
@@ -100,6 +104,10 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
+            
+            <!-- Diagonal Bars -->
+            <div class="diagonal-bar" style="top: 10px; right: 10px;"></div>
+            <div class="diagonal-bar" style="bottom: 10px; right: 30px;"></div>
             
             <div class="block-label">SYSTEM_INFO // <span class="label-code">v2.0.226</span></div>
             <p class="info-text">
@@ -195,12 +203,75 @@
             <div class="link-id">ID_06</div>
         </a>
 
+        <!-- SKILLS RADAR CHART -->
+        <section class="grid-item skills-block">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+            <div class="scan-line"></div>
+            
+            <div class="block-label">SKILLS_MATRIX // <span class="label-code">v1.2.7</span></div>
+            <canvas id="skillsRadar" width="300" height="300"></canvas>
+            <div class="skills-legend">
+                <div class="legend-item"><span class="legend-dot" style="background: var(--accent-color);"></span>VR/AR</div>
+                <div class="legend-item"><span class="legend-dot" style="background: var(--secondary-accent);"></span>Programming</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #0ff;"></span>3D/Shaders</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #f0f;"></span>Design</div>
+            </div>
+        </section>
+
+        <!-- PROJECTS EXPANDABLE SECTION -->
+        <section class="grid-item projects-block">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+            
+            <div class="block-label">ACTIVE_PROJECTS // <span class="label-code">ARCHIVE_07</span></div>
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects will be added dynamically -->
+            </div>
+        </section>
+
+        <!-- AUDIO VISUALIZER -->
+        <section class="grid-item visualizer-block">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+            
+            <div class="block-label">AUDIO_SPECTRUM // <span class="label-code">FFT_512</span></div>
+            <canvas id="audioVisualizer" width="400" height="120"></canvas>
+            <div class="visualizer-status">
+                <span id="visualizerStatus">STANDBY</span>
+            </div>
+        </section>
+
+        <!-- EXPERIENCE TIMELINE -->
+        <section class="grid-item timeline-block">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+            <div class="scan-line"></div>
+            
+            <div class="block-label">EXPERIENCE_LOG // <span class="label-code">TIMELINE</span></div>
+            <div class="timeline-container" id="timelineContainer">
+                <!-- Timeline items will be added dynamically -->
+            </div>
+        </section>
+
         <!-- CONSOLE BLOCK -->
         <section class="grid-item console-block">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
+            
+            <!-- Console Hex Decorations -->
+            <div class="hex-small" style="top: 15px; right: 15px;"></div>
+            <div class="hex-small" style="bottom: 15px; left: 15px;"></div>
             
             <div class="block-label">SYSTEM_CONSOLE</div>
             <div class="console-feed" id="consoleFeed"></div>
@@ -222,6 +293,135 @@
             </div>
         </footer>
 
+    </div>
+
+    <!-- THEME TOGGLE BUTTON -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <div class="toggle-track">
+            <div class="toggle-orbit"></div>
+            <div class="toggle-icon sun">☀</div>
+            <div class="toggle-icon moon">◐</div>
+        </div>
+        <div class="toggle-label" id="toggleLabel">NIGHT_MODE</div>
+    </button>
+
+    <!-- VOLUME CONTROL -->
+    <div class="volume-control" id="volumeControl">
+        <div class="volume-icon" id="volumeIcon">🔊</div>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="30">
+        <div class="volume-value" id="volumeValue">30%</div>
+    </div>
+
+    <!-- TERMINAL BUTTON -->
+    <button class="terminal-button" id="terminalButton" title="Open Terminal (Ctrl+K)">
+        <span class="terminal-button-icon">&gt;_</span>
+        <span class="terminal-button-label">TERMINAL</span>
+    </button>
+
+    <!-- Notifications Container -->
+    <div id="notificationsContainer" class="notifications-container"></div>
+
+    <!-- CURSOR TRAIL -->
+    <canvas id="cursorCanvas" class="cursor-canvas"></canvas>
+
+    <!-- TECHNICAL BACKGROUND ELEMENTS -->
+    <div class="tech-background">
+        <!-- Grid 3D Background -->
+        <div class="grid-3d"></div>
+        
+        <!-- Floating Geometric Elements -->
+        <div class="geo-elements">
+            <div class="geo-circle geo-1"></div>
+            <div class="geo-circle geo-2"></div>
+            <div class="geo-crosshair crosshair-1"></div>
+            <div class="geo-crosshair crosshair-2"></div>
+            <div class="geo-triangle triangle-1"></div>
+            <div class="geo-triangle triangle-2"></div>
+        </div>
+        
+        <!-- Barcode Elements -->
+        <div class="barcode-decorative barcode-1">
+            <div class="barcode-bars">
+                <span></span><span></span><span></span><span></span>
+                <span class="wide"></span><span></span><span></span>
+                <span class="wide"></span><span></span><span></span>
+                <span></span><span class="wide"></span>
+            </div>
+            <div class="barcode-number">KA-0226-MX07-001</div>
+        </div>
+        
+        <div class="barcode-decorative barcode-2">
+            <div class="barcode-bars vertical">
+                <span></span><span></span><span class="wide"></span>
+                <span></span><span></span><span class="wide"></span>
+                <span></span><span></span>
+            </div>
+            <div class="barcode-number">NODE_07_SYS</div>
+        </div>
+        
+        <!-- Technical Text Overlays -->
+        <div class="tech-overlay overlay-1">
+            <div class="tech-label">LATITUDE: 19.4326° N</div>
+            <div class="tech-label">LONGITUDE: 99.1332° W</div>
+            <div class="tech-label">ALT: 2240M</div>
+        </div>
+        
+        <div class="tech-overlay overlay-2">
+            <div class="tech-label">TIMESTAMP: <span id="techTimestamp">00:00:00</span></div>
+            <div class="tech-label">SESSION: ACTIVE</div>
+            <div class="tech-label">UPTIME: <span id="uptimeCounter">00:00</span></div>
+        </div>
+        
+        <div class="tech-overlay overlay-3">
+            <div class="tech-label">0x4B4149544F</div>
+            <div class="tech-label">0x415254535F</div>
+            <div class="tech-label">0x303732360A</div>
+        </div>
+        
+        <!-- Measurement Lines -->
+        <div class="measurement-line line-1"></div>
+        <div class="measurement-line line-2"></div>
+        <div class="measurement-line line-3"></div>
+        
+        <!-- Corner Brackets -->
+        <div class="corner-bracket bracket-tl"></div>
+        <div class="corner-bracket bracket-tr"></div>
+        <div class="corner-bracket bracket-bl"></div>
+        <div class="corner-bracket bracket-br"></div>
+    </div>
+
+    <!-- TERMINAL MODAL -->
+    <div class="terminal-modal" id="terminalModal">
+        <div class="terminal-header">
+            <span>TERMINAL_ACCESS // SYSTEM_SHELL</span>
+            <button class="terminal-close" id="terminalClose">✕</button>
+        </div>
+        <div class="terminal-output" id="terminalOutput">
+            <div class="terminal-line">
+                <span class="terminal-prompt">$ </span>
+                <span>Type 'help' for available commands...</span>
+            </div>
+        </div>
+        <div class="terminal-input-line">
+            <span class="terminal-prompt">$ </span>
+            <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command...">
+        </div>
+    </div>
+
+    <!-- SHORTCUTS HELP -->
+    <div class="shortcuts-modal" id="shortcutsModal">
+        <div class="shortcuts-header">
+            <span>⌨️ KEYBOARD_SHORTCUTS</span>
+            <button class="shortcuts-close" id="shortcutsClose">✕</button>
+        </div>
+        <div class="shortcuts-content">
+            <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Open Terminal</span></div>
+            <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>M</kbd><span>Toggle Audio</span></div>
+            <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>/</kbd><span>Show Shortcuts</span></div>
+            <div class="shortcut-item"><kbd>H</kbd><span>Scroll to Top</span></div>
+            <div class="shortcut-item"><kbd>C</kbd><span>Scroll to Console</span></div>
+            <div class="shortcut-item"><kbd>ESC</kbd><span>Close Modals</span></div>
+        </div>
     </div>
 
     <script src="script.js"></script>
