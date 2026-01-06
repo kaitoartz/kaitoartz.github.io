@@ -76,48 +76,16 @@
         </div>
     </div>
 
-    <!-- BURGER MENU -->
-    <button class="burger-menu" id="burgerMenu" aria-label="Abrir menú de configuración" aria-expanded="false">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-    </button>
-
     <!-- SETTINGS PANEL -->
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
             <span>SETTINGS // CONFIG</span>
-            <button class="settings-close" id="settingsClose">×</button>
+            <button class="settings-close" id="settingsClose">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
         </div>
         <div class="settings-content">
-            <div class="setting-item">
-                <label>LANGUAGE // IDIOMA</label>
-                <div class="setting-buttons">
-                    <button class="setting-btn lang-toggle" data-lang="en">EN</button>
-                    <button class="setting-btn lang-toggle active" data-lang="es">ES</button>
-                </div>
-            </div>
-            <div class="setting-item">
-                <label>THEME // TEMA</label>
-                <div class="setting-buttons">
-                    <button class="setting-btn theme-toggle-btn" id="themeToggleBtn">
-                        <span class="theme-icon">☀</span>
-                        <span class="theme-label">LIGHT</span>
-                    </button>
-                </div>
-            </div>
-            <div class="setting-item">
-                <label>AUDIO // SONIDO</label>
-                <div class="setting-buttons">
-                    <button class="setting-btn audio-toggle-btn" id="audioToggleBtn">
-                        <span class="audio-icon">🔊</span>
-                        <span class="audio-label">PLAY</span>
-                    </button>
-                </div>
-            </div>
-            
             <!-- PERFORMANCE SECTION -->
-            <div class="setting-section-divider"></div>
             <div class="setting-section-title">PERFORMANCE // EFFECTS</div>
             
             <div class="setting-item">
@@ -203,7 +171,7 @@
                     </button>
                 </div>
             </div>
-            
+             
             <div class="setting-item">
                 <label>
                     <span>TERMINAL ACCESS</span>
@@ -263,19 +231,19 @@
             <h1 class="main-title glitch" data-text="KAITOARTZ">KAITOARTZ</h1>
             <p class="main-subtitle">VR DEVELOPER // TECH ARTIST // RESEARCH SUPPORT</p>
             
-            <div class="serial-number">S/N: KA-0226-MX07</div>
+            <div class="serial-number">S/N: KA-2026-BARCELONA-OP</div>
             
             <div class="stats-row">
                 <div class="stat-box">
-                    <span class="stat-value" data-count="48">00</span>
+                    <span class="stat-value" data-count="48">10+</span>
                     <span class="stat-label">PROJECTS</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-value" data-count="12">00</span>
+                    <span class="stat-value" data-count="12">05+</span>
                     <span class="stat-label">COLABS</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-value" data-count="320">00</span>
+                    <span class="stat-value" data-count="320">3000+</span>
                     <span class="stat-label">XR_HOURS</span>
                 </div>
             </div>
@@ -664,5 +632,26 @@
     </div>
 
     <script src="script.js"></script>
+    
+    <!-- CONTROL DOCK -->
+    <div class="control-dock collapsed" data-expanded="false">
+        <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme">
+            <i class="fa-solid fa-sun theme-icon"></i>
+        </button>
+
+        <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]">
+            <i class="fa-solid fa-volume-high audio-icon"></i>
+        </button>
+        
+        <button class="dock-btn" id="langToggleBtn" title="Language / Idioma">
+            <span class="lang-text">ES</span>
+        </button>
+        
+        <div class="dock-separator"></div>
+
+        <button class="dock-btn" id="burgerMenu" title="Settings">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </div>
 </body>
 </html>

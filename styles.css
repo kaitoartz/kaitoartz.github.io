@@ -80,17 +80,6 @@ body.no-glitch .glitch::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-}
-
-/* Prevent scrolling when start screen or boot overlay is active */
-body:has(.start-screen),
-body:has(.boot-overlay[style*="display: block"]),
-body.intro-active {
-    overflow: hidden !important;
-    height: 100vh;
-    position: fixed;
-    width: 100%;
 }
 
 .start-screen * {
@@ -1174,32 +1163,6 @@ body.intro-active {
 }
 
 /* ========== THEME TOGGLE BUTTON ========== */
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10002;
-    background: var(--bg-primary);
-    border: var(--border) solid var(--border-color);
-    padding: 12px 16px;
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    transition: all 0.3s ease;
-    clip-path: polygon(
-        0 6px,
-        6px 0,
-        calc(100% - 6px) 0,
-        100% 6px,
-        100% calc(100% - 6px),
-        calc(100% - 6px) 100%,
-        6px 100%,
-        0 calc(100% - 6px)
-    );
-}
 
 .theme-toggle:hover {
     transform: scale(1.05);
@@ -1744,47 +1707,115 @@ a, button, .link-block, .stat-box {
 }
 
 /* ========== BURGER MENU ========== */
-.burger-menu {
+.control-dock {
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 9999;
-    width: 50px;
-    height: 50px;
-    background: var(--bg-primary);
-    border: var(--border) solid var(--border-color);
-    cursor: pointer;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    gap: 6px;
-    padding: 0;
-    transition: all 0.3s;
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(10, 10, 10, 0.9);
+    border: 1px solid var(--toxic-green);
+    border-radius: 50px; /* Estilo píldora futurista */
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 10px rgba(57, 255, 20, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
-.burger-menu:hover {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+.control-dock.collapsed {
+    padding: 12px;
+    gap: 0;
 }
 
-.burger-line {
-    width: 24px;
-    height: 2px;
-    background: var(--accent-color);
-    transition: all 0.3s;
-}
-
-.burger-menu.active .burger-line:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-}
-
-.burger-menu.active .burger-line:nth-child(2) {
+.control-dock.collapsed .dock-btn:not(#burgerMenu),
+.control-dock.collapsed .dock-separator {
+    width: 0;
     opacity: 0;
+    margin: 0;
+    pointer-events: none;
+    transform: scale(0);
 }
 
-.burger-menu.active .burger-line:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+.control-dock.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px);
+}
+
+.control-dock:hover {
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+    border-color: #fff;
+}
+
+.dock-btn {
+    background: transparent;
+    border: none;
+    color: var(--toxic-green);
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.dock-btn:hover {
+    background: var(--toxic-green);
+    color: #000;
+    transform: scale(1.1);
+}
+
+.dock-btn.active {
+    background: var(--toxic-green);
+    color: #000;
+}
+
+.dock-btn#burgerMenu.active {
+    transform: rotate(90deg);
+}
+
+.dock-btn i {
+    pointer-events: none;
+}
+
+.dock-btn .lang-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    pointer-events: none;
+}
+
+.dock-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--gray-mid);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+/* Ajuste móvil */
+@media (max-width: 768px) {
+    .control-dock {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    
+    .dock-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
 }
 
 /* ========== SETTINGS PANEL ========== */
@@ -1821,7 +1852,7 @@ a, button, .link-block, .stat-box {
     background: transparent;
     border: none;
     color: var(--accent-color);
-    font-size: 2rem;
+    font-size: 1.5rem;
     cursor: pointer;
     padding: 0;
     width: 40px;
@@ -1834,7 +1865,11 @@ a, button, .link-block, .stat-box {
 
 .settings-close:hover {
     color: #ff3939;
-    transform: rotate(90deg);
+    transform: translateX(5px);
+}
+
+.settings-close i {
+    pointer-events: none;
 }
 
 .settings-content {
@@ -2542,12 +2577,6 @@ a, button, .link-block, .stat-box {
         width: 80px;
     }
     
-    .terminal-button {
-        bottom: 10px;
-        left: 10px;
-        padding: 10px 14px;
-    }
-    
     .terminal-button-label {
         font-size: 0.6rem;
     }
@@ -2927,6 +2956,31 @@ body.light-theme .grid-3d {
     background-image: 
         linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent),
         linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent);
+}
+
+/* ========== PERFORMANCE OVERRIDES ========== */
+/* Cuando el modo rendimiento está activo, apagamos todo lo visualmente costoso */
+body.performance-mode-low .scan-line,
+body.performance-mode-low .particle-container,
+body.performance-mode-low .tech-background, 
+body.performance-mode-low .matrix-canvas, /* Asumiendo que el canvas tiene esta clase o ID */
+body.performance-mode-low .glitch::before,
+body.performance-mode-low .glitch::after {
+    display: none !important;
+}
+
+/* Matar todas las animaciones y transiciones suaves */
+body.performance-mode-low * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important; /* Las sombras consumen caleta de GPU */
+}
+
+/* Hacer que las tarjetas aparezcan de una, sin fade suave */
+body.performance-mode-low .grid-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
 }
 
 /* ========== RESPONSIVE ADJUSTMENTS FOR NEW FEATURES ========== */

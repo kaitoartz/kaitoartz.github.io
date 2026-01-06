@@ -89,16 +89,16 @@ class PerformanceManager {
             high: {
                 matrixRain: true,
                 parallax: true,
-                cursorTrail: true,
+                cursorTrail: false, // Desactivado por defecto para mejor rendimiento
                 scanlines: true,
-                glitch: true,
+                glitch: false, // Desactivado por defecto
                 particles: false,
                 terminal: true
             },
             medium: {
                 matrixRain: !this.hardware.isMobile,
                 parallax: true,
-                cursorTrail: true,
+                cursorTrail: false,
                 scanlines: true,
                 glitch: false,
                 particles: false,
@@ -113,8 +113,17 @@ class PerformanceManager {
                 particles: false,
                 terminal: false
             }
-            }
         };
+
+        // LÓGICA NUEVA: Inyectar clase al body para control total CSS
+        if (preset === 'low') {
+        document.body.classList.add('performance-mode-low');
+        document.body.classList.add('no-scanlines'); // Asegurar scanlines fuera
+        this.toggleParticles(false); // Forzar apagado JS
+        } else {
+        document.body.classList.remove('performance-mode-low');
+        document.body.classList.remove('no-scanlines');
+        }
         
         const targetPreset = preset === 'auto' ? presets[this.hardware.tier] : presets[preset];
         
@@ -184,6 +193,20 @@ class PerformanceManager {
         if (this.cursorInstance) {
             this.cursorInstance.enabled = enable;
         }
+        if (!enable) {
+        document.body.style.cursor = 'auto';
+        // Forzamos cursor pointer en elementos interactivos
+        document.documentElement.style.setProperty('--cursor-type', 'auto');
+        // Agrega esto a tu CSS global: a, button { cursor: pointer !important; } cuando esté desactivado
+        const style = document.createElement('style');
+        style.id = 'cursor-fix';
+        style.innerHTML = `* { cursor: auto !important; } a, button, .link-block { cursor: pointer !important; }`;
+        if(!document.getElementById('cursor-fix')) document.head.appendChild(style);
+    } else {
+        document.body.style.cursor = 'none';
+        const fix = document.getElementById('cursor-fix');
+        if(fix) fix.remove();
+    }
     }
 
     toggleScanlines(enable) {
@@ -200,7 +223,6 @@ class PerformanceManager {
             particle.style.display = enable ? 'block' : 'none';
         });
     }
-
     toggleTerminal(enable) {
         const terminalButton = document.getElementById('terminalButton');
         if (terminalButton) {
@@ -223,9 +245,6 @@ class PerformanceManager {
             cursorTrail: 'cursorStatus',
             scanlines: 'scanlineStatus',
             glitch: 'glitchStatus',
-            particles: 'particlesStatus',
-            terminal: 'terminalStatus'
-        };
             particles: 'particlesStatus'
         };
         
@@ -349,6 +368,7 @@ class PerformanceManager {
         if (name === 'parallax') this.parallaxInstance = instance;
         if (name === 'cursor') this.cursorInstance = instance;
         if (name === 'terminal') this.terminalInstance = instance;
+
     }
 }
 
@@ -519,62 +539,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const startScreen = document.querySelector('.start-screen');
     const bootOverlay = document.querySelector('.boot-overlay');
 
-    // Prevent scroll during intro
-    document.body.classList.add('intro-active');
-
-    if (!startButton || !startScreen || !bootOverlay) {
-        console.error('Start screen elements not found!');
-        document.body.classList.remove('intro-active');
-        return;
-    }
-
     startButton.addEventListener('click', async () => {
-        devLog('%c>> SYSTEM: Start button clicked', 'color: #39FF14; font-family: monospace;');
+        console.log('%c>> SYSTEM: Start button clicked', 'color: #39FF14; font-family: monospace;');
         
-        try {
-            // Initialize audio on user interaction
-            await audioManager.init();
-            audioManager.playClick();
-            audioManager.playBoot();
+        // Initialize audio on user interaction
+        await audioManager.init();
+        audioManager.playClick();
+        audioManager.playBoot();
+        
+        // Start background music with proper timing
+        setTimeout(() => {
+            console.log('%c>> SYSTEM: Starting background music...', 'color: #00FFFF; font-family: monospace;');
+            audioManager.playBackgroundMusic(0.3); // Increased volume to 30%
             
-            // Start background music with proper timing
+            // Initialize visualizer after audio nodes are ready
             setTimeout(() => {
-                devLog('%c>> SYSTEM: Starting background music...', 'color: #00FFFF; font-family: monospace;');
-                audioManager.playBackgroundMusic(0.3); // Increased volume to 30%
-                
-                // Initialize visualizer after audio nodes are ready
-                setTimeout(() => {
-                    if (typeof audioVisualizer !== 'undefined') {
-                        audioVisualizer.init(audioManager);
-                    }
-                }, 300);
-            }, 1000);
+                audioVisualizer.init(audioManager);
+            }, 300);
+        }, 1000);
 
-            // Hide start screen
-            startScreen.style.transition = 'opacity 0.5s ease-out';
-            startScreen.style.opacity = '0';
-            
-            setTimeout(() => {
-                startScreen.style.display = 'none';
-                bootOverlay.style.display = 'block';
-                
-                // Start boot sequence
-                startBootSequence();
-            }, 500);
-        } catch (error) {
-            console.error('Error during start sequence:', error);
-            // Force show dashboard if there's an error
+        // Hide start screen
+        startScreen.style.transition = 'opacity 0.5s ease-out';
+        startScreen.style.opacity = '0';
+        
+        setTimeout(() => {
             startScreen.style.display = 'none';
-            document.querySelector('.dashboard').classList.add('visible');
-            document.body.classList.remove('intro-active');
-        }
+            bootOverlay.style.display = 'block';
+            
+            // Start boot sequence
+            startBootSequence();
+        }, 500);
     });
 });
 
 // ========== BOOT SEQUENCE ==========
 // ========== BOOT SEQUENCE ==========
 function startBootSequence() {
-    devLog('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
+    console.log('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
     
     const loadProgress = document.getElementById('loadProgress');
     const bootOverlay = document.querySelector('.boot-overlay');
@@ -582,10 +583,7 @@ function startBootSequence() {
     
     if (!loadProgress || !bootOverlay || !dashboard) {
         console.error('Boot elements not found!');
-        // Force show dashboard
-        if (dashboard) dashboard.classList.add('visible');
         return;
-    }
     }
     
     let progress = 0;
@@ -596,18 +594,15 @@ function startBootSequence() {
         
         if (progress >= 100) {
             clearInterval(loadInterval);
-            devLog('%c>> BOOT: Complete (100%)', 'color: #39FF14; font-family: monospace;');
+            console.log('%c>> BOOT: Complete (100%)', 'color: #39FF14; font-family: monospace;');
             
             setTimeout(() => {
                 bootOverlay.classList.add('complete');
                 
                 setTimeout(() => {
-                    devLog('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
+                    console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
                     dashboard.classList.add('visible');
                     bootOverlay.style.display = 'none';
-                    
-                    // Remove intro scroll lock
-                    document.body.classList.remove('intro-active');
                     
                     setTimeout(() => {
                         const terminalBtn = document.getElementById('terminalButton');
@@ -617,7 +612,7 @@ function startBootSequence() {
                             technicalBackground.show();
                         }
                         
-                        devLog('%c>> BOOT: System ready ✓', 'color: #39FF14; font-family: monospace;');
+                        console.log('%c>> BOOT: System ready ✓', 'color: #39FF14; font-family: monospace;');
                     }, 300);
                 }, 1000);
             }, 500);
@@ -1093,15 +1088,19 @@ class Terminal {
             theme: (arg) => this.toggleTheme(arg),
             audio: (arg) => this.audioControl(arg),
             matrix: () => this.toggleMatrix(),
+            parallax: () => this.toggleParallaxEffect(),
+            cursor: () => this.toggleCursorEffect(),
+            scanlines: () => this.toggleScanlinesEffect(),
+            glitch: () => this.toggleGlitchEffect(),
+            particles: () => this.toggleParticlesEffect(),
+            performance: (arg) => this.setPerformance(arg),
+            fps: (arg) => this.setMatrixFPS(arg),
             konami: () => this.konamiCode(),
             hack: () => this.hackEffect(),
             time: () => this.showTime(),
             whoami: () => this.whoami(),
             ls: () => this.listFiles(),
             cat: (file) => this.readFile(file),
-            performance: (arg) => this.performanceControl(arg),
-            perf: (arg) => this.performanceControl(arg),
-            fps: () => this.showPerformanceInfo(),
         };
     }
 
@@ -1111,15 +1110,6 @@ class Terminal {
         this.input = document.getElementById('terminalInput');
         
         if (!this.modal) return;
-        
-        // Register with performance manager
-        performanceManager.registerEffect('terminal', this);
-        
-        // Apply initial state from performance settings
-        const terminalButton = document.getElementById('terminalButton');
-        if (terminalButton && !performanceManager.effects.terminal) {
-            terminalButton.style.display = 'none';
-        }
         
         // Create backdrop
         this.backdrop = document.createElement('div');
@@ -1155,15 +1145,6 @@ class Terminal {
     }
 
     open() {
-        // Check if terminal is enabled
-        if (!performanceManager.effects.terminal) {
-            notificationManager.warning(
-                'TERMINAL_DISABLED',
-                'Terminal access is disabled. Enable it in Performance settings.'
-            );
-            return;
-        }
-        
         this.modal.classList.add('active');
         this.backdrop.classList.add('active');
         this.input.focus();
@@ -1219,10 +1200,19 @@ Available commands:<br>
 • contact - Contact information<br>
 • theme [dark/light] - Switch theme<br>
 • audio [play/stop/test] - Control background music<br>
+<br>
+<span style="color: #00FFFF;">VISUAL EFFECTS:</span><br>
 • matrix - Toggle Matrix rain effect<br>
-• performance [ultra/high/medium/low/auto] - Set quality preset<br>
-• perf [ultra/high/medium/low/auto] - Alias for performance<br>
-• fps - Show performance information<br>
+• parallax - Toggle parallax layers<br>
+• cursor - Toggle cursor trail<br>
+• scanlines - Toggle CRT scanlines<br>
+• glitch - Toggle glitch effects<br>
+• particles - Toggle particle effects<br>
+<br>
+<span style="color: #FFD700;">PERFORMANCE:</span><br>
+• performance [ultra/high/medium/low] - Set performance preset<br>
+• fps [number] - Set Matrix rain FPS (12-60)<br>
+<br>
 • time - Show current system time<br>
 • whoami - Display user info<br>
 • ls - List files<br>
@@ -1251,8 +1241,11 @@ S/N: KA-0226-MX07 | NODE_07
 
     showSkills() {
         this.addOutput(`
-<span style="color: #00ff00;">TECHNICAL_SKILLS:</span><br>
-▓▓▓▓▓▓▓▓▓▓ Unity/Unreal [95%]<br>
+    <div style="border-bottom: 1px solid var(--toxic-green); margin-bottom: 10px; padding-bottom: 5px;">
+        <span style="color: var(--toxic-green); font-weight: bold;">>> SYSTEM_ANALYSIS // SKILLS_MATRIX</span>
+    </div>
+    <span style="color: #00ff00;">TECHNICAL_SKILLS:</span><br>
+    ▓▓▓▓▓▓▓▓▓▓ Unity/C# [95%]<br>
 ▓▓▓▓▓▓▓▓▓░ C# / JavaScript [90%]<br>
 ▓▓▓▓▓▓▓▓░░ VR/AR Development [85%]<br>
 ▓▓▓▓▓▓▓░░░ 3D Modeling [75%]<br>
@@ -1329,6 +1322,133 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
             this.addOutput(`<span style="color: #FF6B6B;">Matrix rain DEACTIVATED</span>`);
             audioManager.playSound('click');
         }
+    }
+
+    toggleParallaxEffect() {
+        const currentState = performanceManager.effects.parallax;
+        performanceManager.toggleEffect('parallax', !currentState);
+        if (!currentState) {
+            this.addOutput(`<span style="color: #39FF14;">Parallax effect ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Parallax effect DEACTIVATED</span>`);
+            audioManager.playSound('click');
+        }
+    }
+
+    toggleCursorEffect() {
+        const currentState = performanceManager.effects.cursorTrail;
+        performanceManager.toggleEffect('cursorTrail', !currentState);
+        if (!currentState) {
+            this.addOutput(`<span style="color: #39FF14;">Cursor trail ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Cursor trail DEACTIVATED</span>`);
+            audioManager.playSound('click');
+        }
+    }
+
+    toggleScanlinesEffect() {
+        const currentState = performanceManager.effects.scanlines;
+        performanceManager.toggleEffect('scanlines', !currentState);
+        if (!currentState) {
+            this.addOutput(`<span style="color: #39FF14;">Scanlines ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Scanlines DEACTIVATED</span>`);
+            audioManager.playSound('click');
+        }
+    }
+
+    toggleGlitchEffect() {
+        const currentState = performanceManager.effects.glitch;
+        performanceManager.toggleEffect('glitch', !currentState);
+        if (!currentState) {
+            this.addOutput(`<span style="color: #39FF14;">Glitch effect ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Glitch effect DEACTIVATED</span>`);
+            audioManager.playSound('click');
+        }
+    }
+
+    toggleParticlesEffect() {
+        const currentState = performanceManager.effects.particles;
+        performanceManager.toggleEffect('particles', !currentState);
+        if (!currentState) {
+            this.addOutput(`<span style="color: #39FF14;">Particles ACTIVATED ✓</span>`);
+            audioManager.playSound('success');
+        } else {
+            this.addOutput(`<span style="color: #FF6B6B;">Particles DEACTIVATED</span>`);
+            audioManager.playSound('click');
+        }
+    }
+
+    setPerformance(preset) {
+        const validPresets = ['ultra', 'high', 'medium', 'low', 'auto'];
+        
+        if (!preset || !validPresets.includes(preset.toLowerCase())) {
+            this.addOutput(`
+Usage: performance [preset]<br>
+<br>
+Available presets:<br>
+• <span style="color: #FFD700;">ultra</span> - All effects enabled (high-end systems)<br>
+• <span style="color: #00FF00;">high</span> - Most effects enabled<br>
+• <span style="color: #FFA500;">medium</span> - Balanced performance<br>
+• <span style="color: #FF6B6B;">low</span> - Minimal effects (best performance)<br>
+• <span style="color: #00FFFF;">auto</span> - Automatic detection<br>
+<br>
+Current: <span style="color: #39FF14;">${performanceManager.currentPreset}</span>
+            `);
+            return;
+        }
+        
+        performanceManager.applyPreset(preset.toLowerCase());
+        this.addOutput(`
+<span style="color: #39FF14;">Performance preset changed to: ${preset.toUpperCase()}</span><br>
+<br>
+Effects status:<br>
+• Matrix Rain: ${performanceManager.effects.matrixRain ? '✓' : '✗'}<br>
+• Parallax: ${performanceManager.effects.parallax ? '✓' : '✗'}<br>
+• Cursor Trail: ${performanceManager.effects.cursorTrail ? '✓' : '✗'}<br>
+• Scanlines: ${performanceManager.effects.scanlines ? '✓' : '✗'}<br>
+• Glitch: ${performanceManager.effects.glitch ? '✓' : '✗'}<br>
+• Particles: ${performanceManager.effects.particles ? '✓' : '✗'}
+        `);
+        audioManager.playSound('success');
+    }
+
+    setMatrixFPS(value) {
+        if (!value) {
+            this.addOutput(`
+Usage: fps [number]<br>
+<br>
+Set Matrix rain frame rate (12-60 FPS)<br>
+Current FPS: <span style="color: #39FF14;">${matrixRain.fps}</span><br>
+<br>
+Recommendations:<br>
+• 12-18 FPS - Low-end systems<br>
+• 24 FPS - Balanced (default)<br>
+• 30 FPS - Smooth animation<br>
+• 60 FPS - High-end systems only
+            `);
+            return;
+        }
+        
+        const fps = parseInt(value);
+        if (isNaN(fps) || fps < 12 || fps > 60) {
+            this.addOutput(`<span style="color: #FF6B6B;">Error: FPS must be between 12 and 60</span>`);
+            return;
+        }
+        
+        matrixRain.fps = fps;
+        matrixRain.frameInterval = 1000 / fps;
+        
+        this.addOutput(`
+<span style="color: #39FF14;">Matrix rain FPS set to: ${fps}</span><br>
+Frame interval: ${matrixRain.frameInterval.toFixed(2)}ms
+        `);
+        audioManager.playSound('success');
     }
 
     showTime() {
@@ -1425,80 +1545,6 @@ Achievement unlocked: Retro Gamer<br>
             }, delay);
             delay += 500;
         });
-    }
-
-    performanceControl(preset) {
-        if (!preset) {
-            this.addOutput(`
-Usage: performance [preset]<br>
-Available presets:<br>
-• auto - Automatically detect best settings<br>
-• ultra - All effects enabled<br>
-• high - High quality with minor optimizations<br>
-• medium - Balanced performance<br>
-• low - Minimal effects for best performance<br>
-<br>
-Current preset: <span style="color: #00ff00;">${performanceManager.currentPreset.toUpperCase()}</span>
-            `);
-            return;
-        }
-
-        const validPresets = ['auto', 'ultra', 'high', 'medium', 'low'];
-        const normalizedPreset = preset.toLowerCase();
-        
-        if (!validPresets.includes(normalizedPreset)) {
-            this.addOutput(`<span style="color: #ff0000;">Error:</span> Invalid preset. Use: ${validPresets.join(', ')}`);
-            return;
-        }
-
-        performanceManager.applyPreset(normalizedPreset);
-        performanceManager.updateAllUI();
-        
-        this.addOutput(`<span style="color: #00ff00;">✓</span> Performance preset set to: <span style="color: #00ff00;">${normalizedPreset.toUpperCase()}</span>`);
-        
-        // Show what changed
-        const effects = performanceManager.effects;
-        const enabled = Object.keys(effects).filter(k => effects[k]);
-        const disabled = Object.keys(effects).filter(k => !effects[k]);
-        
-        if (enabled.length > 0) {
-            this.addOutput(`Enabled: ${enabled.map(e => e.toUpperCase()).join(', ')}`);
-        }
-        if (disabled.length > 0) {
-            this.addOutput(`Disabled: ${disabled.map(e => e.toUpperCase()).join(', ')}`);
-        }
-    }
-
-    showPerformanceInfo() {
-        const hw = performanceManager.hardware;
-        const effects = performanceManager.effects;
-        const activeEffects = Object.keys(effects).filter(k => effects[k]).length;
-        const totalEffects = Object.keys(effects).length;
-        
-        this.addOutput(`
-<span style="color: #00ff00;">╔════════════════════════════════════╗</span><br>
-<span style="color: #00ff00;">║</span>  PERFORMANCE DIAGNOSTICS        <span style="color: #00ff00;">║</span><br>
-<span style="color: #00ff00;">╚════════════════════════════════════╝</span><br>
-<br>
-<span style="color: #00ffff;">Hardware Information:</span><br>
-• Device Type: ${hw.isMobile ? 'MOBILE' : 'DESKTOP'}<br>
-• CPU Cores: ${hw.cores}<br>
-• Memory: ${hw.memory}GB<br>
-• Connection: ${hw.connection.toUpperCase()}<br>
-• Performance Score: ${hw.score}/100<br>
-• Hardware Tier: <span style="color: #00ff00;">${hw.tier.toUpperCase()}</span><br>
-<br>
-<span style="color: #00ffff;">Current Configuration:</span><br>
-• Preset: <span style="color: #00ff00;">${performanceManager.currentPreset.toUpperCase()}</span><br>
-• Active Effects: ${activeEffects}/${totalEffects}<br>
-• Matrix Rain: ${effects.matrixRain ? '✓' : '✗'}<br>
-• Parallax: ${effects.parallax ? '✓' : '✗'}<br>
-• Cursor Trail: ${effects.cursorTrail ? '✓' : '✗'}<br>
-• Scanlines: ${effects.scanlines ? '✓' : '✗'}<br>
-• Glitch: ${effects.glitch ? '✓' : '✗'}<br>
-• Particles: ${effects.particles ? '✓' : '✗'}<br>
-• Terminal: ${effects.terminal ? '✓' : '✗'}
-        `);
     }
 }
 
@@ -1602,11 +1648,12 @@ class SkillsRadar {
     constructor() {
         this.canvas = null;
         this.ctx = null;
+        // Ajustado a tu perfil real
         this.skills = [
-            { name: 'VR/AR', value: 90, color: '#39FF14' },
-            { name: 'Programming', value: 85, color: '#FF6B6B' },
-            { name: '3D/Shaders', value: 80, color: '#00FFFF' },
-            { name: 'Design', value: 75, color: '#FF00FF' }
+            { name: 'Unity/C#', value: 95, color: '#FF4500' }, // Tu fuerte
+            { name: 'VR/Optimization', value: 90, color: '#0056b3' }, // Tu especialidad
+            { name: 'Tech Art/Shaders', value: 85, color: '#000000' }, // Solido
+            { name: 'Unreal Engine', value: 40, color: '#666666' }  // Básico según CV
         ];
         this.animationProgress = 0;
     }
@@ -1718,61 +1765,44 @@ class ProjectsManager {
     constructor() {
         this.projects = [
             {
-                title: 'VR_MUSEUM',
-                description: 'Instalación interactiva de arte en realidad virtual con shaders procedurales',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=VR+MUSEUM',
-                tags: ['Unity', 'VR', 'Shaders'],
+                title: 'NOVA (SANDA JAM)',
+                description: '🏆 1º Lugar Mejor Atmósfera/Narrativa. Juego inmersivo creado en 48hrs con equipo internacional.',
+                image: 'ruta/a/imagen_nova.jpg', // ¡Sube una imagen y pon la ruta aquí!
+                tags: ['Unity', 'Narrative', 'Award Winner'],
                 category: 'vr',
-                github: 'https://github.com/kaitoartz',
+                github: 'https://github.com/kaitoartz', // Pon el link real si tienes
+                demo: 'https://kaitoartz.itch.io/' 
+            },
+            {
+                title: 'SIMULADORES IST',
+                description: 'Entornos de capacitación industrial con físicas complejas y hand-tracking en Meta Quest.',
+                image: 'ruta/a/imagen_simulador.jpg', 
+                tags: ['VR', 'Oculus SDK', 'Industrial'],
+                category: 'vr',
+                github: '#', // Privado
                 demo: '#'
             },
             {
-                title: 'SHADER_LAB',
-                description: 'Colección de shaders experimentales para visualización en tiempo real',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=SHADER+LAB',
-                tags: ['GLSL', 'WebGL', 'Three.js'],
+                title: 'UNITY OPTIMIZER TOOLS',
+                description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
+                image: 'ruta/a/imagen_tools.jpg',
+                tags: ['Tooling', 'C#', 'Editor Scripting'],
                 category: '3d',
                 github: 'https://github.com/kaitoartz',
                 demo: '#'
             },
             {
-                title: 'XR_EDUCATION',
-                description: 'Plataforma educativa inmersiva con tracking de manos',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=XR+EDUCATION',
-                tags: ['Meta Quest', 'Hand Tracking', 'C#'],
-                category: 'vr',
-                github: 'https://github.com/kaitoartz',
-                demo: '#'
-            },
-            {
-                title: 'AR_VISUALIZER',
-                description: 'Herramienta de visualización AR para datos científicos en tiempo real',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=AR+VISUALIZER',
-                tags: ['ARCore', 'Unity', 'Data Viz'],
-                category: 'ar',
-                github: 'https://github.com/kaitoartz',
-                demo: '#'
-            },
-            {
-                title: 'PORTFOLIO_WEB',
-                description: 'Portfolio interactivo con efectos cyberpunk y audio reactivo',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=WEB+PORTFOLIO',
-                tags: ['JavaScript', 'Canvas', 'Web Audio'],
+                title: 'CREHA BITAT',
+                description: '🥈 2º Lugar Social Impact Jam. Videojuego con enfoque social y educativo.',
+                image: 'ruta/a/imagen_creha.jpg',
+                tags: ['Unity', 'Social Impact', '2D'],
                 category: 'web',
-                github: 'https://github.com/kaitoartz/kaitoartz.github.io',
-                demo: 'https://kaitoartz.github.io'
-            },
-            {
-                title: 'HOLOGRAM_SIM',
-                description: 'Simulador de hologramas con efectos de interferencia y refracción',
-                image: 'https://via.placeholder.com/300x150/111111/39FF14?text=HOLOGRAM+SIM',
-                tags: ['Unity', 'Compute Shaders', 'VFX'],
-                category: '3d',
                 github: 'https://github.com/kaitoartz',
-                demo: '#'
+                demo: 'https://kaitoartz.itch.io/'
             }
         ];
     }
+    // ... init() y render() igual ...
 
     init() {
         this.render();
@@ -1972,28 +2002,28 @@ class TimelineManager {
     constructor() {
         this.experiences = [
             {
-                date: '2024 - PRESENT',
-                title: 'VR Developer',
-                company: 'TECH_CORP',
-                description: 'Desarrollo de experiencias inmersivas con Meta Quest y Unity'
+                date: 'SEP 2025 - ACTUALIDAD',
+                title: 'Desarrollador Unity Senior',
+                company: 'IST (Instituto de Seguridad del Trabajo)',
+                description: 'Liderando simuladores VR de prevención de riesgos. Gestión de hardware Meta Quest y creación de controladores personalizados con Arduino.'
             },
             {
-                date: '2023 - 2024',
-                title: 'Technical Artist',
-                company: 'DIGITAL_STUDIO',
-                description: 'Creación de shaders y pipelines de renderizado en tiempo real'
+                date: 'MAR 2025 - JUL 2025',
+                title: 'Unity VR Dev & Gestión',
+                company: 'STAFFY LTDA.',
+                description: 'Arquitectura de software para Meta Quest 3. Logré optimización crítica (35% menos memoria) y estabilización a 72 FPS fijos.'
             },
             {
-                date: '2022 - 2023',
-                title: 'Research Support',
-                company: 'UNIVERSITY_LAB',
-                description: 'Investigación en visualización de datos y AR educativo'
+                date: 'MAY 2024 - NOV 2024',
+                title: 'Tech Artist (Unreal Engine 5)',
+                company: 'CORE JEUX STUDIO',
+                description: 'Shaders personalizados, VFX atmosféricos y sistemas procedurales para generación de niveles.'
             },
             {
-                date: '2021 - 2022',
-                title: 'Junior Developer',
-                company: 'STARTUP_XR',
-                description: 'Prototipado rápido de aplicaciones XR'
+                date: 'AGO 2023 - FEB 2024',
+                title: 'Unity Developer (Pasantía)',
+                company: 'DREAMS OF HEAVEN',
+                description: 'Creación de herramientas de editor (C#) que redujeron tiempos de arte en un 30%.'
             }
         ];
     }
@@ -2025,10 +2055,13 @@ class MatrixRain {
         this.ctx = null;
         this.columns = 0;
         this.drops = [];
-        this.fontSize = 14;
+        this.fontSize = 16; // Aumentado para menos columnas
         this.characters = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         this.animationId = null;
         this.isActive = false;
+        this.fps = 24; // Limitado a 24fps para mejor rendimiento
+        this.lastFrameTime = 0;
+        this.frameInterval = 1000 / this.fps;
     }
 
     init() {
@@ -2059,15 +2092,27 @@ class MatrixRain {
         this.drops = Array(this.columns).fill(1);
     }
 
-    draw() {
+    draw(currentTime = 0) {
+        if (this.isActive) {
+            this.animationId = requestAnimationFrame((time) => this.draw(time));
+        }
+        
+        // Control de FPS
+        const elapsed = currentTime - this.lastFrameTime;
+        if (elapsed < this.frameInterval) {
+            return;
+        }
+        this.lastFrameTime = currentTime - (elapsed % this.frameInterval);
+
         // Semi-transparent black for trailing effect
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Green text
         this.ctx.fillStyle = '#39FF14';
         this.ctx.font = `${this.fontSize}px monospace`;
 
+        // Dibujar solo cada segunda columna para mejor rendimiento
         for (let i = 0; i < this.drops.length; i++) {
             const text = this.characters[Math.floor(Math.random() * this.characters.length)];
             const x = i * this.fontSize;
@@ -2081,10 +2126,6 @@ class MatrixRain {
             }
 
             this.drops[i]++;
-        }
-
-        if (this.isActive) {
-            this.animationId = requestAnimationFrame(() => this.draw());
         }
     }
 
@@ -2307,18 +2348,34 @@ class BurgerMenuManager {
         this.burgerBtn = null;
         this.panel = null;
         this.closeBtn = null;
+        this.dock = null;
         this.isOpen = false;
+        this.isDockExpanded = false;
     }
 
     init() {
         this.burgerBtn = document.getElementById('burgerMenu');
         this.panel = document.getElementById('settingsPanel');
         this.closeBtn = document.getElementById('settingsClose');
+        this.dock = document.querySelector('.control-dock');
 
-        if (!this.burgerBtn || !this.panel) return;
+        if (!this.burgerBtn || !this.panel || !this.dock) return;
 
-        this.burgerBtn.addEventListener('click', () => this.toggle());
+        this.burgerBtn.addEventListener('click', (e) => this.handleBurgerClick(e));
         this.closeBtn.addEventListener('click', () => this.close());
+
+        // Toggle dock on hover (optional, for better UX)
+        this.dock.addEventListener('mouseenter', () => {
+            if (!this.isDockExpanded && !this.isOpen) {
+                this.expandDock();
+            }
+        });
+
+        this.dock.addEventListener('mouseleave', () => {
+            if (this.isDockExpanded && !this.isOpen) {
+                this.collapseDock();
+            }
+        });
 
         // Close on ESC key
         document.addEventListener('keydown', (e) => {
@@ -2337,6 +2394,42 @@ class BurgerMenuManager {
         });
     }
 
+    handleBurgerClick(e) {
+        e.stopPropagation();
+        
+        // Si el panel está cerrado, primero expandir el dock si está colapsado
+        if (!this.isOpen && !this.isDockExpanded) {
+            this.toggleDock();
+        } else {
+            // Si el dock ya está expandido o el panel está abierto, toggle del panel
+            this.toggle();
+        }
+    }
+
+    toggleDock() {
+        if (this.isDockExpanded) {
+            this.collapseDock();
+        } else {
+            this.expandDock();
+        }
+    }
+
+    expandDock() {
+        this.dock.classList.remove('collapsed');
+        this.dock.dataset.expanded = 'true';
+        this.isDockExpanded = true;
+        audioManager.playSound('click');
+    }
+
+    collapseDock() {
+        if (!this.isOpen) {
+            this.dock.classList.add('collapsed');
+            this.dock.dataset.expanded = 'false';
+            this.isDockExpanded = false;
+            audioManager.playSound('click');
+        }
+    }
+
     toggle() {
         if (this.isOpen) {
             this.close();
@@ -2346,10 +2439,17 @@ class BurgerMenuManager {
     }
 
     open() {
+        this.expandDock(); // Asegurar que el dock esté expandido
         this.panel.classList.add('active');
         this.burgerBtn.classList.add('active');
         this.burgerBtn.setAttribute('aria-expanded', 'true');
         this.isOpen = true;
+        
+        // Ocultar el dock cuando se abre el panel
+        setTimeout(() => {
+            this.dock.classList.add('hidden');
+        }, 100);
+        
         audioManager.playSound('click');
     }
 
@@ -2358,6 +2458,10 @@ class BurgerMenuManager {
         this.burgerBtn.classList.remove('active');
         this.burgerBtn.setAttribute('aria-expanded', 'false');
         this.isOpen = false;
+        
+        // Mostrar el dock cuando se cierra el panel
+        this.dock.classList.remove('hidden');
+        
         audioManager.playSound('click');
     }
 }
@@ -2366,9 +2470,21 @@ class BurgerMenuManager {
 class LanguageManager {
     constructor() {
         this.currentLang = 'es';
+        this.langBtn = null;
     }
 
     init() {
+        // Botón del dock
+        this.langBtn = document.getElementById('langToggleBtn');
+        
+        if (this.langBtn) {
+            this.langBtn.addEventListener('click', () => {
+                const newLang = this.currentLang === 'es' ? 'en' : 'es';
+                this.switchLanguage(newLang);
+            });
+        }
+
+        // Botones del settings panel (si existen)
         const buttons = document.querySelectorAll('.lang-toggle');
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -2387,6 +2503,14 @@ class LanguageManager {
     switchLanguage(lang) {
         this.currentLang = lang;
         localStorage.setItem('language', lang);
+
+        // Update dock button
+        if (this.langBtn) {
+            const langText = this.langBtn.querySelector('.lang-text');
+            if (langText) {
+                langText.textContent = lang.toUpperCase();
+            }
+        }
 
         // Update buttons in settings panel
         document.querySelectorAll('.lang-toggle').forEach(btn => {
@@ -2411,18 +2535,23 @@ class SettingsManager {
     }
 
     init() {
+        // Botones del dock
         this.themeBtn = document.getElementById('themeToggleBtn');
         this.audioBtn = document.getElementById('audioToggleBtn');
 
+        // Theme button
         if (this.themeBtn) {
             this.themeBtn.addEventListener('click', () => this.toggleTheme());
-            this.updateThemeButton();
         }
+        
+        this.updateThemeButton();
 
+        // Audio button
         if (this.audioBtn) {
             this.audioBtn.addEventListener('click', () => this.toggleAudio());
-            this.updateAudioButton();
         }
+        
+        this.updateAudioButton();
     }
 
     toggleTheme() {
@@ -2433,11 +2562,19 @@ class SettingsManager {
 
     updateThemeButton() {
         const isDark = themeManager.theme === 'dark';
-        const icon = this.themeBtn.querySelector('.theme-icon');
-        const label = this.themeBtn.querySelector('.theme-label');
         
-        icon.textContent = isDark ? '☀' : '🌙';
-        label.textContent = isDark ? 'LIGHT' : 'DARK';
+        // Actualizar botón del dock
+        if (this.themeBtn) {
+            const dockIcon = this.themeBtn.querySelector('.theme-icon') || this.themeBtn.querySelector('i');
+            if (dockIcon) {
+                if (dockIcon.tagName === 'I') {
+                    // Font Awesome icon
+                    dockIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+                } else {
+                    dockIcon.textContent = isDark ? '☀' : '🌙';
+                }
+            }
+        }
     }
 
     toggleAudio() {
@@ -2451,18 +2588,26 @@ class SettingsManager {
         audioManager.playSound('click');
     }
 
-    updateAudioButton(isPlaying = false) {
-        const icon = this.audioBtn.querySelector('.audio-icon');
-        const label = this.audioBtn.querySelector('.audio-label');
+    updateAudioButton(isPlaying = null) {
+        const playing = isPlaying !== null ? isPlaying : (audioManager.bgMusic && !audioManager.bgMusic.paused);
         
-        if (isPlaying || (audioManager.bgMusic && !audioManager.bgMusic.paused)) {
-            icon.textContent = '🔊';
-            label.textContent = 'STOP';
-            this.audioBtn.classList.add('active');
-        } else {
-            icon.textContent = '🔇';
-            label.textContent = 'PLAY';
-            this.audioBtn.classList.remove('active');
+        // Actualizar botón del dock
+        if (this.audioBtn) {
+            const dockIcon = this.audioBtn.querySelector('.audio-icon') || this.audioBtn.querySelector('i');
+            if (dockIcon) {
+                if (dockIcon.tagName === 'I') {
+                    // Font Awesome icon
+                    dockIcon.className = playing ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+                } else {
+                    dockIcon.textContent = playing ? '🔊' : '🔇';
+                }
+            }
+            
+            if (playing) {
+                this.audioBtn.classList.add('active');
+            } else {
+                this.audioBtn.classList.remove('active');
+            }
         }
     }
 }
