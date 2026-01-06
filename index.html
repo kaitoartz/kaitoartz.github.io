@@ -3,7 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAITOARTZ // SECTOR_07 INTERFACE</title>
+    <title>KAITOARTZ // VR Developer & Tech Artist Portfolio</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Portfolio de KAITOARTZ - Desarrollador VR/AR especializado en experiencias inmersivas, shaders procedurales y visualización en tiempo real. Unity, Unreal Engine, WebGL.">
+    <meta name="keywords" content="VR Developer, AR Developer, Unity Developer, Virtual Reality, Augmented Reality, 3D Artist, Shader Programming, WebGL, Tech Art, Immersive Experiences, KAITOARTZ">
+    <meta name="author" content="KAITOARTZ">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kaitoartz.github.io/">
+    <meta property="og:title" content="KAITOARTZ - VR Developer & Tech Artist">
+    <meta property="og:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
+    <meta property="og:image" content="https://kaitoartz.github.io/preview.jpg">
+    <meta property="og:site_name" content="KAITOARTZ Portfolio">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://kaitoartz.github.io/">
+    <meta name="twitter:title" content="KAITOARTZ - VR Developer & Tech Artist">
+    <meta name="twitter:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
+    <meta name="twitter:image" content="https://kaitoartz.github.io/preview.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -48,6 +73,148 @@
             <div class="loader-bar"></div>
             <div class="loader-text">INITIALIZING SECTOR_07 // <span id="loadProgress">0</span>%</div>
             <div class="loader-status">SYS_V.2.0.226 | AUTH_GRANTED | NODE_ACTIVE</div>
+        </div>
+    </div>
+
+    <!-- BURGER MENU -->
+    <button class="burger-menu" id="burgerMenu" aria-label="Abrir menú de configuración" aria-expanded="false">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+    </button>
+
+    <!-- SETTINGS PANEL -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <span>SETTINGS // CONFIG</span>
+            <button class="settings-close" id="settingsClose">×</button>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>LANGUAGE // IDIOMA</label>
+                <div class="setting-buttons">
+                    <button class="setting-btn lang-toggle" data-lang="en">EN</button>
+                    <button class="setting-btn lang-toggle active" data-lang="es">ES</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>THEME // TEMA</label>
+                <div class="setting-buttons">
+                    <button class="setting-btn theme-toggle-btn" id="themeToggleBtn">
+                        <span class="theme-icon">☀</span>
+                        <span class="theme-label">LIGHT</span>
+                    </button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>AUDIO // SONIDO</label>
+                <div class="setting-buttons">
+                    <button class="setting-btn audio-toggle-btn" id="audioToggleBtn">
+                        <span class="audio-icon">🔊</span>
+                        <span class="audio-label">PLAY</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- PERFORMANCE SECTION -->
+            <div class="setting-section-divider"></div>
+            <div class="setting-section-title">PERFORMANCE // EFFECTS</div>
+            
+            <div class="setting-item">
+                <label>QUALITY PRESET</label>
+                <div class="setting-buttons preset-buttons">
+                    <button class="setting-btn preset-btn" data-preset="auto">AUTO</button>
+                    <button class="setting-btn preset-btn" data-preset="ultra">ULTRA</button>
+                    <button class="setting-btn preset-btn" data-preset="high">HIGH</button>
+                    <button class="setting-btn preset-btn" data-preset="medium">MED</button>
+                    <button class="setting-btn preset-btn" data-preset="low">LOW</button>
+                </div>
+                <div class="hardware-info" id="hardwareInfo"></div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>MATRIX RAIN</span>
+                    <span class="effect-status" id="matrixStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="matrixRain" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>PARALLAX LAYERS</span>
+                    <span class="effect-status" id="parallaxStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="parallax" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>CURSOR TRAIL</span>
+                    <span class="effect-status" id="cursorStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="cursorTrail" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>SCANLINE EFFECT</span>
+                    <span class="effect-status" id="scanlineStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="scanlines" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>GLITCH EFFECTS</span>
+                    <span class="effect-status" id="glitchStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="glitch" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>PARTICLES</span>
+                    <span class="effect-status" id="particlesStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="particles" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <span>TERMINAL ACCESS</span>
+                    <span class="effect-status" id="terminalStatus">ON</span>
+                </label>
+                <div class="setting-buttons">
+                    <button class="setting-btn effect-toggle" data-effect="terminal" data-state="on">
+                        <span class="toggle-indicator">●</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -184,7 +351,7 @@
             <div class="link-id">ID_03</div>
         </a>
 
-        <a href="OTRO_ENLACE_TUYO" target="_blank" class="grid-item link-block" data-id="04">
+        <a href="https://kaitoartz.itch.io/" target="_blank" class="grid-item link-block" data-id="04">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -208,7 +375,7 @@
             <div class="link-id">ID_05</div>
         </a>
 
-        <a href="MAILTO:kaitoartz.info@gmail.com" class="grid-item link-block" data-id="06">
+        <a href="mailto:kaitoartz.info@gmail.com" class="grid-item link-block" data-id="06">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -246,6 +413,15 @@
             <div class="corner bottom-right">+</div>
             
             <div class="block-label glitch" data-text="ACTIVE_PROJECTS">ACTIVE_PROJECTS // <span class="label-code">ARCHIVE_07</span></div>
+            
+            <div class="project-filters" id="projectFilters">
+                <button class="filter-btn active" data-filter="all">ALL</button>
+                <button class="filter-btn" data-filter="vr">VR</button>
+                <button class="filter-btn" data-filter="ar">AR</button>
+                <button class="filter-btn" data-filter="web">WEB</button>
+                <button class="filter-btn" data-filter="3d">3D</button>
+            </div>
+            
             <div class="projects-grid" id="projectsGrid">
                 <!-- Projects will be added dynamically -->
             </div>
@@ -476,6 +652,14 @@
             <div class="shortcut-item"><kbd>H</kbd><span>Scroll to Top</span></div>
             <div class="shortcut-item"><kbd>C</kbd><span>Scroll to Console</span></div>
             <div class="shortcut-item"><kbd>ESC</kbd><span>Close Modals</span></div>
+        </div>
+    </div>
+
+    <!-- PROJECT LIGHTBOX -->
+    <div class="lightbox" id="projectLightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">×</button>
+            <img class="lightbox-image" id="lightboxImage" src="" alt="Project detail">
         </div>
     </div>
 
