@@ -6,6 +6,7 @@
     --toxic-green: #39FF14;
     --accent-color: #39FF14;
     --secondary-accent: #FF1493;
+    --shadow-color: rgba(57, 255, 20, 0.3);
     --border: 1px;
     
     /* Theme colors - inverted for dark mode */
@@ -739,7 +740,7 @@ body.no-glitch .glitch::after {
 .stat-box:hover {
     background: var(--text-primary);
     color: var(--bg-primary);
-    box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.2), 0 0 10px rgba(57, 255, 20, 0.3);
+    box-shadow: inset 0 0 20px var(--shadow-color), 0 0 10px var(--shadow-color);
     transform: scale(1.05);
 }
 
@@ -896,7 +897,7 @@ body.no-glitch .glitch::after {
     background: var(--text-primary);
     color: var(--bg-primary);
     transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px var(--shadow-color);
 }
 
 .link-block:active {
@@ -1166,7 +1167,7 @@ body.no-glitch .glitch::after {
 
 .theme-toggle:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+    box-shadow: 0 0 20px var(--shadow-color);
 }
 
 .theme-toggle:active {
@@ -1198,7 +1199,7 @@ body.no-glitch .glitch::after {
 .theme-toggle.light .toggle-orbit {
     left: 32px;
     background: #FFD700;
-    box-shadow: 0 0 10px #FFD700;
+    box-shadow: 0 0 10px var(--shadow-color);
     transform: rotate(180deg);
 }
 
@@ -1263,6 +1264,10 @@ body.light-theme {
     --text-primary: #000000;
     --text-secondary: #666666;
     --border-color: #000000;
+    --accent-color: #FF6B35;
+    --toxic-green: #FF6B35;
+    --secondary-accent: #FF8C00;
+    --shadow-color: rgba(255, 107, 53, 0.3);
 }
 
 /* Smooth transition for theme change */
@@ -1326,70 +1331,6 @@ a, button, .link-block, .stat-box {
     z-index: 10010;
 }
 
-/* ========== VOLUME CONTROL ========== */
-.volume-control {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10002;
-    background: var(--bg-primary);
-    border: var(--border) solid var(--border-color);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-}
-
-.volume-control:hover {
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
-}
-
-.volume-icon {
-    font-size: 1.2rem;
-    cursor: pointer;
-    user-select: none;
-}
-
-.volume-slider {
-    width: 100px;
-    height: 4px;
-    background: var(--bg-secondary);
-    border: var(--border) solid var(--border-color);
-    outline: none;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: var(--toxic-green);
-    border: var(--border) solid var(--border-color);
-    cursor: pointer;
-    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-}
-
-.volume-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    background: var(--toxic-green);
-    border: var(--border) solid var(--border-color);
-    cursor: pointer;
-}
-
-.volume-value {
-    font-size: 0.65rem;
-    letter-spacing: 1px;
-    color: var(--text-primary);
-    min-width: 35px;
-    font-weight: 700;
-}
-
 /* ========== TERMINAL BUTTON ========== */
 .terminal-button {
     position: fixed;
@@ -1407,7 +1348,7 @@ a, button, .link-block, .stat-box {
     gap: 8px;
     transition: all 0.3s ease;
     clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    box-shadow: 0 0 10px var(--shadow-color);
     opacity: 0;
     transform: translateY(20px);
     pointer-events: none;
@@ -1421,7 +1362,7 @@ a, button, .link-block, .stat-box {
 
 .terminal-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+    box-shadow: 0 0 20px var(--shadow-color);
     background: rgba(57, 255, 20, 0.1);
 }
 
@@ -1453,7 +1394,7 @@ a, button, .link-block, .stat-box {
 #skillsRadar {
     max-width: 100%;
     height: auto;
-    filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.3));
+    filter: drop-shadow(0 0 10px var(--shadow-color));
 }
 
 .skills-legend {
@@ -1720,7 +1661,7 @@ a, button, .link-block, .stat-box {
     border-radius: 50px; /* Estilo píldora futurista */
     backdrop-filter: blur(10px);
     z-index: 9999;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 10px rgba(57, 255, 20, 0.2);
+    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 10px var(--shadow-color);
     transition: all 0.3s ease;
     overflow: hidden;
 }
@@ -1746,7 +1687,7 @@ a, button, .link-block, .stat-box {
 }
 
 .control-dock:hover {
-    box-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+    box-shadow: 0 0 30px var(--shadow-color);
     border-color: #fff;
 }
 
@@ -1829,7 +1770,7 @@ a, button, .link-block, .stat-box {
     border-left: var(--border) solid var(--border-color);
     z-index: 9998;
     transition: right 0.3s ease-out;
-    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+    box-shadow: -5px 0 30px var(--shadow-color);
 }
 
 .settings-panel.active {
@@ -1877,6 +1818,8 @@ a, button, .link-block, .stat-box {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    overflow-y: auto;
+    max-height: calc(100vh - 80px);
 }
 
 .setting-item {
@@ -2159,7 +2102,7 @@ a, button, .link-block, .stat-box {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 
 .form-group input.error,
@@ -2289,7 +2232,7 @@ a, button, .link-block, .stat-box {
     padding: 15px 20px;
     background: var(--bg-primary);
     border: var(--border) solid var(--border-color);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px var(--shadow-color);
     pointer-events: all;
     opacity: 0;
     transform: translateX(400px);
@@ -2399,7 +2342,7 @@ a, button, .link-block, .stat-box {
     flex-direction: column;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    box-shadow: 0 0 50px rgba(57, 255, 20, 0.5);
+    box-shadow: 0 0 50px var(--shadow-color);
 }
 
 .terminal-modal.active {
@@ -2976,6 +2919,17 @@ body.performance-mode-low * {
     box-shadow: none !important; /* Las sombras consumen caleta de GPU */
 }
 
+/* EXCEPTION: Keep timeline animations even in low performance mode */
+body.performance-mode-low .timeline-item,
+body.performance-mode-low .timeline-dot {
+    animation: timelineSlide 0.6s forwards !important;
+}
+
+body.performance-mode-low .timeline-item:nth-child(1) { animation-delay: 0.1s !important; }
+body.performance-mode-low .timeline-item:nth-child(2) { animation-delay: 0.2s !important; }
+body.performance-mode-low .timeline-item:nth-child(3) { animation-delay: 0.3s !important; }
+body.performance-mode-low .timeline-item:nth-child(4) { animation-delay: 0.4s !important; }
+
 /* Hacer que las tarjetas aparezcan de una, sin fade suave */
 body.performance-mode-low .grid-item {
     opacity: 1 !important;
@@ -3068,3 +3022,5 @@ body.performance-mode-low .grid-item {
         animation: none !important;
     }
 }
+
+.matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -4; pointer-events: none; opacity: 0.15; }

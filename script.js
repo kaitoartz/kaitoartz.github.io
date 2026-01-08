@@ -111,7 +111,7 @@ class PerformanceManager {
                 scanlines: false,
                 glitch: false,
                 particles: false,
-                terminal: false
+                terminal: true
             }
         };
 
@@ -245,7 +245,8 @@ class PerformanceManager {
             cursorTrail: 'cursorStatus',
             scanlines: 'scanlineStatus',
             glitch: 'glitchStatus',
-            particles: 'particlesStatus'
+            particles: 'particlesStatus',
+            terminal: 'terminalStatus'
         };
         
         const statusEl = document.getElementById(statusMap[effectName]);
@@ -879,14 +880,21 @@ class ThemeManager {
         // Apply saved theme
         this.applyTheme(this.theme, false);
         
-        // Add event listener
-        this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
+        // Add event listener only if button exists
+        if (this.toggleButton) {
+            this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
+        }
     }
 
     handleToggle(e) {
-        const rect = this.toggleButton.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        
+        if (this.toggleButton) {
+            const rect = this.toggleButton.getBoundingClientRect();
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+        }
         
         // Play sound
         audioManager.playClick();
@@ -941,16 +949,24 @@ class ThemeManager {
     applyTheme(theme, animate = false) {
         if (theme === 'light') {
             document.body.classList.add('light-theme');
-            this.toggleButton.classList.add('light');
-            this.toggleLabel.textContent = 'DAY_MODE';
+            if (this.toggleButton) {
+                this.toggleButton.classList.add('light');
+            }
+            if (this.toggleLabel) {
+                this.toggleLabel.textContent = 'DAY_MODE';
+            }
             
             if (animate) {
                 console.log('%c>> THEME_SWITCH: DAY_MODE_ACTIVATED', 'color: #FFD700; font-family: monospace;');
             }
         } else {
             document.body.classList.remove('light-theme');
-            this.toggleButton.classList.remove('light');
-            this.toggleLabel.textContent = 'NIGHT_MODE';
+            if (this.toggleButton) {
+                this.toggleButton.classList.remove('light');
+            }
+            if (this.toggleLabel) {
+                this.toggleLabel.textContent = 'NIGHT_MODE';
+            }
             
             if (animate) {
                 console.log('%c>> THEME_SWITCH: NIGHT_MODE_ACTIVATED', 'color: #39FF14; font-family: monospace;');
@@ -1004,11 +1020,14 @@ class CursorManager {
     animate() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
+        const cursorColor = getComputedStyle(document.documentElement).getPropertyValue('--toxic-green').trim();
+        const rgb = this.hexToRgb(cursorColor);
+        
         // Draw trail
         this.trail.forEach(point => {
             point.life -= 0.05;
             const size = 3 * point.life;
-            this.ctx.fillStyle = `rgba(57, 255, 20, ${point.life * 0.5})`;
+            this.ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${point.life * 0.5})`;
             this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
         });
         this.trail = this.trail.filter(p => p.life > 0);
@@ -1016,7 +1035,7 @@ class CursorManager {
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;
-        this.ctx.strokeStyle = '#39FF14';
+        this.ctx.strokeStyle = cursorColor;
         this.ctx.lineWidth = 1;
         
         this.ctx.beginPath();
@@ -1027,10 +1046,19 @@ class CursorManager {
         this.ctx.lineTo(x, y + size);
         this.ctx.stroke();
         
-        this.ctx.fillStyle = '#39FF14';
+        this.ctx.fillStyle = cursorColor;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
         requestAnimationFrame(() => this.animate());
+    }
+
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : { r: 57, g: 255, b: 20 };
     }
 }
 

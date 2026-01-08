@@ -187,7 +187,7 @@
     </div>
 
     <!-- MATRIX RAIN CANVAS -->
-    <canvas id="matrixCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -4; pointer-events: none; opacity: 0.15;"></canvas>
+    <canvas id="matrixCanvas" class="matrix-canvas" aria-label="Digital rain animation effect" role="img"></canvas>
 
     <!-- PARALLAX LAYERS -->
     <div class="parallax-layer" data-speed="0.2" style="z-index: -3;">
@@ -204,7 +204,7 @@
     </div>
 
     <!-- MAIN DASHBOARD -->
-    <div class="dashboard">
+    <main class="dashboard" id="main-content">
         
         <!-- HEADER BLOCK -->
         <section class="grid-item header-block">
@@ -243,7 +243,7 @@
                     <span class="stat-label">COLABS</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-value" data-count="320">3000+</span>
+                    <span class="stat-value" data-count="3000">3000+</span>
                     <span class="stat-label">XR_HOURS</span>
                 </div>
             </div>
@@ -319,7 +319,7 @@
             <div class="link-id">ID_03</div>
         </a>
 
-        <a href="https://kaitoartz.itch.io/" target="_blank" class="grid-item link-block" data-id="04">
+        <a href="#projects-section" class="grid-item link-block" data-id="04">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -364,7 +364,7 @@
             <div class="scan-line"></div>
             
             <div class="block-label glitch" data-text="SKILLS_MATRIX">SKILLS_MATRIX // <span class="label-code">v1.2.7</span></div>
-            <canvas id="skillsRadar" width="300" height="300"></canvas>
+            <canvas id="skillsRadar" width="300" height="300" aria-label="Radar chart showing technical skills distribution" role="img"></canvas>
             <div class="skills-legend">
                 <div class="legend-item"><span class="legend-dot" style="background: var(--accent-color);"></span>VR/AR</div>
                 <div class="legend-item"><span class="legend-dot" style="background: var(--secondary-accent);"></span>Programming</div>
@@ -374,7 +374,7 @@
         </section>
 
         <!-- PROJECTS EXPANDABLE SECTION -->
-        <section class="grid-item projects-block">
+        <section class="grid-item projects-block" id="projects-section">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -403,7 +403,7 @@
             <div class="corner bottom-right">+</div>
             
             <div class="block-label">AUDIO_SPECTRUM // <span class="label-code">FFT_512</span></div>
-            <canvas id="audioVisualizer" width="400" height="120"></canvas>
+            <canvas id="audioVisualizer" width="400" height="120" aria-label="Audio frequency spectrum visualizer" role="img"></canvas>
             <div class="visualizer-status">
                 <span id="visualizerStatus">STANDBY</span>
             </div>
@@ -492,24 +492,7 @@
             </div>
         </footer>
 
-    </div>
-
-    <!-- THEME TOGGLE BUTTON -->
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <div class="toggle-track">
-            <div class="toggle-orbit"></div>
-            <div class="toggle-icon sun">☀</div>
-            <div class="toggle-icon moon">◐</div>
-        </div>
-        <div class="toggle-label" id="toggleLabel">NIGHT_MODE</div>
-    </button>
-
-    <!-- VOLUME CONTROL -->
-    <div class="volume-control" id="volumeControl">
-        <div class="volume-icon" id="volumeIcon">🔊</div>
-        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="30">
-        <div class="volume-value" id="volumeValue">30%</div>
-    </div>
+    </main>
 
     <!-- TERMINAL BUTTON -->
     <button class="terminal-button" id="terminalButton" title="Open Terminal (Ctrl+K)">
@@ -521,7 +504,7 @@
     <div id="notificationsContainer" class="notifications-container"></div>
 
     <!-- CURSOR TRAIL -->
-    <canvas id="cursorCanvas" class="cursor-canvas"></canvas>
+    <canvas id="cursorCanvas" class="cursor-canvas" aria-label="Interactive cursor trail effect" role="img"></canvas>
 
     <!-- TECHNICAL BACKGROUND ELEMENTS -->
     <div class="tech-background">
