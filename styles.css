@@ -87,6 +87,14 @@ body.no-glitch .glitch::after {
     cursor: none;
 }
 
+/* Bloquear scroll durante pantalla de inicio y boot */
+body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    position: fixed;
+    width: 100%;
+}
+
 .start-content {
     text-align: center;
     max-width: 600px;
@@ -212,6 +220,7 @@ body.no-glitch .glitch::after {
 .glitch {
     position: relative;
     display: inline-block;
+    overflow: hidden;
 }
 
 .glitch::before,
@@ -223,6 +232,7 @@ body.no-glitch .glitch::after {
     width: 100%;
     height: 100%;
     opacity: 0;
+    overflow: hidden;
 }
 
 .glitch::before {
@@ -473,6 +483,10 @@ body.no-glitch .glitch::after {
     transform: translate(-50%, -50%);
     text-align: center;
     width: min(500px, 90%);
+    z-index: 10002;
+    background: var(--bg-primary);
+    padding: 40px;
+    border-radius: 4px;
 }
 
 .boot-loader::before {
@@ -852,6 +866,10 @@ body.no-glitch .glitch::after {
     text-transform: uppercase;
     margin-bottom: 15px;
     color: var(--gray-mid);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .info-text {
@@ -896,8 +914,8 @@ body.no-glitch .glitch::after {
 .link-block:hover {
     background: var(--text-primary);
     color: var(--bg-primary);
-    transform: scale(1.02);
-    box-shadow: 0 0 20px var(--shadow-color);
+    transform: scale(1.05);
+    box-shadow: inset 0 0 20px var(--shadow-color), 0 0 10px var(--shadow-color);
 }
 
 .link-block:active {
@@ -915,6 +933,11 @@ body.no-glitch .glitch::after {
 .link-icon {
     font-size: 2.5rem;
     margin-bottom: 10px;
+    transition: transform 0.3s ease;
+}
+
+.link-block:hover .link-icon {
+    transform: scale(1.1);
 }
 
 .link-title {
@@ -922,12 +945,14 @@ body.no-glitch .glitch::after {
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
+    transition: color 0.3s ease;
 }
 
 .link-subtitle {
     font-size: 0.75rem;
     letter-spacing: 1px;
     color: var(--text-secondary);
+    transition: color 0.3s ease;
 }
 
 .link-block:hover .link-subtitle {
@@ -1424,6 +1449,7 @@ a, button, .link-block, .stat-box {
 .projects-block {
     grid-column: span 2;
     padding: 30px !important;
+    overflow: hidden;
 }
 
 .projects-grid {

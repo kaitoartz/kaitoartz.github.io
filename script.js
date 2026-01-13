@@ -536,6 +536,10 @@ const audioManager = new AudioManager();
 
 // ========== START BUTTON ==========
 document.addEventListener('DOMContentLoaded', () => {
+    // Bloquear scroll al cargar la página
+    document.body.classList.add('no-scroll');
+    console.log('%c>> SCROLL: Blocked during start screen', 'color: #FFB86C; font-family: monospace;');
+    
     const startButton = document.getElementById('startButton');
     const startScreen = document.querySelector('.start-screen');
     const bootOverlay = document.querySelector('.boot-overlay');
@@ -547,11 +551,23 @@ document.addEventListener('DOMContentLoaded', () => {
         await audioManager.init();
         audioManager.playClick();
         audioManager.playBoot();
+          // Ocultar matrix rain durante la transición
+        const matrixCanvas = document.getElementById('matrixCanvas');
+        if (matrixCanvas) {
+            matrixCanvas.style.display = 'none';
+        }
         
         // Start background music with proper timing
         setTimeout(() => {
             console.log('%c>> SYSTEM: Starting background music...', 'color: #00FFFF; font-family: monospace;');
             audioManager.playBackgroundMusic(0.3); // Increased volume to 30%
+            
+            // Actualizar botón de audio después de iniciar la música
+            setTimeout(() => {
+                if (typeof dockController !== 'undefined') {
+                    dockController.updateAudioButton(true);
+                }
+            }, 100);
             
             // Initialize visualizer after audio nodes are ready
             setTimeout(() => {
@@ -599,11 +615,21 @@ function startBootSequence() {
             
             setTimeout(() => {
                 bootOverlay.classList.add('complete');
-                
-                setTimeout(() => {
-                    console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
+                  setTimeout(() => {                    console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
                     dashboard.classList.add('visible');
                     bootOverlay.style.display = 'none';
+                    
+                    // Mostrar matrix rain después del boot
+                    const matrixCanvas = document.getElementById('matrixCanvas');
+                    if (matrixCanvas) {
+                        matrixCanvas.style.display = 'block';
+                    }
+                    
+                    // Desbloquear scroll cuando el dashboard esté listo
+                    setTimeout(() => {
+                        document.body.classList.remove('no-scroll');
+                        console.log('%c>> SCROLL: Enabled - Dashboard ready ✓', 'color: #39FF14; font-family: monospace;');
+                    }, 100);
                     
                     setTimeout(() => {
                         const terminalBtn = document.getElementById('terminalButton');
@@ -2603,9 +2629,7 @@ class SettingsManager {
                 }
             }
         }
-    }
-
-    toggleAudio() {
+    }    toggleAudio() {
         if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
             audioManager.stopBackgroundMusic();
             this.updateAudioButton(false);
@@ -2624,7 +2648,7 @@ class SettingsManager {
             const dockIcon = this.audioBtn.querySelector('.audio-icon') || this.audioBtn.querySelector('i');
             if (dockIcon) {
                 if (dockIcon.tagName === 'I') {
-                    // Font Awesome icon
+                    // Font Awesome icon - cambiar según el estado
                     dockIcon.className = playing ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
                 } else {
                     dockIcon.textContent = playing ? '🔊' : '🔇';
