@@ -30,8 +30,10 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -42,6 +44,16 @@
         <!-- TECH BACKGROUND LAYERS -->
         <div class="tactical-grid-bg"></div>
         
+        <!-- DECORATIVE HUD ELEMENTS -->
+        <div class="tech-decals">
+            <div class="hazard-stripes stripes-top"></div>
+            <div class="hazard-stripes stripes-bottom"></div>
+            <div class="cyber-star star-1"></div>
+            <div class="cyber-star star-2"></div>
+            <div class="hud-circle circle-large"></div>
+            <div class="hud-circle circle-small"></div>
+        </div>
+
         <div class="tech-corner-bracket top-left"></div>
         <div class="tech-corner-bracket top-right"></div>
         <div class="tech-corner-bracket bottom-left"></div>
@@ -100,10 +112,10 @@
                     <div class="logo-text">KA</div>
                 </div>
             </div>
-            <h1 class="start-title">SECTOR_07</h1>
-            <p class="start-subtitle">BIOMETRIC VERIFICATION REQUIRED</p>
+            <h1 class="start-title" data-i18n="start.title">SECTOR_07</h1>
+            <p class="start-subtitle" data-i18n="start.subtitle">BIOMETRIC VERIFICATION REQUIRED</p>
             <button class="start-button" id="startButton">
-                <span class="button-text">[ ACCESS SYSTEM ]</span>
+                <span class="button-text" data-i18n="start.access">[ ACCESS SYSTEM ]</span>
                 <span class="button-indicator">▶</span>
             </button>
             <div class="start-info">
@@ -111,19 +123,39 @@
                 <span class="separator">|</span>
                 <span>NODE_07</span>
                 <span class="separator">|</span>
-                <span>2026.01.04</span>
+                <span class="date-display">2026.01.04</span>
             </div>
         </div>
     </div>
 
     <!-- BOOT SEQUENCE OVERLAY -->
     <div class="boot-overlay" style="display: none;">
-        <div class="boot-top"></div>
-        <div class="boot-bottom"></div>
-        <div class="boot-loader">
-            <div class="loader-bar"></div>
-            <div class="loader-text">INITIALIZING SECTOR_07 // <span id="loadProgress">0</span>%</div>
-            <div class="loader-status">SYS_V.2.0.226 | AUTH_GRANTED | NODE_ACTIVE</div>
+        <div class="boot-grid"></div>
+        <div class="boot-content">
+            <div class="boot-logo">KA-SYSTEMS</div>
+        
+            <div class="boot-loader-wrapper">
+                <div class="loader-bar-container">
+                    <div class="loader-bar" id="bootLoaderBar"></div>
+                </div>
+                <div class="loader-labels">
+                    <div class="loader-text" data-text="INITIALIZING...">INITIALIZING...</div>
+                    <div class="loader-percent"><span id="loadProgress">0</span>%</div>
+                </div>
+            </div>
+        
+            <div class="boot-log-container">
+                <div class="boot-log" id="bootLog">
+                    <!-- Log lines will be injected here -->
+                </div>
+                <div class="log-overlay"></div>
+            </div>
+        
+            <div class="boot-status-row">
+                <span>MEM: 64TB OK</span>
+                <span>NET: CONNECTED</span>
+                <span>SEC: ENCRYPTED</span>
+            </div>
         </div>
     </div>
 
@@ -136,6 +168,25 @@
             </button>
         </div>
         <div class="settings-content">
+            <!-- THEME SECTION -->
+            <div class="setting-section-title">SYSTEM // VISUALS</div>
+            
+            <div class="setting-item">
+                <label>COLOR THEME</label>
+                <div class="setting-buttons theme-buttons">
+                    <button class="setting-btn color-btn active" data-color="default" style="--btn-color: #E2FF00;"
+                        title="Cyber Yellow"></button>
+                    <button class="setting-btn color-btn" data-color="orange" style="--btn-color: #FF9900;"
+                        title="Tech Orange"></button>
+                    <button class="setting-btn color-btn" data-color="pink" style="--btn-color: #FF00CC;"
+                        title="Neon Pink"></button>
+                    <button class="setting-btn color-btn" data-color="white" style="--btn-color: #FFFFFF;"
+                        title="Pure White"></button>
+                </div>
+            </div>
+            
+            <div class="setting-separator"></div>
+
             <!-- PERFORMANCE SECTION -->
             <div class="setting-section-title">PERFORMANCE // EFFECTS</div>
             
@@ -280,22 +331,22 @@
             </div>
             
             <h1 class="main-title glitch" data-text="KAITOARTZ">KAITOARTZ</h1>
-            <p class="main-subtitle">VR DEVELOPER // TECH ARTIST // RESEARCH SUPPORT</p>
+            <p class="main-subtitle" data-i18n="header.subtitle">VR DEVELOPER // TECH ARTIST // RESEARCH SUPPORT</p>
             
             <div class="serial-number">S/N: KA-2026-BARCELONA-OP</div>
             
             <div class="stats-row">
                 <div class="stat-box">
                     <span class="stat-value" data-count="48">10+</span>
-                    <span class="stat-label">PROJECTS</span>
+                    <span class="stat-label" data-i18n="stats.projects">PROJECTS</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-value" data-count="12">05+</span>
-                    <span class="stat-label">COLABS</span>
+                    <span class="stat-label" data-i18n="stats.colabs">COLABS</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-value" data-count="3000">3000+</span>
-                    <span class="stat-label">XR_HOURS</span>
+                    <span class="stat-label" data-i18n="stats.hours">XR_HOURS</span>
                 </div>
             </div>
         </section>
@@ -312,8 +363,9 @@
             <div class="diagonal-bar" style="top: 10px; right: 10px;"></div>
             <div class="diagonal-bar" style="bottom: 10px; right: 30px;"></div>
             
-            <div class="block-label">SYSTEM_INFO // <span class="label-code">v2.0.226</span></div>
-            <p class="info-text">
+            <div class="block-label"><span data-i18n="info.label">SYSTEM_INFO</span> // <span class="label-code">v2.0.226</span>
+            </div>
+            <p class="info-text" data-i18n="info.text">
                 Diseño experiencias XR con estética brutalista y pipelines experimentales. 
                 Especializado en visualización en tiempo real, instalaciones inmersivas y 
                 herramientas educativas interactivas.
@@ -341,7 +393,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-solid fa-gamepad link-icon"></i>
-            <div class="link-title">PORTFOLIO</div>
+            <div class="link-title" data-i18n="link.portfolio">PORTFOLIO</div>
             <div class="link-subtitle">ITCH.IO</div>
             <div class="link-id">ID_01</div>
         </a>
@@ -353,7 +405,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-brands fa-linkedin-in link-icon"></i>
-            <div class="link-title">PROFESSIONAL</div>
+            <div class="link-title" data-i18n="link.professional">PROFESSIONAL</div>
             <div class="link-subtitle">LINKEDIN</div>
             <div class="link-id">ID_02</div>
         </a>
@@ -365,7 +417,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-brands fa-github link-icon"></i>
-            <div class="link-title">SOURCE_CODE</div>
+            <div class="link-title" data-i18n="link.code">SOURCE_CODE</div>
             <div class="link-subtitle">GITHUB</div>
             <div class="link-id">ID_03</div>
         </a>
@@ -377,7 +429,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-solid fa-vr-cardboard link-icon"></i>
-            <div class="link-title">VR_PROJECTS</div>
+            <div class="link-title" data-i18n="link.vr">VR_PROJECTS</div>
             <div class="link-subtitle">SHOWCASE</div>
             <div class="link-id">ID_04</div>
         </a>
@@ -389,7 +441,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-brands fa-instagram link-icon"></i>
-            <div class="link-title">VISUAL_FEED</div>
+            <div class="link-title" data-i18n="link.feed">VISUAL_FEED</div>
             <div class="link-subtitle">INSTAGRAM</div>
             <div class="link-id">ID_05</div>
         </a>
@@ -401,7 +453,7 @@
             <div class="corner bottom-right">+</div>
             
             <i class="fa-solid fa-envelope link-icon"></i>
-            <div class="link-title">CONTACT</div>
+            <div class="link-title" data-i18n="link.contact">CONTACT</div>
             <div class="link-subtitle">EMAIL</div>
             <div class="link-id">ID_06</div>
         </a>
@@ -414,7 +466,8 @@
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
             
-            <div class="block-label glitch" data-text="SKILLS_MATRIX">SKILLS_MATRIX // <span class="label-code">v1.2.7</span></div>
+            <div class="block-label glitch" data-text="SKILLS_MATRIX"><span data-i18n="skills.label">SKILLS_MATRIX</span> // <span
+                    class="label-code">v1.2.7</span></div>
             <canvas id="skillsRadar" width="300" height="300" aria-label="Radar chart showing technical skills distribution" role="img"></canvas>
             <div class="skills-legend">
                 <div class="legend-item"><span class="legend-dot" style="background: var(--accent-color);"></span>VR/AR</div>
@@ -431,10 +484,12 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             
-            <div class="block-label glitch" data-text="ACTIVE_PROJECTS">ACTIVE_PROJECTS // <span class="label-code">ARCHIVE_07</span></div>
+            <div class="block-label glitch" data-text="ACTIVE_PROJECTS"><span data-i18n="projects.label">ACTIVE_PROJECTS</span> //
+                <span class="label-code">ARCHIVE_07</span>
+            </div>
             
             <div class="project-filters" id="projectFilters">
-                <button class="filter-btn active" data-filter="all">ALL</button>
+                <button class="filter-btn active" data-filter="all" data-i18n="filters.all">ALL</button>
                 <button class="filter-btn" data-filter="vr">VR</button>
                 <button class="filter-btn" data-filter="ar">AR</button>
                 <button class="filter-btn" data-filter="web">WEB</button>
@@ -468,7 +523,9 @@
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
             
-            <div class="block-label glitch" data-text="EXPERIENCE_LOG">EXPERIENCE_LOG // <span class="label-code">TIMELINE</span></div>
+            <div class="block-label glitch" data-text="EXPERIENCE_LOG"><span data-i18n="timeline.label">EXPERIENCE_LOG</span> //
+                <span class="label-code">TIMELINE</span>
+            </div>
             <div class="timeline-container" id="timelineContainer">
                 <!-- Timeline items will be added dynamically -->
             </div>
@@ -482,30 +539,32 @@
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
             
-            <div class="block-label glitch" data-text="CONTACT_FORM">CONTACT_FORM // <span class="label-code">SECURE_CHANNEL</span></div>
+            <div class="block-label glitch" data-text="CONTACT_FORM"><span data-i18n="contact.label">CONTACT_FORM</span> // <span
+                    class="label-code">SECURE_CHANNEL</span></div>
             
             <form id="contactForm" class="contact-form">
                 <div class="form-group">
-                    <label for="contactName">NAME_IDENTIFIER:</label>
-                    <input type="text" id="contactName" name="name" required placeholder="John_Doe">
+                    <label for="contactName" data-i18n="contact.name">NAME_IDENTIFIER:</label>
+                    <input type="text" id="contactName" name="name" required placeholder="John_Doe" data-i18n="placeholder.name">
                     <div class="form-error" id="nameError"></div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="contactEmail">EMAIL_ADDRESS:</label>
-                    <input type="email" id="contactEmail" name="email" required placeholder="user@domain.ext">
+                    <label for="contactEmail" data-i18n="contact.email">EMAIL_ADDRESS:</label>
+                    <input type="email" id="contactEmail" name="email" required placeholder="user@domain.ext" data-i18n="placeholder.email">
                     <div class="form-error" id="emailError"></div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="contactMessage">MESSAGE_PAYLOAD:</label>
-                    <textarea id="contactMessage" name="message" required rows="4" placeholder="Enter transmission..."></textarea>
+                    <label for="contactMessage" data-i18n="contact.message">MESSAGE_PAYLOAD:</label>
+                    <textarea id="contactMessage" name="message" required rows="4" placeholder="Enter transmission..."
+                        data-i18n="placeholder.message"></textarea>
                     <div class="form-error" id="messageError"></div>
                 </div>
                 
                 <button type="submit" class="form-submit" id="submitBtn">
                     <span class="submit-icon">▶</span>
-                    <span class="submit-text">TRANSMIT_DATA</span>
+                    <span class="submit-text" data-i18n="contact.submit">TRANSMIT_DATA</span>
                 </button>
                 
                 <div class="form-status" id="formStatus"></div>
@@ -539,7 +598,7 @@
                 <span class="separator">|</span>
                 <span>SECTOR_07</span>
                 <span class="separator">|</span>
-                <span>SYNC: <span id="lastSync">--:--</span></span>
+                <span><span data-i18n="footer.sync">SYNC:</span> <span id="lastSync">--:--</span></span>
             </div>
         </footer>
 

@@ -2,10 +2,71 @@
 const DEV_MODE = false; // Set to true for development logging
 const devLog = (...args) => DEV_MODE && console.log(...args);
 
+// ========== PERFORMANCE MONITOR ==========
+class FrameRateMonitor {
+    constructor() {
+        this.fps = 60;
+        this.frames = 0;
+        this.lastTime = performance.now();
+        this.history = [];
+        this.isOptimizing = false;
+    }
+
+    update() {
+        const now = performance.now();
+        this.frames++;
+
+        if (now >= this.lastTime + 1000) {
+            this.fps = this.frames;
+            this.frames = 0;
+            this.lastTime = now;
+
+            this.checkPerformance();
+        }
+
+        requestAnimationFrame(() => this.update());
+    }
+
+    checkPerformance() {
+        // Ignore during boot
+        if (document.querySelector('.boot-overlay') && document.querySelector('.boot-overlay').style.display !== 'none') return;
+
+        this.history.push(this.fps);
+        if (this.history.length > 5) this.history.shift();
+
+        const avgFps = this.history.reduce((a, b) => a + b, 0) / this.history.length;
+
+        // Downgrade if consistently low FPS (> 3s under 30fps)
+        if (avgFps < 30 && !this.isOptimizing && performanceManager.currentPreset !== 'low') {
+            this.optimize();
+        }
+    }
+
+    optimize() {
+        this.isOptimizing = true;
+        console.warn('>> PERF: Low FPS detected. Optimizing...');
+
+        if (typeof notificationManager !== 'undefined') {
+            notificationManager.warning(
+                'PERFORMANCE_PROTOCOL',
+                'Low FPS detected. Disabling effects to optimize system.'
+            );
+        }
+
+        // Force downgrade
+        performanceManager.applyPreset('low');
+
+        // Cooldown
+        setTimeout(() => { this.isOptimizing = false; }, 10000);
+    }
+}
+
+const fpsMonitor = new FrameRateMonitor();
+fpsMonitor.update();
+
 // ========== PERFORMANCE MANAGER ==========
 class PerformanceManager {
     constructor() {
-        this.hardware = this.detectHardware();
         this.effects = {
             matrixRain: true,
             parallax: true,
@@ -15,11 +76,18 @@ class PerformanceManager {
             particles: true,
             terminal: true
         };
-        this.currentPreset = 'auto';
+        this.currentPreset = 'auto'; // auto, ultra, high, medium, low
+        this.hardware = {
+            cores: navigator.hardwareConcurrency || 4,
+            memory: navigator.deviceMemory || 4,
+            gpu: 'unknown',
+            tier: 'high' // ultra, high, medium, low
+        };
         this.matrixRainInstance = null;
         this.parallaxInstance = null;
         this.cursorInstance = null;
         this.terminalInstance = null;
+        this.detectHardware(); // Call detectHardware to set initial tier
     }
 
     detectHardware() {
@@ -526,13 +594,44 @@ class AudioManager {
 
     // Shortcut methods
     playClick() { this.playSound('click', 0.5); }
-    playHover() { this.playSound('hover', 0.3); }
+    playHover() { this.playSound('hover', 0.2); }
     playBoot() { this.playSound('boot', 0.6); }
     playGlitch() { this.playSound('glitch', 0.4); }
     playSuccess() { this.playSound('success', 0.5); }
+    playTyping() {
+        // Randomized pitch for realistic typing
+        const pitch = 0.8 + Math.random() * 0.4;
+        this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
+    }
+
+    attachGlobalListeners() {
+        // Universal Hover
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.matches('a, button, input, textarea, .project-card, .filter-btn')) {
+                this.playHover();
+            }
+        });
+
+        // Typing Sound Generators
+        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
+
+        // Delegate for dynamic elements (like terminal)
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('input, textarea')) {
+                this.playTyping();
+            }
+        });
+    }
 }
 
 const audioManager = new AudioManager();
+
+// Attach sounds after init
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        audioManager.attachGlobalListeners();
+    }, 1000);
+});
 
 // ========== START BUTTON ==========
 document.addEventListener('DOMContentLoaded', () => {
@@ -596,60 +695,121 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== BOOT SEQUENCE ==========
 // ========== BOOT SEQUENCE ==========
+// ========== BOOT SEQUENCE ==========
 function startBootSequence() {
     console.log('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
     
     const loadProgress = document.getElementById('loadProgress');
+    const bootLoaderBar = document.getElementById('bootLoaderBar');
+    const bootLog = document.getElementById('bootLog');
     const bootOverlay = document.querySelector('.boot-overlay');
     const dashboard = document.querySelector('.dashboard');
     
-    if (!loadProgress || !bootOverlay || !dashboard) {
+    if (!loadProgress || !bootLoaderBar || !bootLog || !bootOverlay || !dashboard) {
         console.error('Boot elements not found!');
         return;
     }
     
-    let progress = 0;
+    // Boot Log Messages
+    const bootLogs = [
+        { text: '> INITIALIZING KERNEL...', type: 'system', delay: 100 },
+        { text: '> CHECKING MEMORY INTEGRITY... OK', type: 'normal', delay: 400 },
+        { text: '> LOADING NEURAL INTERFACE...', type: 'normal', delay: 800 },
+        { text: '> CONNECTING TO SECTOR_07...', type: 'system', delay: 1200 },
+        { text: '> DECRYPTING DATA STREAMS...', type: 'warning', delay: 1800 },
+        { text: '> OPTIMIZING VIRTUAL ENVIRONMENT...', type: 'normal', delay: 2400 },
+        { text: '> LOADING ASSETS (2.4GB)...', type: 'normal', delay: 3000 },
+        { text: '> BYPASSING SECURITY PROTOCOLS...', type: 'error', delay: 3500 },
+        { text: '> ACCESS GRANTED.', type: 'success', delay: 3800 },
+        { text: '> SYSTEM READY.', type: 'success', delay: 4000 }
+    ];
 
-    const loadInterval = setInterval(() => {
-        progress = Math.min(progress + Math.floor(Math.random() * 15) + 10, 100);
-        loadProgress.textContent = progress;
-        
-        if (progress >= 100) {
-            clearInterval(loadInterval);
-            console.log('%c>> BOOT: Complete (100%)', 'color: #39FF14; font-family: monospace;');
-            
-            setTimeout(() => {
-                bootOverlay.classList.add('complete');
-                  setTimeout(() => {                    console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
-                    dashboard.classList.add('visible');
-                    bootOverlay.style.display = 'none';
-                    
-                    // Mostrar matrix rain después del boot
-                    const matrixCanvas = document.getElementById('matrixCanvas');
-                    if (matrixCanvas) {
-                        matrixCanvas.style.display = 'block';
-                    }
-                    
-                    // Desbloquear scroll cuando el dashboard esté listo
-                    setTimeout(() => {
-                        document.body.classList.remove('no-scroll');
-                        console.log('%c>> SCROLL: Enabled - Dashboard ready ✓', 'color: #39FF14; font-family: monospace;');
-                    }, 100);
-                    
-                    setTimeout(() => {
-                        const terminalBtn = document.getElementById('terminalButton');
-                        if (terminalBtn) terminalBtn.classList.add('visible');
-                        
-                        if (typeof technicalBackground !== 'undefined' && technicalBackground.show) {
-                            technicalBackground.show();
-                        }
-                        
-                        console.log('%c>> BOOT: System ready ✓', 'color: #39FF14; font-family: monospace;');
-                    }, 300);
-                }, 1000);
-            }, 500);
+    let progress = 0;
+    const totalDuration = 4500; // ~4.5 seconds total boot time
+    const startTime = Date.now();
+
+    // Function to add log line
+    const addLog = (text, type = 'normal') => {
+        const line = document.createElement('div');
+        line.className = `log-line ${type}`;
+        line.textContent = text;
+        bootLog.appendChild(line);
+        bootLog.scrollTop = bootLog.scrollHeight; // Auto scroll
+    };
+
+    // Schedule logs
+    bootLogs.forEach(log => {
+        setTimeout(() => addLog(log.text, log.type), log.delay);
+    });
+
+    // Animation Loop
+    const updateBoot = () => {
+        const elapsed = Date.now() - startTime;
+        const percent = Math.min(elapsed / totalDuration, 1);
+
+        // Non-linear progress curve (ease-out-cubic for feeling of "heavy processing" then speed up)
+        // Actually, let's do a "stalled" feel: fast start, slow middle, fast end
+        let easedProgress = 0;
+
+        if (percent < 0.3) {
+            easedProgress = percent * 2; // Fast start
+        } else if (percent < 0.7) {
+            easedProgress = 0.6 + (percent - 0.3) * 0.5; // Slow middle
+        } else {
+            easedProgress = 0.8 + (percent - 0.7) * 0.66; // Fast finish
         }
-    }, 150);
+
+        progress = Math.min(Math.floor(easedProgress * 100), 100);
+
+        // Update UI
+        loadProgress.textContent = progress;
+        bootLoaderBar.style.width = `${progress}%`;
+
+        if (percent < 1) {
+            requestAnimationFrame(updateBoot);
+        } else {
+            // Complete
+            setTimeout(finishBoot, 200);
+        }
+    };
+
+    const finishBoot = () => {
+        console.log('%c>> BOOT: Complete (100%)', 'color: #39FF14; font-family: monospace;');
+
+        bootOverlay.style.opacity = '0'; // Fade out entire overlay
+
+        setTimeout(() => {
+            console.log('%c>> BOOT: Showing dashboard', 'color: #39FF14; font-family: monospace;');
+            dashboard.classList.add('visible');
+            bootOverlay.style.display = 'none';
+
+            // Mostrar matrix rain después del boot
+            const matrixCanvas = document.getElementById('matrixCanvas');
+            if (matrixCanvas) {
+                matrixCanvas.style.display = 'block';
+            }
+
+            // Desbloquear scroll cuando el dashboard esté listo
+            setTimeout(() => {
+                document.body.classList.remove('no-scroll');
+                console.log('%c>> SCROLL: Enabled - Dashboard ready ✓', 'color: #39FF14; font-family: monospace;');
+            }, 100);
+
+            setTimeout(() => {
+                const terminalBtn = document.getElementById('terminalButton');
+                if (terminalBtn) terminalBtn.classList.add('visible');
+
+                if (typeof technicalBackground !== 'undefined' && technicalBackground.show) {
+                    technicalBackground.show();
+                }
+
+                console.log('%c>> BOOT: System ready ✓', 'color: #39FF14; font-family: monospace;');
+            }, 300);
+        }, 800); // Wait for opacity transition
+    };
+
+    // Start animation
+    updateBoot();
 }
 
 // ========== SYSTEM TIME ==========
@@ -928,6 +1088,7 @@ console.log('%c>> SYSTEM READY. AWAITING INPUT.', 'color: #39FF14; font-family: 
 class ThemeManager {
     constructor() {
         this.theme = localStorage.getItem('theme') || 'dark';
+        this.colorTheme = localStorage.getItem('colorTheme') || 'default';
         this.toggleButton = null;
         this.toggleLabel = null;
         this.overlay = null;
@@ -939,10 +1100,52 @@ class ThemeManager {
         
         // Apply saved theme
         this.applyTheme(this.theme, false);
+        this.setColorTheme(this.colorTheme, false);
         
         // Add event listener only if button exists
         if (this.toggleButton) {
             this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
+        }
+
+        // Initialize color buttons
+        this.initColorButtons();
+    }
+
+    initColorButtons() {
+        const colorBtns = document.querySelectorAll('.color-btn');
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const color = btn.dataset.color;
+                this.setColorTheme(color, true);
+
+                // Update active state
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                audioManager.playClick();
+            });
+
+            // Set initial active state
+            if (btn.dataset.color === this.colorTheme) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    setColorTheme(color, log = true) {
+        // Remove existing theme classes
+        document.body.classList.remove('theme-pink', 'theme-orange', 'theme-white');
+
+        // Add new class if not default
+        if (color !== 'default') {
+            document.body.classList.add(`theme-${color}`);
+        }
+
+        this.colorTheme = color;
+        localStorage.setItem('colorTheme', color);
+
+        if (log) {
+            console.log(`%c>> COLOR_THEME: ${color.toUpperCase()}_ACTIVATED`, 'color: var(--toxic-green); font-family: monospace;');
         }
     }
 
@@ -1369,12 +1572,24 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
     }
 
     toggleTheme(arg) {
-        if (arg === 'dark' || arg === 'light') {
-            themeManager.theme = arg === 'dark' ? 'light' : 'dark';
-            themeManager.handleToggle({});
-            this.addOutput(`Theme switched to ${arg} mode`);
+        if (!arg) {
+            this.addOutput(`Usage: theme [dark/light/pink/orange/white/default]`);
+            return;
+        }
+
+        const mode = arg.toLowerCase();
+
+        if (mode === 'dark' || mode === 'light') {
+            themeManager.theme = mode === 'dark' ? 'light' : 'dark'; // Toggle logic if explicit
+            if (themeManager.theme !== mode) themeManager.handleToggle({}); // Trigger if current doesn't match
+            else this.addOutput(`Already in ${mode} mode`);
+
+        } else if (['pink', 'orange', 'white', 'default'].includes(mode)) {
+            themeManager.setColorTheme(mode, true);
+            this.addOutput(`Accent color set to: <span style="color: var(--toxic-green)">${mode.toUpperCase()}</span>`);
         } else {
-            this.addOutput(`Usage: theme [dark/light]`);
+            this.addOutput(`Unknown theme/color: ${mode}`);
+            this.addOutput(`Available: dark, light, pink, orange, white, default`);
         }
     }
 
@@ -2738,45 +2953,130 @@ class ProjectLightboxManager {
     }
 }
 
-// ========== PROJECT FILTERS MANAGER ==========
-class ProjectFiltersManager {
+// ========== PROJECT DATA MANAGER ==========
+const projectsData = [
+    {
+        id: '01',
+        title: 'VR_TRAINING_SIM',
+        category: 'vr',
+        description: 'Industrial safety simulator for high-risk environments.',
+        image: 'assets/projects/proj-1.jpg',
+        tech: ['UNITY', 'VR_INTERACTION_TOOLKIT', 'OQUEST'],
+        link: '#'
+    },
+    {
+        id: '02',
+        title: 'MUSEUM_XR_GUIDE',
+        category: 'unity',
+        description: 'Augmented reality guide for National History Museum.',
+        image: 'assets/projects/proj-2.jpg',
+        tech: ['AR_FOUNDATION', 'C#', 'MOBILE'],
+        link: '#'
+    },
+    {
+        id: '03',
+        title: 'CYBER_SHADER_PACK',
+        category: 'tech-art',
+        description: 'Optimized HLSL shader library for URP/HDRP.',
+        image: 'assets/projects/proj-3.jpg',
+        tech: ['HLSL', 'SHADER_GRAPH', 'VFX'],
+        link: '#'
+    },
+    {
+        id: '04',
+        title: 'NEURAL_VISUALIZER',
+        category: 'tech-art',
+        description: 'Real-time brain activity visualization tool.',
+        image: 'assets/projects/proj-4.jpg',
+        tech: ['COMPUTE_SHADERS', 'DOTS', 'UI_TOOLKIT'],
+        link: '#'
+    },
+    {
+        id: '05',
+        title: 'METAVERSE_AVATAR',
+        category: '3d',
+        description: 'High-fidelity avatar system with facial tracking.',
+        image: 'assets/projects/proj-5.jpg',
+        tech: ['BLENDER', 'UNITY', 'LIP_SYNC'],
+        link: '#'
+    },
+    {
+        id: '06',
+        title: 'WEBGL_PORTFOLIO',
+        category: 'web',
+        description: 'Immersive 3D portfolio using Three.js.',
+        image: 'assets/projects/proj-6.jpg',
+        tech: ['THREE.JS', 'REACT', 'WEBGL'],
+        link: '#'
+    }
+];
+
+class ProjectManager {
     constructor() {
-        this.filterButtons = [];
-        this.currentFilter = 'all';
+        this.container = document.getElementById('projectsGrid');
+        this.filterBtns = document.querySelectorAll('.filter-btn');
+        this.activeFilter = 'all';
     }
 
     init() {
-        this.filterButtons = document.querySelectorAll('.filter-btn');
-        if (this.filterButtons.length === 0) return;
+        if (!this.container) return;
 
-        this.filterButtons.forEach(btn => {
+        // Render all projects initially
+        this.renderProjects(projectsData);
+
+        // Setup Filters
+        this.filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const filter = btn.dataset.filter;
                 this.setFilter(filter);
+
+                // Update active state
+                this.filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                audioManager.playClick();
             });
         });
     }
 
+    renderProjects(projects) {
+        this.container.innerHTML = projects.map((proj, index) => `
+            <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
+                <div class="project-image-container">
+                    <img src="${proj.image}" alt="${proj.title}" class="project-image" onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
+                    <div class="project-overlay">
+                        <button class="view-project-btn" onclick="projectLightbox.open('${proj.image}')">VIEW_DATA</button>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <div class="project-header">
+                        <span class="project-id">ID_${proj.id}</span>
+                        <span class="project-category">${proj.category.toUpperCase()}</span>
+                    </div>
+                    <h3 class="project-title">${proj.title}</h3>
+                    <p class="project-desc">${proj.description}</p>
+                    <div class="project-tech">
+                        ${proj.tech.map(t => `<span>${t}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
     setFilter(filter) {
-        this.currentFilter = filter;
+        this.activeFilter = filter;
 
-        // Update button states
-        this.filterButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.filter === filter);
-        });
+        // Animate out
+        const cards = Array.from(this.container.children);
+        cards.forEach(card => card.classList.add('filtering-out'));
 
-        // Filter projects
-        const projects = document.querySelectorAll('.project-card');
-        projects.forEach(card => {
-            const category = card.dataset.category || 'all';
-            if (filter === 'all' || category === filter) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+        setTimeout(() => {
+            const filtered = filter === 'all'
+                ? projectsData
+                : projectsData.filter(p => p.category === filter);
 
-        audioManager.playSound('click');
+            this.renderProjects(filtered);
+        }, 300);
     }
 }
 
@@ -2810,7 +3110,7 @@ class ScrollRevealManager {
 }
 
 const skillsRadar = new SkillsRadar();
-const projectsManager = new ProjectsManager();
+const projectManager = new ProjectManager(); // Fixed name
 const notificationManager = new NotificationManager();
 const audioVisualizer = new AudioVisualizer();
 const timelineManager = new TimelineManager();
@@ -2821,7 +3121,7 @@ const burgerMenuManager = new BurgerMenuManager();
 const languageManager = new LanguageManager();
 const settingsManager = new SettingsManager();
 const projectLightboxManager = new ProjectLightboxManager();
-const projectFiltersManager = new ProjectFiltersManager();
+// const projectFiltersManager = new ProjectFiltersManager(); // Removed
 const scrollRevealManager = new ScrollRevealManager();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2855,7 +3155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             skillsRadar.init();
             devLog('%c>> INIT: Skills Radar ✓', 'color: #39FF14; font-family: monospace;');
             
-            projectsManager.init();
+            projectManager.init(); // Fixed name
             devLog('%c>> INIT: Projects ✓', 'color: #39FF14; font-family: monospace;');
             
             notificationManager.init();
@@ -2885,8 +3185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             projectLightboxManager.init();
             devLog('%c>> INIT: Project Lightbox ✓', 'color: #39FF14; font-family: monospace;');
             
-            projectFiltersManager.init();
-            console.log('%c>> INIT: Project Filters ✓', 'color: #39FF14; font-family: monospace;');
+            // projectFiltersManager.init(); // Removed
             
             scrollRevealManager.init();
             console.log('%c>> INIT: Scroll Reveal ✓', 'color: #39FF14; font-family: monospace;');
