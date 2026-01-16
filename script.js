@@ -544,6 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const startScreen = document.querySelector('.start-screen');
     const bootOverlay = document.querySelector('.boot-overlay');
 
+    // Trigger decoding effect on start screen elements
+    if (typeof decodeTextElements === 'function') {
+        decodeTextElements();
+    }
+
     startButton.addEventListener('click', async () => {
         console.log('%c>> SYSTEM: Start button clicked', 'color: #39FF14; font-family: monospace;');
         
@@ -814,10 +819,24 @@ console.log(
 );
 
 // ========== GLITCH EFFECT TRIGGER ==========
-function triggerGlitch(element) {
-    const original = element.textContent;
+// ========== GLITCH EFFECT TRIGGER & TEXT DECODING ==========
+function triggerGlitch(element, force = false) {
+    // Check performance settings unless forced
+    if (!force && typeof performanceManager !== 'undefined' && !performanceManager.effects.glitch) return;
+
+    const original = element.getAttribute('data-original-text') || element.textContent;
+    // Store original text if not already stored
+    if (!element.getAttribute('data-original-text')) {
+        element.setAttribute('data-original-text', original);
+    }
+
     const chars = '!<>-_\\/[]{}—=+*^?#________';
     let iterations = 0;
+
+    // Clear any existing interval to prevent overlap
+    if (element.dataset.glitchInterval) {
+        clearInterval(parseInt(element.dataset.glitchInterval));
+    }
 
     const glitchInterval = setInterval(() => {
         element.textContent = original
@@ -826,16 +845,31 @@ function triggerGlitch(element) {
                 if (index < iterations) {
                     return original[index];
                 }
+                if (char === ' ') return ' '; // Preserve spaces
                 return chars[Math.floor(Math.random() * chars.length)];
             })
             .join('');
 
         if (iterations >= original.length) {
             clearInterval(glitchInterval);
+            element.textContent = original; // Ensure final state is clean
+            delete element.dataset.glitchInterval;
         }
 
         iterations += 1 / 3;
     }, 30);
+
+    element.dataset.glitchInterval = glitchInterval;
+}
+
+// Initial Text Decoding on Boot (Hook into your boot sequence)
+function decodeTextElements() {
+    if (typeof performanceManager !== 'undefined' && !performanceManager.effects.glitch) return;
+
+    const targets = document.querySelectorAll('.start-title, .start-subtitle, .tech-header-info span, .sector-label');
+    targets.forEach((el, index) => {
+        setTimeout(() => triggerGlitch(el, true), index * 100 + 500);
+    });
 }
 
 // Random glitch on title occasionally
