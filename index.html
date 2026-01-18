@@ -682,6 +682,299 @@
         <div class="corner-bracket bracket-br"></div>
     </div>
 
+    <!-- TECH DECALS LAYER -->
+    <div class="decal-layer">
+        <!-- HEADER STICKER: Warning/Caution label near top left -->
+        <!-- Expected file: warning_label.png -->
+        <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label">
+    
+        <!-- SIDEBAR STICKER: "Removable" or Arrow near social links -->
+        <!-- Expected file: arrow_ui.png -->
+        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow">
+    
+        <!-- INFO STICKER: "Datacorp" or "Specs" style sticker near intro text -->
+        <!-- Expected file: data_badge.png -->
+        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge">
+    
+        <!-- FOOTER STICKER: "Hacked" or "Void" sticker -->
+        <!-- Expected file: hacked_label.png -->
+        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label">
+    
+        <!-- NEW COLORFUL ASSETS (From second batch) -->
+        <!-- Expected file: sticker_neon.png (The yellow/green ones) -->
+        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge">
+    
+        <!-- Expected file: sticker_alert.png (The red ones) -->
+        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label">
+    </div>
+    
+    <!-- PURE CSS TECH ICONS (Created by System) -->
+    <!-- PURE CSS TECH ICONS (Created by System - EXHAUSTIVE MODE) -->
+    <div class="procedural-tech-layer">
+    
+        <!-- CENTER: Subtle Crosshair (Retained) -->
+        <div class="tech-crosshair-center">
+            <div class="reticle"></div>
+        </div>
+    
+        <!-- WIDGET GROUP: TOP RIGHT (System Status) -->
+        <div class="tech-widget-cluster top-right-cluster">
+    
+            <!-- 1. BATTERY (Relocated) -->
+            <div class="tech-battery-widget">
+                <div class="bat-level"></div>
+                <div class="bat-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="bat-text">PWR_LVL</div>
+            </div>
+    
+            <!-- 2. CPU CORE MONITOR -->
+            <div class="tech-cpu-monitor">
+                <div class="cpu-label">CORE_LOAD</div>
+                <div class="cpu-bars">
+                    <div class="cpu-bar" style="--d: 0s"></div>
+                    <div class="cpu-bar" style="--d: 0.2s"></div>
+                    <div class="cpu-bar" style="--d: 0.5s"></div>
+                    <div class="cpu-bar" style="--d: 0.1s"></div>
+                </div>
+            </div>
+    
+            <!-- 3. NETWORK ACTIVITY -->
+            <div class="tech-net-activity">
+                <div class="net-icon"><i class="fa-solid fa-network-wired"></i></div>
+                <div class="net-streams">
+                    <div class="stream-line upload">▲ <span class="flicker-num">TX</span></div>
+                    <div class="stream-line download">▼ <span class="flicker-num">RX</span></div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- WIDGET GROUP: LEFT SIDE (Vertical Data) -->
+        <div class="tech-widget-cluster left-cluster">
+            <!-- 4. MEMORY GRID (Looking like the 'Future RE CREATE' reference) -->
+            <div class="tech-memory-grid">
+                <div class="mem-header">MEM_ALLOC</div>
+                <div class="mem-matrix">
+                    <!-- 9 dots -->
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+    
+            <!-- 5. VERTICAL DECO BARCODE -->
+            <div class="tech-vert-barcode"></div>
+        </div>
+    
+        <!-- WIDGET GROUP: BOTTOM RIGHT (Floating Badge) -->
+        <!-- 6. SECURITY BADGE (Like the 'Certified' reference) -->
+        <div class="tech-security-badge">
+            <div class="badge-ring"></div>
+            <div class="badge-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="badge-text">SECURE<br><small>VERIFIED</small></div>
+            <div class="badge-scanline"></div>
+        </div>
+    
+        <!-- NEW TECHNICAL ELEMENTS -->
+        <!-- 7. WARNING LABEL (Top Left) -->
+        <div class="tech-item tech-warning-label tl-corner">
+            <div class="warn-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="warn-text">WARNING</div>
+            <div class="warn-subtext">AUTHORIZED ONLY</div>
+            <div class="hazard-stripe-mini"></div>
+        </div>
+    
+        <!-- 8. SERIAL NUMBER TAG (Top Left below warning) -->
+        <div class="tech-item tech-serial-tag tl-below">
+            <div class="serial-header">S/N</div>
+            <div class="serial-code">KA-2K65-MX07</div>
+            <div class="serial-barcode">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+    
+        <!-- 9. CAUTION STRIPE (Bottom Left) -->
+        <div class="tech-item tech-caution-stripe bl-corner">
+            <div class="caution-bg">
+                <span>CAUTION</span>
+                <span>LOAD CAPACITY</span>
+            </div>
+        </div>
+    
+        <!-- 10. VERTICAL BARCODE (Right side, middle) -->
+        <div class="tech-item tech-barcode-vert right-mid">
+            <div class="barcode-lines">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="barcode-num">2A09B</div>
+        </div>
+    
+        <!-- 11. CERTIFICATION BADGE (Bottom Right, above security badge) -->
+        <div class="tech-item tech-cert-badge br-above">
+            <div class="cert-icon"><i class="fa-solid fa-certificate"></i></div>
+            <div class="cert-text">ISO<br>9001</div>
+            <div class="cert-label">CERTIFIED</div>
+        </div>
+    
+        <!-- 12. DATA STREAM INDICATOR (Left, top third) -->
+        <div class="tech-item tech-data-stream left-top-third">
+            <div class="stream-header">DATA_STREAM</div>
+            <div class="stream-bars">
+                <span style="--h: 60%"></span>
+                <span style="--h: 80%"></span>
+                <span style="--h: 40%"></span>
+                <span style="--h: 90%"></span>
+                <span style="--h: 50%"></span>
+            </div>
+            <div class="stream-value">1.24 GB/s</div>
+        </div>
+    
+        <!-- 13. GEOMETRIC MARKER (Bottom Left corner decoration) -->
+        <div class="tech-item tech-geo-marker bl-deco">
+            <div class="geo-circle"></div>
+            <div class="geo-line"></div>
+            <div class="geo-text">SECTOR<br>07</div>
+        </div>
+    
+        <!-- 14. TECH LABEL MODERN (Top Right, modern style) -->
+        <div class="tech-item tech-label-modern tr-label">
+            <div class="label-corner tl"></div>
+            <div class="label-corner tr"></div>
+            <div class="label-corner bl"></div>
+            <div class="label-corner br"></div>
+            <div class="label-content">
+                <div class="label-top">TIME OFF</div>
+                <div class="label-code">23.01</div>
+                <div class="label-desc">UTILITY STREET STYLE</div>
+            </div>
+        </div>
+    
+        <!-- 15. EXPERT LICENSE TAG (Right side) -->
+        <div class="tech-item tech-expert-tag right-lower">
+            <div class="expert-border"></div>
+            <div class="expert-logo">EXPERT</div>
+            <div class="expert-id">LICENSE NO. 234-2112</div>
+        </div>
+    
+        <!-- 16. QC HOLD LABEL (Left bottom area) -->
+        <div class="tech-item tech-qc-label left-bottom">
+            <div class="qc-text">QC<br>HOLD</div>
+            <div class="qc-subtext">OEM SERVICE</div>
+        </div>
+    
+        <!-- 17. BATTERY PACK INFO (Bottom center-right) -->
+        <div class="tech-item tech-battery-info bc-right">
+            <div class="bat-info-icon"><i class="fa-solid fa-battery-three-quarters"></i></div>
+            <div class="bat-info-text">
+                <span>BATTERY PACK</span>
+                <span class="bat-voltage">Li-ion 48V 2100mAh</span>
+            </div>
+        </div>
+    
+        <!-- 18. FRAGILE WARNING (Top right area) -->
+        <div class="tech-item tech-fragile-tag tr-warn">
+            <div class="fragile-icon"><i class="fa-solid fa-wine-glass-crack"></i></div>
+            <div class="fragile-text">FRAGILE<br><small>HANDLE WITH CARE</small></div>
+        </div>
+    
+        <!-- 19. SPACE WARFARE TECH TAG (Left mid-upper) -->
+        <div class="tech-item tech-warfare-tag left-mid-up">
+            <div class="warfare-header">SPACE AND NAVAL WARFARE</div>
+            <div class="warfare-subheader">SYSTEMS CENTER</div>
+            <div class="warfare-code">UIC 55910</div>
+            <div class="warfare-part">PART NO. C5-04060</div>
+        </div>
+    
+        <!-- 20. HAZARD DIAMOND (Right bottom quadrant) -->
+        <div class="tech-item tech-hazard-diamond rb-quad">
+            <div class="diamond-shape">
+                <div class="diamond-section top">3</div>
+                <div class="diamond-section right">0</div>
+                <div class="diamond-section bottom">2</div>
+                <div class="diamond-section left">W</div>
+            </div>
+        </div>
+    
+        <!-- 21. GPS TRACKING TAG (Bottom right) -->
+        <div class="tech-item tech-gps-tag br-gps">
+            <div class="gps-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="gps-text">GPS TRACKING<br>DEVICE ACTIVE</div>
+        </div>
+    
+        <!-- 22. TECHNICAL SERGEANT STREET (Top, floating) -->
+        <div class="tech-item tech-sergeant-tag top-floating">
+            <div class="sergeant-text">TECHNICAL SERGEANT ST</div>
+            <div class="sergeant-unit">LBS./SQ. FT.</div>
+        </div>
+    
+        <!-- 23. CONFIRMED SPACE TAG (Center-left floating) -->
+        <div class="tech-item tech-space-tag cl-floating">
+            <div class="space-label">CONFIRMED SPACE</div>
+            <div class="space-icon"><i class="fa-solid fa-rocket"></i></div>
+        </div>
+    
+        <!-- 24. MAX CLIMB INDICATOR (Left upper) -->
+        <div class="tech-item tech-climb-tag left-upper">
+            <div class="climb-label">MAX<br>CLIMB</div>
+        </div>
+    
+        <!-- 25. HACKED LABEL (Top center modern) -->
+        <div class="tech-item tech-hacked-label top-center-mod">
+            <div class="hacked-outline"></div>
+            <div class="hacked-text">HACKED</div>
+            <div class="hacked-sub">888_RAS // PROTOCOL BREACHED</div>
+        </div>
+    
+        <!-- 26. ACCESS LABEL (Bottom left modern card) -->
+        <div class="tech-item tech-access-card bl-access">
+            <div class="access-icon"><i class="fa-solid fa-key"></i></div>
+            <div class="access-main">ACCESS</div>
+            <div class="access-sub">NG・PREF</div>
+        </div>
+    
+        <!-- 27. RETHINK TAG (Right center modern) -->
+        <div class="tech-item tech-rethink-tag rc-modern">
+            <div class="rethink-code">0X000000101481EFF</div>
+            <div class="rethink-main">RETHINK</div>
+            <div class="rethink-sub">IDFN78</div>
+            <div class="rethink-progress"></div>
+        </div>
+    
+        <!-- 28. RENEW LABEL (Left center bright) -->
+        <div class="tech-item tech-renew-label lc-bright">
+            <div class="renew-icons">
+                <i class="fa-solid fa-recycle"></i>
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <div class="renew-main">RENEW</div>
+            <div class="renew-bars">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="renew-sub">UNIQUE</div>
+        </div>
+    
+        <!-- 29. FUTURE LABEL (Bottom center modern card) -->
+        <div class="tech-item tech-future-card bc-future">
+            <div class="future-main">FUTURE</div>
+            <div class="future-grid">
+                <i class="fa-solid fa-globe"></i>
+                <i class="fa-solid fa-globe"></i>
+                <i class="fa-solid fa-globe"></i>
+            </div>
+            <div class="future-codes">
+                <span>63.0513</span>
+                <span>79.2002</span>
+                <span>106.5401</span>
+            </div>
+        </div>
+    
+        <!-- 30. LPG SYSTEM TAG (Top left tech) -->
+        <div class="tech-item tech-lpg-tag tl-lpg">
+            <div class="lpg-header">LPG</div>
+            <div class="lpg-sub">SYSTEM</div>
+        </div>
+    
+    </div>
+
     <!-- TERMINAL MODAL -->
     <div class="terminal-modal" id="terminalModal">
         <div class="terminal-header">

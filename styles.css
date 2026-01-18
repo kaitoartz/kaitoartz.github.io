@@ -337,6 +337,1428 @@ body.light-theme .cyber-star {
 body.light-theme .hud-circle {
     opacity: 0.2;
 }
+/* ================== STICKER / DECAL SYSTEM ================== */
+/* This system uses mix-blend-mode to drop black backgrounds */
+.decal-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    /* Between background and content */
+    overflow: hidden;
+}
+
+.tech-sticker {
+    position: absolute;
+    mix-blend-mode: screen;
+    /* THE VITAL TRICK: Black becomes transparent */
+    opacity: 0.7;
+    filter: grayscale(100%);
+    /* Optional: ensures they match the theme */
+    transition: all 0.3s ease;
+}
+
+/* Sticker Variations */
+.sticker-heavy {
+    opacity: 0.85;
+    mix-blend-mode: lighten;
+}
+
+.sticker-faint {
+    opacity: 0.3;
+}
+
+/* Specific Placements for Manual Assets */
+.sticker-header-warning {
+    top: 120px;
+    left: 2%;
+    width: 180px;
+    transform: rotate(0deg);
+    opacity: 0.8;
+}
+
+.sticker-sidebar-arrow {
+    bottom: 25%;
+    right: 8%;
+    width: 120px;
+    transform: rotate(-90deg);
+    opacity: 0.6;
+}
+
+.sticker-info-badge {
+    top: 40%;
+    left: 15%;
+    width: 140px;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    /* Subtle blend for this one */
+}
+
+.sticker-footer-hacked {
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 200px;
+    opacity: 0.9;
+    z-index: 10;
+}
+
+/* Float animations */
+.sticker-sidebar-arrow {
+    animation: pulseSticker 4s ease-in-out infinite;
+}
+
+@keyframes pulseSticker {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* NEW: Colorful Stickers (Preserving original colors) */
+.sticker-neon-floating {
+    top: 20%;
+    right: 25%;
+    width: 160px;
+    opacity: 0.8;
+    mix-blend-mode: normal;
+    /* We want the colors to pop */
+    animation: floatSticker 8s ease-in-out infinite;
+    z-index: 1;
+}
+
+.sticker-alert-side {
+    top: 60%;
+    left: -20px;
+    width: 140px;
+    transform: rotate(90deg);
+    opacity: 0.7;
+    mix-blend-mode: lighten;
+    z-index: 1;
+}
+
+/* ================== PROCEDURAL TECH ICONS (CSS ONLY - EXHAUSTIVE) ================== */
+.procedural-tech-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* --- CLUSTER CONTAINERS --- */
+.tech-widget-cluster {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    opacity: 0.8;
+}
+
+.top-right-cluster {
+    top: 100px;
+    right: 30px;
+    align-items: flex-end;
+}
+
+.left-cluster {
+    top: 50%;
+    left: 30px;
+    transform: translateY(-50%);
+    gap: 30px;
+}
+
+/* --- BATTERY WIDGET (Relocated to Top Right) --- */
+.tech-battery-widget {
+    width: 60px;
+    height: 30px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 4px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.tech-battery-widget::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 25%;
+    bottom: 25%;
+    width: 3px;
+    background: var(--text-secondary);
+}
+
+.bat-level {
+    width: 80%;
+    height: 100%;
+    background: var(--toxic-green);
+    animation: batCharge 4s infinite linear;
+    box-shadow: 0 0 5px var(--toxic-green);
+}
+
+.bat-icon {
+    position: absolute;
+    left: -20px;
+    color: var(--toxic-green);
+    font-size: 0.8rem;
+}
+
+.bat-text {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* --- CPU MONITOR --- */
+.tech-cpu-monitor {
+    text-align: right;
+}
+
+.cpu-label {
+    font-size: 0.6rem;
+    color: var(--toxic-green);
+    margin-bottom: 2px;
+}
+
+.cpu-bars {
+    display: flex;
+    gap: 2px;
+    height: 20px;
+    align-items: flex-end;
+}
+
+.cpu-bar {
+    width: 6px;
+    background: var(--text-secondary);
+    animation: cpuBarHeight 1s infinite ease-in-out alternate;
+    animation-delay: var(--d);
+}
+
+@keyframes cpuBarHeight {
+    0% {
+        height: 20%;
+        background: var(--text-secondary);
+    }
+
+    100% {
+        height: 100%;
+        background: var(--toxic-green);
+    }
+}
+
+/* --- NETWORK ACTIVITY --- */
+.tech-net-activity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+}
+
+.stream-line {
+    display: flex;
+    gap: 5px;
+}
+
+.flicker-num {
+    color: var(--toxic-green);
+    min-width: 20px;
+}
+
+/* --- MEMORY GRID --- */
+.tech-memory-grid {
+    border-left: 2px solid var(--toxic-green);
+    padding-left: 10px;
+}
+
+.mem-header {
+    font-size: 0.6rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    color: var(--text-secondary);
+    position: absolute;
+    left: -15px;
+    top: 0;
+}
+
+.mem-matrix {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.mem-matrix span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-secondary);
+    opacity: 0.3;
+    animation: memBlink 2s infinite;
+}
+
+.mem-matrix span:nth-child(odd) {
+    animation-delay: 0.5s;
+}
+
+.mem-matrix span:nth-child(even) {
+    animation-delay: 0s;
+}
+
+.mem-matrix span:nth-child(5) {
+    background: var(--toxic-green);
+    opacity: 1;
+}
+
+@keyframes memBlink {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+        background: var(--toxic-green);
+    }
+}
+
+/* --- SECURITY BADGE --- */
+.tech-security-badge {
+    position: absolute;
+    bottom: 50px;
+    right: 50px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.badge-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed var(--toxic-green);
+    border-radius: 50%;
+    animation: rotate 10s linear infinite;
+    opacity: 0.5;
+}
+
+.badge-icon {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.badge-text {
+    font-size: 0.5rem;
+    text-align: center;
+    line-height: 1;
+    color: var(--toxic-green);
+}
+
+/* ========== NEW TECHNICAL ELEMENTS ========== */
+.tech-item {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+/* --- 7. WARNING LABEL --- */
+.tech-warning-label {
+    width: 100px;
+    background: rgba(255, 200, 0, 0.1);
+    border: 2px solid #FFC800;
+    padding: 8px;
+    font-size: 0.65rem;
+    color: #FFC800;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+.tl-corner {
+    top: 80px;
+    left: 30px;
+}
+
+.warn-icon {
+    font-size: 1.2rem;
+    margin-bottom: 3px;
+}
+
+.warn-text {
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.warn-subtext {
+    font-size: 0.5rem;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+.hazard-stripe-mini {
+    height: 8px;
+    background: repeating-linear-gradient(45deg,
+            #FFC800,
+            #FFC800 5px,
+            #000 5px,
+            #000 10px);
+    margin-top: 5px;
+}
+
+/* --- 8. SERIAL NUMBER TAG --- */
+.tech-serial-tag {
+    width: 110px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--text-secondary);
+    padding: 6px;
+    font-size: 0.6rem;
+}
+
+.tl-below {
+    top: 200px;
+    left: 30px;
+}
+
+.serial-header {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.serial-code {
+    font-size: 0.75rem;
+    color: var(--toxic-green);
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.serial-barcode {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+    height: 15px;
+}
+
+.serial-barcode span {
+    flex: 1;
+    background: var(--text-primary);
+}
+
+.serial-barcode span:nth-child(even) {
+    background: var(--text-secondary);
+}
+
+/* --- 9. CAUTION STRIPE --- */
+.tech-caution-stripe {
+    width: 150px;
+    height: 40px;
+}
+
+.bl-corner {
+    bottom: 80px;
+    left: 30px;
+}
+
+.caution-bg {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(-45deg,
+            #FFC800,
+            #FFC800 10px,
+            #000 10px,
+            #000 20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: bold;
+    color: #000;
+    letter-spacing: 1px;
+}
+
+.caution-bg span:last-child {
+    font-size: 0.5rem;
+}
+
+/* --- 10. VERTICAL BARCODE --- */
+.tech-barcode-vert {
+    width: 30px;
+}
+
+.right-mid {
+    right: 30px;
+    top: 40%;
+}
+
+.barcode-lines {
+    display: flex;
+    gap: 1px;
+    height: 60px;
+    margin-bottom: 5px;
+}
+
+.barcode-lines i {
+    flex: 1;
+    background: var(--text-primary);
+    border-radius: 1px;
+}
+
+.barcode-lines i:nth-child(odd) {
+    background: var(--toxic-green);
+}
+
+.barcode-num {
+    font-size: 0.6rem;
+    text-align: center;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+}
+
+/* --- 11. CERTIFICATION BADGE --- */
+.tech-cert-badge {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--toxic-green);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.br-above {
+    bottom: 160px;
+    right: 50px;
+}
+
+.cert-icon {
+    font-size: 1rem;
+    color: var(--toxic-green);
+    margin-bottom: 2px;
+}
+
+.cert-text {
+    font-size: 0.65rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 0.9;
+    color: var(--text-primary);
+}
+
+.cert-label {
+    font-size: 0.45rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* --- 12. DATA STREAM INDICATOR --- */
+.tech-data-stream {
+    width: 100px;
+}
+
+.left-top-third {
+    left: 30px;
+    top: 30%;
+}
+
+.stream-header {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.stream-bars {
+    display: flex;
+    gap: 3px;
+    height: 30px;
+    align-items: flex-end;
+}
+
+.stream-bars span {
+    flex: 1;
+    background: var(--toxic-green);
+    height: var(--h);
+    animation: dataFlow 1.5s infinite ease-in-out;
+    opacity: 0.7;
+}
+
+@keyframes dataFlow {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.stream-value {
+    font-size: 0.7rem;
+    color: var(--toxic-green);
+    margin-top: 5px;
+}
+
+/* --- 13. GEOMETRIC MARKER --- */
+.tech-geo-marker {
+    width: 80px;
+}
+
+.bl-deco {
+    bottom: 140px;
+    left: 30px;
+}
+
+.geo-circle {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--toxic-green);
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.geo-line {
+    width: 60%;
+    height: 1px;
+    background: var(--toxic-green);
+    margin: 5px 0;
+}
+
+.geo-text {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+/* --- 14. TECH LABEL MODERN --- */
+.tech-label-modern {
+    width: 140px;
+    height: 120px;
+    background: rgba(80, 80, 80, 0.9);
+    border: 2px solid var(--text-secondary);
+}
+
+.tr-label {
+    top: 120px;
+    right: 120px;
+}
+
+.label-corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--toxic-green);
+}
+
+.label-corner.tl {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.label-corner.tr {
+    top: -2px;
+    right: -2px;
+    border-left: none;
+    border-bottom: none;
+}
+
+.label-corner.bl {
+    bottom: -2px;
+    left: -2px;
+    border-right: none;
+    border-top: none;
+}
+
+.label-corner.br {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+}
+
+.label-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.label-top {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.label-code {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--toxic-green);
+}
+
+.label-desc {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+/* --- 15. EXPERT LICENSE TAG --- */
+.tech-expert-tag {
+    width: 120px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--text-primary);
+    padding: 10px;
+}
+
+.right-lower {
+    right: 30px;
+    bottom: 200px;
+}
+
+.expert-border {
+    position: absolute;
+    inset: 5px;
+    border: 1px dashed var(--text-secondary);
+}
+
+.expert-logo {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.expert-id {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* --- 16. QC HOLD LABEL --- */
+.tech-qc-label {
+    width: 70px;
+    height: 70px;
+    background: #FFC800;
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 3px solid #000;
+}
+
+.left-bottom {
+    left: 30px;
+    bottom: 200px;
+}
+
+.qc-text {
+    font-size: 1.2rem;
+    line-height: 0.9;
+    text-align: center;
+}
+
+.qc-subtext {
+    font-size: 0.5rem;
+    margin-top: 5px;
+}
+
+/* --- 17. BATTERY PACK INFO --- */
+.tech-battery-info {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--text-secondary);
+    padding: 8px;
+}
+
+.bc-right {
+    bottom: 80px;
+    right: 200px;
+}
+
+.bat-info-icon {
+    font-size: 1.5rem;
+    color: var(--toxic-green);
+}
+
+.bat-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.bat-voltage {
+    color: var(--text-primary);
+    font-size: 0.6rem;
+}
+
+/* --- 18. FRAGILE WARNING --- */
+.tech-fragile-tag {
+    width: 90px;
+    background: #DC143C;
+    color: #FFF;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #FFF;
+}
+
+.tr-warn {
+    top: 260px;
+    right: 30px;
+}
+
+.fragile-icon {
+    font-size: 1.2rem;
+    margin-bottom: 3px;
+}
+
+.fragile-text {
+    font-size: 0.7rem;
+    line-height: 1.1;
+}
+
+/* --- 19. SPACE WARFARE TECH TAG --- */
+.tech-warfare-tag {
+    width: 130px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid var(--text-primary);
+    padding: 8px;
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.left-mid-up {
+    left: 30px;
+    top: 35%;
+}
+
+.warfare-header {
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.warfare-subheader {
+    margin-bottom: 4px;
+}
+
+.warfare-code,
+.warfare-part {
+    font-size: 0.45rem;
+    margin-top: 2px;
+}
+
+/* --- 20. HAZARD DIAMOND --- */
+.tech-hazard-diamond {
+    width: 70px;
+    height: 70px;
+}
+
+.rb-quad {
+    right: 120px;
+    bottom: 120px;
+}
+
+.diamond-shape {
+    width: 100%;
+    height: 100%;
+    transform: rotate(45deg);
+    border: 2px solid #000;
+    position: relative;
+}
+
+.diamond-section {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 1px solid #000;
+}
+
+.diamond-section.top {
+    top: 0;
+    left: 25%;
+    background: #DC143C;
+    color: #FFF;
+}
+
+.diamond-section.right {
+    top: 25%;
+    right: 0;
+    background: #FFC800;
+    color: #000;
+}
+
+.diamond-section.bottom {
+    bottom: 0;
+    left: 25%;
+    background: #4169E1;
+    color: #FFF;
+}
+
+.diamond-section.left {
+    top: 25%;
+    left: 0;
+    background: #FFF;
+    color: #000;
+}
+
+/* --- 21. GPS TRACKING TAG --- */
+.tech-gps-tag {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--toxic-green);
+    padding: 6px;
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.br-gps {
+    bottom: 230px;
+    right: 30px;
+}
+
+.gps-icon {
+    font-size: 1rem;
+    color: var(--toxic-green);
+}
+
+.gps-text {
+    line-height: 1.1;
+}
+
+/* --- 22. TECHNICAL SERGEANT STREET --- */
+.tech-sergeant-tag {
+    background: var(--toxic-green);
+    color: #000;
+    padding: 6px 15px;
+    font-weight: bold;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+}
+
+.top-floating {
+    top: 200px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.sergeant-unit {
+    font-size: 0.6rem;
+    text-align: center;
+    margin-top: 2px;
+}
+
+/* --- 23. CONFIRMED SPACE TAG --- */
+.tech-space-tag {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #DC143C;
+    padding: 8px 12px;
+}
+
+.cl-floating {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) translateY(-100px);
+}
+
+.space-label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #DC143C;
+}
+
+.space-icon {
+    font-size: 1.2rem;
+    color: #DC143C;
+}
+
+/* --- 24. MAX CLIMB INDICATOR --- */
+.tech-climb-tag {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.left-upper {
+    left: 120px;
+    top: 120px;
+}
+
+.climb-label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+/* --- 25. HACKED LABEL --- */
+.tech-hacked-label {
+    width: 180px;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 3px solid var(--toxic-green);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.top-center-mod {
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.hacked-outline {
+    position: absolute;
+    inset: 8px;
+    border: 1px dashed var(--toxic-green);
+}
+
+.hacked-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--toxic-green);
+    letter-spacing: 3px;
+}
+
+.hacked-sub {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+/* --- 26. ACCESS CARD --- */
+.tech-access-card {
+    width: 100px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid var(--toxic-green);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bl-access {
+    bottom: 30px;
+    left: 150px;
+}
+
+.access-icon {
+    font-size: 2rem;
+    color: var(--toxic-green);
+}
+
+.access-main {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.access-sub {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+}
+
+/* --- 27. RETHINK TAG --- */
+.tech-rethink-tag {
+    width: 150px;
+    height: 140px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 3px solid var(--text-primary);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rc-modern {
+    right: 50%;
+    top: 50%;
+    transform: translate(50%, -50%);
+}
+
+.rethink-code {
+    font-size: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.rethink-main {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--toxic-green);
+}
+
+.rethink-sub {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.rethink-progress {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 50%;
+    position: relative;
+}
+
+.rethink-progress::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 2px solid var(--toxic-green);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: rotate 2s linear infinite;
+}
+
+/* --- 28. RENEW LABEL --- */
+.tech-renew-label {
+    width: 130px;
+    height: 130px;
+    background: var(--toxic-green);
+    color: #000;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+}
+
+.lc-bright {
+    left: 50%;
+    top: 30%;
+    transform: translateX(-50%);
+}
+
+.renew-icons {
+    display: flex;
+    gap: 10px;
+    font-size: 1.2rem;
+}
+
+.renew-main {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.renew-bars {
+    display: flex;
+    gap: 3px;
+    width: 80%;
+}
+
+.renew-bars span {
+    flex: 1;
+    height: 15px;
+    background: #000;
+}
+
+.renew-sub {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* --- 29. FUTURE CARD --- */
+.tech-future-card {
+    width: 180px;
+    height: 100px;
+    background: var(--toxic-green);
+    color: #000;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bc-future {
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.future-main {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.future-grid {
+    display: flex;
+    gap: 10px;
+    font-size: 1.5rem;
+}
+
+.future-codes {
+    display: flex;
+    gap: 10px;
+    font-size: 0.6rem;
+    font-weight: bold;
+}
+
+/* --- 30. LPG SYSTEM TAG --- */
+.tech-lpg-tag {
+    width: 80px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid #FFC800;
+    padding: 10px;
+    text-align: center;
+}
+
+.tl-lpg {
+    top: 300px;
+    left: 30px;
+}
+
+.lpg-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFC800;
+}
+
+.lpg-sub {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    margin-top: 3px;
+}
+
+/* ========== RESPONSIVE OPTIMIZATION FOR NEW ELEMENTS ========== */
+
+@media (max-width: 1024px) {
+
+    /* Hide some elements on tablets */
+    .tech-label-modern,
+    .tech-rethink-tag,
+    .tech-hacked-label,
+    .tech-sergeant-tag,
+    .tech-space-tag,
+    .tech-renew-label,
+    .tech-future-card {
+        display: none;
+    }
+
+    /* Resize remaining elements */
+    .tech-warning-label,
+    .tech-serial-tag,
+    .tech-expert-tag,
+    .tech-warfare-tag {
+        transform: scale(0.9);
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Hide most decorative elements on mobile */
+    .tech-warning-label,
+    .tech-serial-tag,
+    .tech-caution-stripe,
+    .tech-barcode-vert,
+    .tech-cert-badge,
+    .tech-data-stream,
+    .tech-geo-marker,
+    .tech-expert-tag,
+    .tech-qc-label,
+    .tech-battery-info,
+    .tech-fragile-tag,
+    .tech-warfare-tag,
+    .tech-hazard-diamond,
+    .tech-gps-tag,
+    .tech-climb-tag,
+    .tech-access-card,
+    .tech-lpg-tag {
+        display: none;
+    }
+
+    /* Keep only essential widgets visible */
+    .tech-widget-cluster {
+        gap: 10px;
+    }
+
+    .top-right-cluster {
+        top: 80px;
+        right: 15px;
+    }
+
+    .left-cluster {
+        left: 15px;
+    }
+
+    .tech-security-badge {
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Ultra-minimal on small phones */
+    .tech-security-badge,
+    .left-cluster {
+        display: none;
+    }
+}
+
+/* ========== THEME COMPATIBILITY ========== */
+
+/* Light theme adjustments for new elements */
+body.light-theme .tech-warning-label {
+    background: rgba(255, 200, 0, 0.2);
+    border-color: #CC9900;
+    color: #CC9900;
+}
+
+body.light-theme .hazard-stripe-mini {
+    background: repeating-linear-gradient(45deg,
+            #CC9900,
+            #CC9900 5px,
+            #FFF 5px,
+            #FFF 10px);
+}
+
+body.light-theme .tech-serial-tag,
+body.light-theme .tech-expert-tag,
+body.light-theme .tech-warfare-tag {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #333;
+}
+
+body.light-theme .tech-caution-stripe .caution-bg {
+    background: repeating-linear-gradient(-45deg,
+            #CC9900,
+            #CC9900 10px,
+            #FFF 10px,
+            #FFF 20px);
+}
+
+body.light-theme .tech-hacked-label,
+body.light-theme .tech-access-card,
+body.light-theme .tech-rethink-tag {
+    background: rgba(255, 255, 255, 0.98);
+}
+
+body.light-theme .tech-renew-label {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .tech-future-card {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .diamond-section.top {
+    background: #FF6B6B;
+}
+
+body.light-theme .diamond-section.bottom {
+    background: #6B8EFF;
+}
+
+/* ========== PERFORMANCE OPTIMIZATIONS ========== */
+
+/* Disable animations when performance mode is on */
+body.perf-low .tech-warning-label,
+body.perf-low .tech-serial-tag,
+body.perf-low .tech-cert-badge,
+body.perf-low .tech-data-stream span,
+body.perf-low .tech-rethink-tag,
+body.perf-low .tech-renew-label,
+body.perf-low .tech-future-card {
+    animation: none !important;
+}
+
+body.perf-low .badge-ring,
+body.perf-low .rethink-progress::after {
+    animation: none !important;
+}
+
+/* Reduce blur effects on low performance */
+body.perf-low .tech-warning-label,
+body.perf-low .tech-battery-info,
+body.perf-low .tech-gps-tag {
+    backdrop-filter: none;
+}
+
+/* ========== END NEW TECHNICAL ELEMENTS ========== */
+
+/* --- CROSSHAIR (Retained) --- */
+.tech-crosshair-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    /* Very subtle */
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.tech-crosshair-center .reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 20px;
+    background: var(--toxic-green);
+}
+
+.tech-crosshair-center .reticle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 2px;
+    background: var(--toxic-green);
+}
 /* HEADER INFO BAR */
 .tech-header-info {
     position: absolute;
@@ -814,7 +2236,8 @@ body.light-theme .hud-circle {
     position: fixed;
     inset: 0;
     z-index: 10001;
-    pointer-events: none;
+    pointer-events: auto;
+        /* Changed to block interaction during boot */
     opacity: 1;
     transition: opacity 0.5s ease-out;
 }
@@ -1300,23 +2723,14 @@ body.light-theme .hud-circle {
     align-items: center;
     gap: 10px;
     min-height: 200px;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; REMOVED per user request */
     cursor: pointer;
 }
 
 .link-block:hover {
     background: var(--text-primary);
     color: var(--bg-primary);
-    transform: scale(1.05);
     box-shadow: inset 0 0 20px var(--shadow-color), 0 0 10px var(--shadow-color);
-}
-
-.link-block:active {
-    transform: scale(0.98);
-}
-
-.link-block:hover .link-id {
-    color: var(--toxic-green);
 }
 
 .link-block:hover .corner {
@@ -1329,23 +2743,21 @@ body.light-theme .hud-circle {
     transition: transform 0.3s ease;
 }
 
-.link-block:hover .link-icon {
-    transform: scale(1.1);
-}
+
 
 .link-title {
     font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    transition: color 0.3s ease;
+    /* transition: color 0.3s ease; REMOVED */
 }
 
 .link-subtitle {
     font-size: 0.75rem;
     letter-spacing: 1px;
     color: var(--text-secondary);
-    transition: color 0.3s ease;
+    /* transition: color 0.3s ease; REMOVED */
 }
 
 .link-block:hover .link-subtitle {
@@ -1358,7 +2770,7 @@ body.light-theme .hud-circle {
     right: 12px;
     font-size: 0.65rem;
     letter-spacing: 1px;
-    color: var(--gray-mid);
+    color: var(--toxic-green);
 }
 
 /* ========== CONSOLE BLOCK ========== */
@@ -1367,6 +2779,7 @@ body.light-theme .hud-circle {
     background: #0a0a0a !important;
     color: var(--toxic-green) !important;
     border-color: var(--toxic-green) !important;
+    height: 200px;
 }
 
 @media (min-width: 768px) {
@@ -1698,9 +3111,7 @@ body,
 .toggle-track,
 .stat-box,
 .link-block {
-    transition: background-color 0.4s ease-in-out, 
-                color 0.4s ease-in-out, 
-                border-color 0.4s ease-in-out;
+    transition: none;
 }
 
 /* Mobile adjustments */
@@ -1730,6 +3141,12 @@ body,
     }
 }
 
+/* ========== NO SCROLL UTILITY ========== */
+
+/* Hide controls during loading (when no-scroll is active) */
+.no-scroll .control-dock {
+    display: none !important;
+}
 /* ========== CUSTOM CURSOR ========== */
 body {
     cursor: none;
@@ -2058,6 +3475,8 @@ a, button, .link-block, .stat-box {
     justify-content: center;
     gap: 15px;
     padding: 20px !important;
+    height: 220px;
+        /* Fixed height for visualizer container */
 }
 
 #audioVisualizer {
@@ -2319,7 +3738,6 @@ a, button, .link-block, .stat-box {
         opacity: 0;
     }
 }
-/* ========== SETTINGS PANEL ========== */
 .settings-panel {
     position: fixed;
     top: 0;
@@ -2372,7 +3790,6 @@ a, button, .link-block, .stat-box {
 .settings-close i {
     pointer-events: none;
 }
-
 .settings-content {
     padding: 20px;
     display: flex;
@@ -2382,6 +3799,67 @@ a, button, .link-block, .stat-box {
     max-height: calc(100vh - 80px);
 }
 
+.project-card {
+    height: 300px;
+    perspective: 1000px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.project-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: none;
+    /* Removed 3D transform */
+    transform-style: preserve-3d;
+}
+
+.project-card:hover .project-card-inner {
+    transform: none;
+    /* Removed 3D rotate */
+}
+
+.project-card-front,
+.project-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border: var(--border) solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+.project-card-front {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    justify-content: space-between;
+}
+
+.project-card-back {
+    background: var(--bg-primary);
+    transform: none;
+    /* Removed rotateY(180deg) */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: var(--border) solid var(--accent-color);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+    pointer-events: none;
+    /* Prevent interaction when hidden */
+}
+
+.project-card:hover .project-card-back {
+    opacity: 1;
+    pointer-events: auto;
+}
 .setting-item {
     display: flex;
     flex-direction: column;
@@ -2566,7 +4044,33 @@ a, button, .link-block, .stat-box {
     color: var(--accent-color);
 }
 
+/* Low-performance overrides for project cards */
+.low-perf .project-card {
+    transition: none !important;
+}
+
+.low-perf .project-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.low-perf .project-card::before,
+.low-perf .project-card::after {
+    display: none !important;
+}
 /* ========== PROJECT LIGHTBOX ========== */
+.light.boot-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10001;
+    pointer-events: auto;
+    /* Changed from none to block clicks */
+    display: none;
+}
 .lightbox {
     position: fixed;
     top: 0;
@@ -3491,10 +4995,12 @@ body.performance-mode-low .timeline-item:nth-child(3) { animation-delay: 0.3s !i
 body.performance-mode-low .timeline-item:nth-child(4) { animation-delay: 0.4s !important; }
 
 /* Hacer que las tarjetas aparezcan de una, sin fade suave */
-body.performance-mode-low .grid-item {
+body.performance-mode-low .grid-item,
+body.performance-mode-low .project-card {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+    animation: none !important;
 }
 
 /* ========== RESPONSIVE ADJUSTMENTS FOR NEW FEATURES ========== */
@@ -3584,3 +5090,7 @@ body.performance-mode-low .grid-item {
 }
 
 .matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -4; pointer-events: none; opacity: 0.15; }
+
+.no-scroll {
+    overflow: hidden !important;
+}

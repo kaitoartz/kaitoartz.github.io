@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview - Tech Elements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #111;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #E2FF00;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .intro {
+            background: rgba(226, 255, 0, 0.1);
+            border: 2px solid #E2FF00;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        
+        .intro h2 {
+            color: #E2FF00;
+            margin-bottom: 10px;
+        }
+        
+        .intro ul {
+            margin-left: 20px;
+        }
+        
+        .intro li {
+            margin: 5px 0;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .section h3 {
+            color: #E2FF00;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #E2FF00;
+            padding-bottom: 10px;
+        }
+        
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .element-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #E2FF00;
+            padding: 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .element-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(226, 255, 0, 0.3);
+        }
+        
+        .element-card h4 {
+            color: #E2FF00;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .element-card p {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+        
+        .element-card .icon {
+            font-size: 2rem;
+            color: #E2FF00;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background: #000;
+            border: 1px solid #E2FF00;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .code-block code {
+            color: #0f0;
+            font-size: 0.85rem;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            background: rgba(226, 255, 0, 0.1);
+            border: 2px solid #E2FF00;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            border-radius: 5px;
+        }
+        
+        .stat-box .number {
+            font-size: 2.5rem;
+            color: #E2FF00;
+            font-weight: bold;
+        }
+        
+        .stat-box .label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .color-themes {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .theme-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            border: 3px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .theme-box:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px currentColor;
+        }
+        
+        .theme-yellow { background: #E2FF00; color: #000; }
+        .theme-pink { background: #FF00CC; color: #fff; }
+        .theme-orange { background: #FF9900; color: #000; }
+        .theme-white { background: #FFFFFF; color: #000; }
+        
+        .features {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        
+        .features li {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid #E2FF00;
+            padding-left: 15px;
+        }
+        
+        .features li::before {
+            content: "✓ ";
+            color: #E2FF00;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #E2FF00;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .element-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Tech Elements - Complete Guide</h1>
+        
+        <div class="intro">
+            <h2>📦 Resumen de la Implementación</h2>
+            <p>Se han agregado <strong>24+ elementos técnicos/cyberpunk</strong> a tu portfolio de forma exhaustiva y optimizada.</p>
+            <ul>
+                <li>✅ Compatible con todos los temas de color</li>
+                <li>✅ Responsive (Desktop, Tablet, Mobile)</li>
+                <li>✅ Optimizado para performance</li>
+                <li>✅ Fácil de personalizar o eliminar</li>
+                <li>✅ Animaciones suaves y profesionales</li>
+            </ul>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="number">24+</div>
+                <div class="label">Elementos Nuevos</div>
+            </div>
+            <div class="stat-box">
+                <div class="number">900+</div>
+                <div class="label">Líneas CSS</div>
+            </div>
+            <div class="stat-box">
+                <div class="number">4</div>
+                <div class="label">Temas Soportados</div>
+            </div>
+            <div class="stat-box">
+                <div class="number">100%</div>
+                <div class="label">Optimizado</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🎨 Temas de Color Compatibles</h3>
+            <p>Todos los elementos se adaptan automáticamente a tu tema seleccionado:</p>
+            <div class="color-themes">
+                <div class="theme-box theme-yellow">YELLOW</div>
+                <div class="theme-box theme-pink">PINK</div>
+                <div class="theme-box theme-orange">ORANGE</div>
+                <div class="theme-box theme-white">WHITE</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>⚡ Elementos Implementados</h3>
+            <div class="element-grid">
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h4>WARNING LABEL</h4>
+                    <p>Etiqueta de advertencia con rayas de peligro</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-barcode"></i></div>
+                    <h4>SERIAL NUMBER TAG</h4>
+                    <p>Tag con número de serie y barcode</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-certificate"></i></div>
+                    <h4>CERTIFICATION BADGE</h4>
+                    <p>Badge circular ISO certificado</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-chart-column"></i></div>
+                    <h4>DATA STREAM</h4>
+                    <p>Indicador de flujo de datos</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-battery-three-quarters"></i></div>
+                    <h4>BATTERY INFO</h4>
+                    <p>Información de batería Li-ion</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-wine-glass-crack"></i></div>
+                    <h4>FRAGILE WARNING</h4>
+                    <p>Advertencia de manipulación</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <h4>GPS TRACKING</h4>
+                    <p>Tag de rastreo GPS activo</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-rocket"></i></div>
+                    <h4>SPACE TAG</h4>
+                    <p>Etiqueta espacial/militar</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-key"></i></div>
+                    <h4>ACCESS CARD</h4>
+                    <p>Tarjeta de acceso seguro</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-recycle"></i></div>
+                    <h4>RENEW LABEL</h4>
+                    <p>Etiqueta moderna "RENEW"</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                    <h4>FUTURE CARD</h4>
+                    <p>Card "FUTURE" con códigos</p>
+                </div>
+                
+                <div class="element-card">
+                    <div class="icon"><i class="fa-solid fa-radiation"></i></div>
+                    <h4>HAZARD DIAMOND</h4>
+                    <p>Diamante NFPA de peligrosidad</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>✨ Características Principales</h3>
+            <ul class="features">
+                <li>Diseño cyberpunk/industrial</li>
+                <li>Animaciones optimizadas</li>
+                <li>Backdrop blur effects</li>
+                <li>Responsive breakpoints</li>
+                <li>Theme-aware styling</li>
+                <li>Performance mode compatible</li>
+                <li>Light/Dark theme support</li>
+                <li>Font Awesome icons</li>
+                <li>Modular architecture</li>
+                <li>Easy customization</li>
+                <li>Clean code structure</li>
+                <li>Cross-browser compatible</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>🔧 Cómo Personalizar</h3>
+            <p>Para cambiar el color de un elemento específico:</p>
+            <div class="code-block">
+                <code>
+/* En styles.css */<br>
+.tech-warning-label {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;border-color: #FF0000; /* Tu color */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;color: #FF0000;<br>
+}
+                </code>
+            </div>
+            
+            <p style="margin-top: 15px;">Para eliminar un elemento:</p>
+            <div class="code-block">
+                <code>
+&lt;!-- En index.html, simplemente borra el bloque --&gt;<br>
+&lt;!-- BORRAR DESDE AQUÍ --&gt;<br>
+&lt;div class="tech-warning-label tl-corner"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&lt;/div&gt;<br>
+&lt;!-- HASTA AQUÍ --&gt;
+                </code>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>📱 Responsive Behavior</h3>
+            <p><strong>Desktop (> 1024px):</strong> Todos los elementos visibles</p>
+            <p><strong>Tablet (768px - 1024px):</strong> Se ocultan elementos decorativos grandes</p>
+            <p><strong>Mobile (< 768px):</strong> Solo widgets esenciales (batería, CPU, red)</p>
+            <p><strong>Small Mobile (< 480px):</strong> Mínimo decorativo para máxima usabilidad</p>
+        </div>
+        
+        <div class="section">
+            <h3>🔗 Recursos de Iconos</h3>
+            <p><strong>Font Awesome (Actual):</strong></p>
+            <div class="code-block">
+                <code>
+&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"&gt;
+                </code>
+            </div>
+            
+            <p style="margin-top: 15px;"><strong>Font Awesome (Última versión - Opcional):</strong></p>
+            <div class="code-block">
+                <code>
+&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"&gt;
+                </code>
+            </div>
+            
+            <p style="margin-top: 15px;"><strong>Material Icons (Alternativa):</strong></p>
+            <div class="code-block">
+                <code>
+&lt;link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"&gt;
+                </code>
+            </div>
+            
+            <p style="margin-top: 15px;"><strong>Remix Icon (Alternativa):</strong></p>
+            <div class="code-block">
+                <code>
+&lt;link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet"&gt;
+                </code>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🚀 Próximos Pasos</h3>
+            <ol style="margin-left: 20px;">
+                <li>Abre tu portfolio en el navegador</li>
+                <li>Verifica que todos los elementos se vean correctamente</li>
+                <li>Prueba los diferentes temas de color (Settings)</li>
+                <li>Elimina los elementos que no quieras (opcional)</li>
+                <li>Personaliza colores según tu preferencia</li>
+                <li>Disfruta de tu portfolio mejorado! 🎉</li>
+            </ol>
+        </div>
+        
+        <footer>
+            <p><strong>KAITOARTZ PORTFOLIO</strong></p>
+            <p>Tech Elements System v2.0 | 2026.01.17</p>
+            <p>Documentación completa en: <strong>TECH-ELEMENTS-GUIDE.md</strong></p>
+        </footer>
+    </div>
+</body>
+</html>
