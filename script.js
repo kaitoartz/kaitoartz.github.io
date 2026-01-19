@@ -74,7 +74,9 @@ class PerformanceManager {
             scanlines: true,
             glitch: true,
             particles: true,
-            terminal: true
+            grid3d: true,
+            decorations: true,
+            visualizer: true
         };
         this.currentPreset = 'auto'; // auto, ultra, high, medium, low
         this.hardware = {
@@ -152,7 +154,9 @@ class PerformanceManager {
                 scanlines: true,
                 glitch: true,
                 particles: true,
-                terminal: true
+                grid3d: true,
+                decorations: true,
+                visualizer: true
             },
             high: {
                 matrixRain: true,
@@ -161,7 +165,9 @@ class PerformanceManager {
                 scanlines: true,
                 glitch: false, // Desactivado por defecto
                 particles: false,
-                terminal: true
+                grid3d: true,
+                decorations: true,
+                visualizer: true
             },
             medium: {
                 matrixRain: !this.hardware.isMobile,
@@ -170,7 +176,9 @@ class PerformanceManager {
                 scanlines: true,
                 glitch: false,
                 particles: false,
-                terminal: true
+                grid3d: true,
+                decorations: false,
+                visualizer: true
             },
             low: {
                 matrixRain: false,
@@ -179,7 +187,9 @@ class PerformanceManager {
                 scanlines: false,
                 glitch: false,
                 particles: false,
-                terminal: true
+                grid3d: false,
+                decorations: false,
+                visualizer: false
             }
         };
 
@@ -229,8 +239,14 @@ class PerformanceManager {
             case 'particles':
                 this.toggleParticles(newState);
                 break;
-            case 'terminal':
-                this.toggleTerminal(newState);
+            case 'grid3d':
+                this.toggleGrid3D(newState);
+                break;
+            case 'decorations':
+                this.toggleDecorations(newState);
+                break;
+            case 'visualizer':
+                this.toggleVisualizer(newState);
                 break;
         }
         
@@ -286,23 +302,34 @@ class PerformanceManager {
     }
 
     toggleParticles(enable) {
-        const particles = document.querySelectorAll('.parallax-shape, .geo-elements');
+        const particles = document.querySelectorAll('.parallax-shape, .geo-elements, #particle_container, .particle-container');
         particles.forEach(particle => {
             particle.style.display = enable ? 'block' : 'none';
         });
     }
-    toggleTerminal(enable) {
-        const terminalButton = document.getElementById('terminalButton');
-        if (terminalButton) {
-            terminalButton.style.display = enable ? 'flex' : 'none';
+
+
+    toggleGrid3D(enable) {
+        const grid = document.querySelector('.grid-3d');
+        if (grid) {
+            grid.style.display = enable ? 'block' : 'none';
         }
-        
-        // If terminal is open and we're disabling it, close it
-        if (!enable && this.terminalInstance) {
-            const terminalModal = document.getElementById('terminalModal');
-            if (terminalModal && terminalModal.classList.contains('active')) {
-                this.terminalInstance.close();
-            }
+    }
+
+    toggleDecorations(enable) {
+        const decals = document.querySelector('.tech-decals');
+        const stickers = document.querySelector('.decal-layer');
+        const proceduralTech = document.querySelector('.procedural-tech-layer');
+
+        if (decals) decals.style.display = enable ? 'block' : 'none';
+        if (stickers) stickers.style.display = enable ? 'block' : 'none';
+        if (proceduralTech) proceduralTech.style.display = enable ? 'block' : 'none';
+    }
+
+    toggleVisualizer(enable) {
+        const vizBlock = document.querySelector('.visualizer-block');
+        if (vizBlock) {
+            vizBlock.style.display = enable ? 'flex' : 'none';
         }
     }
 
@@ -314,7 +341,10 @@ class PerformanceManager {
             scanlines: 'scanlineStatus',
             glitch: 'glitchStatus',
             particles: 'particlesStatus',
-            terminal: 'terminalStatus'
+            particles: 'particlesStatus',
+            grid3d: 'gridStatus',
+            decorations: 'decorStatus',
+            visualizer: 'vizStatus'
         };
         
         const statusEl = document.getElementById(statusMap[effectName]);
@@ -436,7 +466,6 @@ class PerformanceManager {
         if (name === 'matrixRain') this.matrixRainInstance = instance;
         if (name === 'parallax') this.parallaxInstance = instance;
         if (name === 'cursor') this.cursorInstance = instance;
-        if (name === 'terminal') this.terminalInstance = instance;
 
     }
 }
@@ -668,8 +697,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Actualizar botón de audio después de iniciar la música
             setTimeout(() => {
-                if (typeof dockController !== 'undefined') {
-                    dockController.updateAudioButton(true);
+                if (typeof settingsManager !== 'undefined') {
+                    settingsManager.updateAudioButton(true);
                 }
             }, 100);
             
@@ -1125,9 +1154,11 @@ class ThemeManager {
                 audioManager.playClick();
             });
 
-            // Set initial active state
+            // Set initial active state: Only the saved theme should be active
             if (btn.dataset.color === this.colorTheme) {
                 btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
         });
     }
@@ -1946,120 +1977,55 @@ class TechnicalBackground {
 
 const technicalBackground = new TechnicalBackground();
 
-// ========== SKILLS RADAR CHART ==========
-class SkillsRadar {
+// ========== SKILLS MANAGER (ASSET TAGS) ==========
+class SkillsManager {
     constructor() {
-        this.canvas = null;
-        this.ctx = null;
-        // Ajustado a tu perfil real
+        this.container = null;
         this.skills = [
-            { name: 'Unity/C#', value: 95, color: '#FF4500' }, // Tu fuerte
-            { name: 'VR/Optimization', value: 90, color: '#0056b3' }, // Tu especialidad
-            { name: 'Tech Art/Shaders', value: 85, color: '#000000' }, // Solido
-            { name: 'Unreal Engine', value: 40, color: '#666666' }  // Básico según CV
+            { name: 'UNITY_ENGINE', value: 95, color: '#39FF14', icon: 'fa-brands fa-unity', code: 'U-3D' },
+            { name: 'C# / SCRIPTING', value: 95, color: '#39FF14', icon: 'fa-solid fa-code', code: 'CS-90' },
+            { name: 'VR / XR DEV', value: 90, color: '#00FFFF', icon: 'fa-solid fa-vr-cardboard', code: 'XR-V2' },
+            { name: 'HLSL / SHADERS', value: 85, color: '#FF00CC', icon: 'fa-solid fa-wand-magic-sparkles', code: 'SH-FX' },
+            { name: '3D OPTIMIZATION', value: 90, color: '#00FFFF', icon: 'fa-solid fa-gauge-high', code: 'OPT-Z' },
+            { name: 'UNREAL_ENGINE', value: 50, color: '#FFFF00', icon: 'fa-solid fa-cube', code: 'UE-05' }
         ];
-        this.animationProgress = 0;
     }
 
     init() {
-        this.canvas = document.getElementById('skillsRadar');
-        if (!this.canvas) return;
-        
-        this.ctx = this.canvas.getContext('2d');
-        this.animate();
+        this.container = document.getElementById('skillsGrid');
+        if (!this.container) return;
+        this.render();
     }
 
-    animate() {
-        if (this.animationProgress < 1) {
-            this.animationProgress += 0.02;
-            if (this.animationProgress > 1) this.animationProgress = 1;
-        }
-        
-        this.draw();
-        requestAnimationFrame(() => this.animate());
-    }
+    render() {
+        this.container.innerHTML = this.skills.map((skill, index) => `
+            <div class="skill-card-tech" style="--skill-color: ${skill.color}; animation-delay: ${index * 100}ms">
+                <!-- Decorative Corner Cut -->
+                <div class="card-corner-cut"></div>
+                
+                <div class="skill-main-content">
+                    <div class="skill-header-row">
+                        <span class="skill-id">ID_0${index + 1} // ${skill.code}</span>
+                        <i class="skill-icon-small ${skill.icon}"></i>
+                    </div>
+                    
+                    <div class="skill-name-large">${skill.name}</div>
+                    
+                    <div class="skill-bar-complex">
+                        <div class="skill-bar-track">
+                            <div class="skill-bar-fill" style="width: ${skill.value}%"></div>
+                        </div>
+                        <div class="skill-value-number">${skill.value}%</div>
+                    </div>
+                </div>
 
-    draw() {
-        const ctx = this.ctx;
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        const radius = Math.min(centerX, centerY) - 40;
-        
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Draw grid circles
-        ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border-color').trim() || '#FFFFFF';
-        ctx.lineWidth = 1;
-        
-        for (let i = 1; i <= 5; i++) {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, (radius / 5) * i, 0, Math.PI * 2);
-            ctx.globalAlpha = 0.2;
-            ctx.stroke();
-        }
-        
-        // Draw axes
-        const angleStep = (Math.PI * 2) / this.skills.length;
-        ctx.globalAlpha = 0.3;
-        
-        this.skills.forEach((_, index) => {
-            const angle = angleStep * index - Math.PI / 2;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
-            
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        });
-        
-        // Draw data polygon
-        ctx.beginPath();
-        ctx.globalAlpha = 0.3;
-        
-        this.skills.forEach((skill, index) => {
-            const angle = angleStep * index - Math.PI / 2;
-            const value = (skill.value / 100) * radius * this.animationProgress;
-            const x = centerX + Math.cos(angle) * value;
-            const y = centerY + Math.sin(angle) * value;
-            
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        });
-        
-        ctx.closePath();
-        ctx.fillStyle = '#39FF14';
-        ctx.fill();
-        
-        // Draw data points and values
-        ctx.globalAlpha = 1;
-        this.skills.forEach((skill, index) => {
-            const angle = angleStep * index - Math.PI / 2;
-            const value = (skill.value / 100) * radius * this.animationProgress;
-            const x = centerX + Math.cos(angle) * value;
-            const y = centerY + Math.sin(angle) * value;
-            
-            // Point
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, Math.PI * 2);
-            ctx.fillStyle = skill.color;
-            ctx.fill();
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Label
-            const labelX = centerX + Math.cos(angle) * (radius + 25);
-            const labelY = centerY + Math.sin(angle) * (radius + 25);
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-primary').trim() || '#FFFFFF';
-            ctx.font = '10px "JetBrains Mono"';
-            ctx.textAlign = 'center';
-            ctx.fillText(skill.name, labelX, labelY);
-            ctx.fillText(Math.round(skill.value * this.animationProgress) + '%', labelX, labelY + 12);
-        });
+                <!-- Industrial Sidebar / Barcode -->
+                <div class="skill-sidebar">
+                    <div class="mini-barcode"></div>
+                    <div class="warning-icon" title="High Voltage">⚡</div>
+                </div>
+            </div>
+        `).join('');
     }
 }
 
@@ -3043,7 +3009,12 @@ class ProjectManager {
         this.container.innerHTML = projects.map((proj, index) => `
             <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
                 <div class="project-image-container">
-                    <img src="${proj.image}" alt="${proj.title}" class="project-image" onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
+                    <img src="${proj.image}" 
+                         alt="${proj.title}" 
+                         class="project-image" 
+                         loading="lazy" 
+                         decoding="async"
+                         onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
                         <button class="view-project-btn" onclick="projectLightbox.open('${proj.image}')">VIEW_DATA</button>
                     </div>
@@ -3109,7 +3080,7 @@ class ScrollRevealManager {
     }
 }
 
-const skillsRadar = new SkillsRadar();
+const skillsManager = new SkillsManager();
 const projectManager = new ProjectManager(); // Fixed name
 const notificationManager = new NotificationManager();
 const audioVisualizer = new AudioVisualizer();
@@ -3152,7 +3123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             devLog('%c>> INIT: Tech Background ✓', 'color: #39FF14; font-family: monospace;');
             
             // Initialize new features
-            skillsRadar.init();
+            skillsManager.init();
             devLog('%c>> INIT: Skills Radar ✓', 'color: #39FF14; font-family: monospace;');
             
             projectManager.init(); // Fixed name

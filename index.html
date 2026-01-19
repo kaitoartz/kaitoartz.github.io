@@ -36,6 +36,24 @@
     rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+<!-- JSON-LD Structured Data for SEO -->
+<script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "KAITOARTZ",
+      "url": "https://kaitoartz.github.io/",
+      "jobTitle": "VR Developer & Tech Artist",
+      "image": "https://kaitoartz.github.io/preview.jpg",
+      "sameAs": [
+        "https://github.com/kaitoartz",
+        "https://www.linkedin.com/in/kaitoarts",
+        "https://kaitoartz.itch.io/",
+        "https://www.instagram.com/kaitoartzz/"
+      ],
+      "description": "Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real."
+    }
+    </script>
 </head>
 <body>
     
@@ -43,7 +61,7 @@
     <div class="start-screen">
         <!-- TECH BACKGROUND LAYERS -->
         <div class="tactical-grid-bg"></div>
-        
+
         <!-- DECORATIVE HUD ELEMENTS -->
         <div class="tech-decals">
             <div class="hazard-stripes stripes-top"></div>
@@ -53,7 +71,6 @@
             <div class="hud-circle circle-large"></div>
             <div class="hud-circle circle-small"></div>
         </div>
-
         <div class="tech-corner-bracket top-left"></div>
         <div class="tech-corner-bracket top-right"></div>
         <div class="tech-corner-bracket bottom-left"></div>
@@ -202,88 +219,53 @@
                 <div class="hardware-info" id="hardwareInfo"></div>
             </div>
             
-            <div class="setting-item">
-                <label>
-                    <span>MATRIX RAIN</span>
-                    <span class="effect-status" id="matrixStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="matrixRain" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
+            <div class="setting-section-title">VISUAL EFFECT CONTROL</div>
             
-            <div class="setting-item">
-                <label>
-                    <span>PARALLAX LAYERS</span>
-                    <span class="effect-status" id="parallaxStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="parallax" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <label>
-                    <span>CURSOR TRAIL</span>
-                    <span class="effect-status" id="cursorStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="cursorTrail" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <label>
-                    <span>SCANLINE EFFECT</span>
-                    <span class="effect-status" id="scanlineStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="scanlines" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <label>
-                    <span>GLITCH EFFECTS</span>
-                    <span class="effect-status" id="glitchStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="glitch" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="setting-item">
-                <label>
+            <!-- EFFECTS GRID SYSTEM -->
+            <div class="effects-grid-container">
+                <button class="effect-tile effect-toggle" data-effect="matrixRain" data-state="on">
+                    <i class="fa-solid fa-code"></i>
+                    <span>MATRIX</span>
+                </button>
+                
+                <button class="effect-tile effect-toggle" data-effect="parallax" data-state="on">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>PARALLAX</span>
+                </button>
+                
+                <button class="effect-tile effect-toggle" data-effect="cursorTrail" data-state="on">
+                    <i class="fa-solid fa-arrow-pointer"></i>
+                    <span>CURSOR</span>
+                </button>
+                
+                <button class="effect-tile effect-toggle" data-effect="scanlines" data-state="on">
+                    <i class="fa-solid fa-tv"></i>
+                    <span>SCANLINES</span>
+                </button>
+                
+                <button class="effect-tile effect-toggle" data-effect="glitch" data-state="on">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>GLITCH</span>
+                </button>
+                
+                <button class="effect-tile effect-toggle" data-effect="particles" data-state="on">
+                    <i class="fa-solid fa-wind"></i>
                     <span>PARTICLES</span>
-                    <span class="effect-status" id="particlesStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="particles" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
-            </div>
-             
-            <div class="setting-item">
-                <label>
-                    <span>TERMINAL ACCESS</span>
-                    <span class="effect-status" id="terminalStatus">ON</span>
-                </label>
-                <div class="setting-buttons">
-                    <button class="setting-btn effect-toggle" data-effect="terminal" data-state="on">
-                        <span class="toggle-indicator">●</span>
-                    </button>
-                </div>
+                </button>
+<button class="effect-tile effect-toggle" data-effect="grid3d" data-state="on">
+    <i class="fa-solid fa-border-all"></i>
+    <span>3D GRID</span>
+</button>
+
+<button class="effect-tile effect-toggle" data-effect="decorations" data-state="on">
+    <i class="fa-solid fa-shapes"></i>
+    <span>DECOR</span>
+</button>
+
+                <button class="effect-tile effect-toggle" data-effect="visualizer" data-state="on">
+                    <i class="fa-solid fa-wave-square"></i>
+                    <span>VISUALIZER</span>
+                </button>
             </div>
         </div>
     </div>
@@ -467,8 +449,11 @@
             <div class="scan-line"></div>
             
             <div class="block-label glitch" data-text="SKILLS_MATRIX"><span data-i18n="skills.label">SKILLS_MATRIX</span> // <span
-                    class="label-code">v1.2.7</span></div>
-            <canvas id="skillsRadar" width="300" height="300" aria-label="Radar chart showing technical skills distribution" role="img"></canvas>
+                    class="label-code">v2.0.0</span></div>
+            
+            <div id="skillsGrid" class="skills-grid"> 
+                <!-- Dynamic Content generated by SkillsManager -->
+            </div>
             <div class="skills-legend">
                 <div class="legend-item"><span class="legend-dot" style="background: var(--accent-color);"></span>VR/AR</div>
                 <div class="legend-item"><span class="legend-dot" style="background: var(--secondary-accent);"></span>Programming</div>
@@ -686,37 +671,31 @@
     <div class="decal-layer">
         <!-- HEADER STICKER: Warning/Caution label near top left -->
         <!-- Expected file: warning_label.png -->
-        <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label">
+        <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label"
+            loading="lazy">
     
         <!-- SIDEBAR STICKER: "Removable" or Arrow near social links -->
         <!-- Expected file: arrow_ui.png -->
-        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow">
+        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow" loading="lazy">
     
         <!-- INFO STICKER: "Datacorp" or "Specs" style sticker near intro text -->
         <!-- Expected file: data_badge.png -->
-        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge">
+        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge" loading="lazy">
     
         <!-- FOOTER STICKER: "Hacked" or "Void" sticker -->
         <!-- Expected file: hacked_label.png -->
-        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label">
-    
+        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label" loading="lazy">
         <!-- NEW COLORFUL ASSETS (From second batch) -->
         <!-- Expected file: sticker_neon.png (The yellow/green ones) -->
-        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge">
+        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge" loading="lazy">
     
         <!-- Expected file: sticker_alert.png (The red ones) -->
-        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label">
+        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label" loading="lazy">
     </div>
-    
+
     <!-- PURE CSS TECH ICONS (Created by System) -->
     <!-- PURE CSS TECH ICONS (Created by System - EXHAUSTIVE MODE) -->
     <div class="procedural-tech-layer">
-    
-        <!-- CENTER: Subtle Crosshair (Retained) -->
-        <div class="tech-crosshair-center">
-            <div class="reticle"></div>
-        </div>
-    
         <!-- WIDGET GROUP: TOP RIGHT (System Status) -->
         <div class="tech-widget-cluster top-right-cluster">
     
@@ -737,7 +716,6 @@
                     <div class="cpu-bar" style="--d: 0.1s"></div>
                 </div>
             </div>
-    
             <!-- 3. NETWORK ACTIVITY -->
             <div class="tech-net-activity">
                 <div class="net-icon"><i class="fa-solid fa-network-wired"></i></div>
@@ -747,7 +725,6 @@
                 </div>
             </div>
         </div>
-    
         <!-- WIDGET GROUP: LEFT SIDE (Vertical Data) -->
         <div class="tech-widget-cluster left-cluster">
             <!-- 4. MEMORY GRID (Looking like the 'Future RE CREATE' reference) -->
@@ -764,215 +741,6 @@
             <!-- 5. VERTICAL DECO BARCODE -->
             <div class="tech-vert-barcode"></div>
         </div>
-    
-        <!-- WIDGET GROUP: BOTTOM RIGHT (Floating Badge) -->
-        <!-- 6. SECURITY BADGE (Like the 'Certified' reference) -->
-        <div class="tech-security-badge">
-            <div class="badge-ring"></div>
-            <div class="badge-icon"><i class="fa-solid fa-shield-halved"></i></div>
-            <div class="badge-text">SECURE<br><small>VERIFIED</small></div>
-            <div class="badge-scanline"></div>
-        </div>
-    
-        <!-- NEW TECHNICAL ELEMENTS -->
-        <!-- 7. WARNING LABEL (Top Left) -->
-        <div class="tech-item tech-warning-label tl-corner">
-            <div class="warn-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="warn-text">WARNING</div>
-            <div class="warn-subtext">AUTHORIZED ONLY</div>
-            <div class="hazard-stripe-mini"></div>
-        </div>
-    
-        <!-- 8. SERIAL NUMBER TAG (Top Left below warning) -->
-        <div class="tech-item tech-serial-tag tl-below">
-            <div class="serial-header">S/N</div>
-            <div class="serial-code">KA-2K65-MX07</div>
-            <div class="serial-barcode">
-                <span></span><span></span><span></span><span></span><span></span>
-            </div>
-        </div>
-    
-        <!-- 9. CAUTION STRIPE (Bottom Left) -->
-        <div class="tech-item tech-caution-stripe bl-corner">
-            <div class="caution-bg">
-                <span>CAUTION</span>
-                <span>LOAD CAPACITY</span>
-            </div>
-        </div>
-    
-        <!-- 10. VERTICAL BARCODE (Right side, middle) -->
-        <div class="tech-item tech-barcode-vert right-mid">
-            <div class="barcode-lines">
-                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div class="barcode-num">2A09B</div>
-        </div>
-    
-        <!-- 11. CERTIFICATION BADGE (Bottom Right, above security badge) -->
-        <div class="tech-item tech-cert-badge br-above">
-            <div class="cert-icon"><i class="fa-solid fa-certificate"></i></div>
-            <div class="cert-text">ISO<br>9001</div>
-            <div class="cert-label">CERTIFIED</div>
-        </div>
-    
-        <!-- 12. DATA STREAM INDICATOR (Left, top third) -->
-        <div class="tech-item tech-data-stream left-top-third">
-            <div class="stream-header">DATA_STREAM</div>
-            <div class="stream-bars">
-                <span style="--h: 60%"></span>
-                <span style="--h: 80%"></span>
-                <span style="--h: 40%"></span>
-                <span style="--h: 90%"></span>
-                <span style="--h: 50%"></span>
-            </div>
-            <div class="stream-value">1.24 GB/s</div>
-        </div>
-    
-        <!-- 13. GEOMETRIC MARKER (Bottom Left corner decoration) -->
-        <div class="tech-item tech-geo-marker bl-deco">
-            <div class="geo-circle"></div>
-            <div class="geo-line"></div>
-            <div class="geo-text">SECTOR<br>07</div>
-        </div>
-    
-        <!-- 14. TECH LABEL MODERN (Top Right, modern style) -->
-        <div class="tech-item tech-label-modern tr-label">
-            <div class="label-corner tl"></div>
-            <div class="label-corner tr"></div>
-            <div class="label-corner bl"></div>
-            <div class="label-corner br"></div>
-            <div class="label-content">
-                <div class="label-top">TIME OFF</div>
-                <div class="label-code">23.01</div>
-                <div class="label-desc">UTILITY STREET STYLE</div>
-            </div>
-        </div>
-    
-        <!-- 15. EXPERT LICENSE TAG (Right side) -->
-        <div class="tech-item tech-expert-tag right-lower">
-            <div class="expert-border"></div>
-            <div class="expert-logo">EXPERT</div>
-            <div class="expert-id">LICENSE NO. 234-2112</div>
-        </div>
-    
-        <!-- 16. QC HOLD LABEL (Left bottom area) -->
-        <div class="tech-item tech-qc-label left-bottom">
-            <div class="qc-text">QC<br>HOLD</div>
-            <div class="qc-subtext">OEM SERVICE</div>
-        </div>
-    
-        <!-- 17. BATTERY PACK INFO (Bottom center-right) -->
-        <div class="tech-item tech-battery-info bc-right">
-            <div class="bat-info-icon"><i class="fa-solid fa-battery-three-quarters"></i></div>
-            <div class="bat-info-text">
-                <span>BATTERY PACK</span>
-                <span class="bat-voltage">Li-ion 48V 2100mAh</span>
-            </div>
-        </div>
-    
-        <!-- 18. FRAGILE WARNING (Top right area) -->
-        <div class="tech-item tech-fragile-tag tr-warn">
-            <div class="fragile-icon"><i class="fa-solid fa-wine-glass-crack"></i></div>
-            <div class="fragile-text">FRAGILE<br><small>HANDLE WITH CARE</small></div>
-        </div>
-    
-        <!-- 19. SPACE WARFARE TECH TAG (Left mid-upper) -->
-        <div class="tech-item tech-warfare-tag left-mid-up">
-            <div class="warfare-header">SPACE AND NAVAL WARFARE</div>
-            <div class="warfare-subheader">SYSTEMS CENTER</div>
-            <div class="warfare-code">UIC 55910</div>
-            <div class="warfare-part">PART NO. C5-04060</div>
-        </div>
-    
-        <!-- 20. HAZARD DIAMOND (Right bottom quadrant) -->
-        <div class="tech-item tech-hazard-diamond rb-quad">
-            <div class="diamond-shape">
-                <div class="diamond-section top">3</div>
-                <div class="diamond-section right">0</div>
-                <div class="diamond-section bottom">2</div>
-                <div class="diamond-section left">W</div>
-            </div>
-        </div>
-    
-        <!-- 21. GPS TRACKING TAG (Bottom right) -->
-        <div class="tech-item tech-gps-tag br-gps">
-            <div class="gps-icon"><i class="fa-solid fa-location-dot"></i></div>
-            <div class="gps-text">GPS TRACKING<br>DEVICE ACTIVE</div>
-        </div>
-    
-        <!-- 22. TECHNICAL SERGEANT STREET (Top, floating) -->
-        <div class="tech-item tech-sergeant-tag top-floating">
-            <div class="sergeant-text">TECHNICAL SERGEANT ST</div>
-            <div class="sergeant-unit">LBS./SQ. FT.</div>
-        </div>
-    
-        <!-- 23. CONFIRMED SPACE TAG (Center-left floating) -->
-        <div class="tech-item tech-space-tag cl-floating">
-            <div class="space-label">CONFIRMED SPACE</div>
-            <div class="space-icon"><i class="fa-solid fa-rocket"></i></div>
-        </div>
-    
-        <!-- 24. MAX CLIMB INDICATOR (Left upper) -->
-        <div class="tech-item tech-climb-tag left-upper">
-            <div class="climb-label">MAX<br>CLIMB</div>
-        </div>
-    
-        <!-- 25. HACKED LABEL (Top center modern) -->
-        <div class="tech-item tech-hacked-label top-center-mod">
-            <div class="hacked-outline"></div>
-            <div class="hacked-text">HACKED</div>
-            <div class="hacked-sub">888_RAS // PROTOCOL BREACHED</div>
-        </div>
-    
-        <!-- 26. ACCESS LABEL (Bottom left modern card) -->
-        <div class="tech-item tech-access-card bl-access">
-            <div class="access-icon"><i class="fa-solid fa-key"></i></div>
-            <div class="access-main">ACCESS</div>
-            <div class="access-sub">NG・PREF</div>
-        </div>
-    
-        <!-- 27. RETHINK TAG (Right center modern) -->
-        <div class="tech-item tech-rethink-tag rc-modern">
-            <div class="rethink-code">0X000000101481EFF</div>
-            <div class="rethink-main">RETHINK</div>
-            <div class="rethink-sub">IDFN78</div>
-            <div class="rethink-progress"></div>
-        </div>
-    
-        <!-- 28. RENEW LABEL (Left center bright) -->
-        <div class="tech-item tech-renew-label lc-bright">
-            <div class="renew-icons">
-                <i class="fa-solid fa-recycle"></i>
-                <i class="fa-solid fa-arrows-rotate"></i>
-            </div>
-            <div class="renew-main">RENEW</div>
-            <div class="renew-bars">
-                <span></span><span></span><span></span>
-            </div>
-            <div class="renew-sub">UNIQUE</div>
-        </div>
-    
-        <!-- 29. FUTURE LABEL (Bottom center modern card) -->
-        <div class="tech-item tech-future-card bc-future">
-            <div class="future-main">FUTURE</div>
-            <div class="future-grid">
-                <i class="fa-solid fa-globe"></i>
-                <i class="fa-solid fa-globe"></i>
-                <i class="fa-solid fa-globe"></i>
-            </div>
-            <div class="future-codes">
-                <span>63.0513</span>
-                <span>79.2002</span>
-                <span>106.5401</span>
-            </div>
-        </div>
-    
-        <!-- 30. LPG SYSTEM TAG (Top left tech) -->
-        <div class="tech-item tech-lpg-tag tl-lpg">
-            <div class="lpg-header">LPG</div>
-            <div class="lpg-sub">SYSTEM</div>
-        </div>
-    
     </div>
 
     <!-- TERMINAL MODAL -->
@@ -1021,6 +789,11 @@
     
     <!-- CONTROL DOCK -->
     <div class="control-dock collapsed" data-expanded="false">
+        <div class="dock-deco-start">
+            <div class="dock-lines">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
         <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme">
             <i class="fa-solid fa-sun theme-icon"></i>
         </button>
@@ -1038,6 +811,9 @@
         <button class="dock-btn" id="burgerMenu" title="Settings">
             <i class="fa-solid fa-gear"></i>
         </button>
+<div class="dock-deco-end">
+    <span class="dock-label-min">SYS</span>
+</div>
     </div>
 </body>
 </html>

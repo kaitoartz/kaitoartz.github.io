@@ -27,6 +27,7 @@ body.theme-pink {
     /* Neon Pink */
     --accent-color: #FF00CC;
     --shadow-color: rgba(255, 0, 204, 0.3);
+    --grid-color: rgba(255, 0, 204, 0.15);
 }
 
 body.theme-orange {
@@ -34,6 +35,7 @@ body.theme-orange {
     /* Tech Orange */
     --accent-color: #FF9900;
     --shadow-color: rgba(255, 153, 0, 0.3);
+    --grid-color: rgba(255, 153, 0, 0.15);
 }
 
 body.theme-white {
@@ -41,6 +43,7 @@ body.theme-white {
     /* Pure White */
     --accent-color: #FFFFFF;
     --shadow-color: rgba(255, 255, 255, 0.3);
+    --grid-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Ensure overrides work in light mode too */
@@ -113,13 +116,26 @@ body::before {
     font-variant-numeric: slashed-zero;
 }
 /* Disable effects when classes are applied */
-body.no-scanlines::before {
+body.no-scanlines::before,
+body.no-scanlines .scan-line {
     display: none !important;
 }
 
 body.no-glitch .glitch::before,
-body.no-glitch .glitch::after {
+body.no-glitch .glitch::after,
+body.no-glitch .start-title,
+body.no-glitch .start-subtitle,
+body.no-glitch .flicker-num,
+body.no-glitch .mem-matrix span {
     display: none !important;
+    animation: none !important;
+    }
+    
+    body.no-glitch .start-title,
+    body.no-glitch .start-subtitle {
+        display: block !important;
+        /* Ensure text remains visible, just no glitch */
+        text-shadow: none !important;
 }
 
 /* ========== START SCREEN ========== */
@@ -140,15 +156,61 @@ body.no-glitch .glitch::after {
 
 /* Light Theme Variables & Overrides */
 :root {
-    --grid-color: rgba(57, 255, 20, 0.15);
+    --grid-color: #434b00;
     /* Default Dark Mode Grid */
 }
 
 body.light-theme {
-    --grid-color: rgba(0, 0, 0, 0.05);
-    /* Light Mode Grid */
-    --toxic-green: #008f11;
-    /* Darker green for visibility on light bg */
+    /* Basic Colors Inversion */
+        --bg-primary: #e0e0e0;
+        --bg-secondary: #f5f5f5;
+        --text-primary: #111111;
+        --text-secondary: #333333;
+        --border-color: #333333;
+    
+        /* Grid & Accents */
+        --grid-color: rgba(0, 0, 0, 0.05);
+            /* Light Mode Grid */
+            --toxic-green: #008f11;
+            /* Darker green for visibility on light bg */
+    --accent-color: #008f11;
+        /* Sync accent color */
+    }
+    
+    /* Ensure WHITE theme becomes BLACK in light mode */
+    body.light-theme.theme-white {
+        --toxic-green: #000000;
+        --accent-color: #000000;
+        --border-color: #000000;
+    }
+    
+    /* Light Theme Specifics for Components */
+    body.light-theme .skill-card-tech {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #ccc;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    body.light-theme .skill-name-large {
+        color: #000;
+    }
+    
+    body.light-theme .skill-id,
+    body.light-theme .skill-icon-small {
+        color: #555;
+    }
+    
+    body.light-theme .skill-bar-track {
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    body.light-theme .mini-barcode {
+        background: repeating-linear-gradient(to bottom,
+                #333,
+                #333 2px,
+                transparent 2px,
+                transparent 4px);
+        opacity: 0.5;
 }
 
 /* Start Screen Background Adjustment */
@@ -1030,8 +1092,8 @@ body.light-theme .hud-circle {
 }
 
 .right-lower {
-    right: 30px;
-    bottom: 200px;
+    right: 20px;
+        bottom: 120px;
 }
 
 .expert-border {
@@ -1069,8 +1131,8 @@ body.light-theme .hud-circle {
 }
 
 .left-bottom {
-    left: 30px;
-    bottom: 200px;
+    left: 20px;
+        bottom: 120px;
 }
 
 .qc-text {
@@ -1095,8 +1157,8 @@ body.light-theme .hud-circle {
 }
 
 .bc-right {
-    bottom: 80px;
-    right: 200px;
+    bottom: 20px;
+        right: 20px;
 }
 
 .bat-info-icon {
@@ -1154,8 +1216,9 @@ body.light-theme .hud-circle {
 }
 
 .left-mid-up {
-    left: 30px;
-    top: 35%;
+    left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
 }
 
 .warfare-header {
@@ -1270,9 +1333,10 @@ body.light-theme .hud-circle {
 }
 
 .top-floating {
-    top: 200px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50px;
+        right: 20%;
+        transform: scale(0.65);
+        opacity: 0.7;
 }
 
 .sergeant-unit {
@@ -1289,12 +1353,14 @@ body.light-theme .hud-circle {
     background: rgba(0, 0, 0, 0.9);
     border: 2px solid #DC143C;
     padding: 8px 12px;
+    opacity: 0.6;
 }
 
 .cl-floating {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) translateY(-100px);
+    right: 20px;
+        top: 60%;
+        transform: scale(0.65);
+        opacity: 0.6;
 }
 
 .space-label {
@@ -1321,8 +1387,8 @@ body.light-theme .hud-circle {
 }
 
 .left-upper {
-    left: 120px;
-    top: 120px;
+    left: 20px;
+        top: 60px;
 }
 
 .climb-label {
@@ -1346,9 +1412,10 @@ body.light-theme .hud-circle {
 }
 
 .top-center-mod {
-    top: 100px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 20px;
+        left: 20%;
+        transform: scale(0.65);
+        opacity: 0.6;
 }
 
 .hacked-outline {
@@ -1383,8 +1450,8 @@ body.light-theme .hud-circle {
 }
 
 .bl-access {
-    bottom: 30px;
-    left: 150px;
+    bottom: 20px;
+        left: 90px;
 }
 
 .access-icon {
@@ -1416,9 +1483,12 @@ body.light-theme .hud-circle {
 }
 
 .rc-modern {
-    right: 50%;
-    top: 50%;
-    transform: translate(50%, -50%);
+    right: 50px;
+        bottom: 50px;
+        top: auto;
+        left: auto;
+        transform: scale(0.6);
+        opacity: 0.5;
 }
 
 .rethink-code {
@@ -1776,6 +1846,9 @@ body.perf-low .tech-gps-tag {
     border: 1px solid rgba(57, 255, 20, 0.2);
 }
 
+.tech-header-info {
+    border-color: var(--grid-color) !important;
+}
 .tech-header-info span span {
     color: var(--toxic-green);
 }
@@ -1801,12 +1874,12 @@ body.perf-low .tech-gps-tag {
 
 .tech-sidebar-left {
     left: 30px;
-    border-right: 1px solid rgba(57, 255, 20, 0.1);
+    border-right: 1px solid var(--grid-color);
 }
 
 .tech-sidebar-right {
     right: 30px;
-    border-left: 1px solid rgba(57, 255, 20, 0.1);
+    border-left: 1px solid var(--grid-color);
 }
 
 .vertical-ruler {
@@ -1885,7 +1958,7 @@ body.perf-low .tech-gps-tag {
     background: rgba(17, 17, 17, 0.75);
         /* Semi-transparent background */
         backdrop-filter: blur(5px);
-        border: 1px solid rgba(57, 255, 20, 0.1);
+        border: 1px solid var(--grid-color);
         box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     }
     
@@ -3575,148 +3648,270 @@ a, button, .link-block, .stat-box {
 }
 
 /* ========== BURGER MENU ========== */
+/* ========== BURGER MENU (TACTICAL DOCK) ========== */
 .control-dock {
     position: fixed;
     top: 20px;
     right: 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    background: rgba(10, 10, 10, 0.9);
+    gap: 8px;
+        /* Tighter gap for tech feel */
+        padding: 8px 12px;
+        background: rgba(5, 5, 5, 0.95);
     border: 1px solid var(--toxic-green);
-    border-radius: 50px; /* Estilo píldora futurista */
+    /* Techwear Shape: Angular cut corners */
+        clip-path: polygon(10px 0,
+                100% 0,
+                100% calc(100% - 10px),
+                calc(100% - 10px) 100%,
+                0 100%,
+                0 10px);
     backdrop-filter: blur(10px);
     z-index: 9999;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 10px var(--shadow-color);
-    transition: all 0.3s ease;
-    overflow: hidden;
+    /* Use drop-shadow for outer glow with clip-path, keep box-shadow for inset */
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        filter: drop-shadow(0 0 5px var(--shadow-color)) drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        min-height: 50px;
+    }
+    
+    /* Tech decorative lines overlay */
+    .control-dock::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--toxic-green), transparent);
+        opacity: 0.3;
+        pointer-events: none;
 }
 
 .control-dock.collapsed {
-    padding: 12px;
+    padding: 8px;
     gap: 0;
+    /* When collapsed, become a square/badge */
+        clip-path: polygon(5px 0,
+                100% 0,
+                100% calc(100% - 5px),
+                calc(100% - 5px) 100%,
+                0 100%,
+                0 5px);
+        background: rgba(0, 0, 0, 0.9);
 }
 
+/* Hiding elements in collapsed state */
 .control-dock.collapsed .dock-btn:not(#burgerMenu),
-.control-dock.collapsed .dock-separator {
+.control-dock.collapsed .dock-separator,
+.control-dock.collapsed .dock-deco-start,
+.control-dock.collapsed .dock-deco-end {
     width: 0;
     opacity: 0;
     margin: 0;
+    padding: 0;
     pointer-events: none;
-    transform: scale(0);
+    overflow: hidden;
+        transform: scaleX(0);
 }
 
 .control-dock.hidden {
     opacity: 0;
     pointer-events: none;
-    transform: translateX(20px);
+    transform: translateX(30px);
 }
 
 .control-dock:hover {
-    box-shadow: 0 0 30px var(--shadow-color);
+    box-shadow: 0 0 25px var(--shadow-color);
     border-color: #fff;
 }
 
+/* --- BUTTONS --- */
 .dock-btn {
-    background: transparent;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--toxic-green);
-    font-size: 1.2rem;
+    font-size: 1rem;
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+        height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
+    border-radius: 2px;
+        /* Slight bevel */
+        transition: all 0.2s ease;
     flex-shrink: 0;
+    position: relative;
+        overflow: hidden;
 }
 
+/* Tech hover effect for buttons */
 .dock-btn:hover {
     background: var(--toxic-green);
     color: #000;
-    transform: scale(1.1);
+    border-color: var(--toxic-green);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    
+    .dock-btn:active {
+        transform: translateY(1px);
 }
 
 .dock-btn.active {
     background: var(--toxic-green);
     color: #000;
+    box-shadow: 0 0 10px var(--toxic-green);
+    }
+    
+    .dock-btn#burgerMenu {
+        border-color: var(--toxic-green);
+        background: rgba(226, 255, 0, 0.1);
 }
 
 .dock-btn#burgerMenu.active {
     transform: rotate(90deg);
+    background: var(--toxic-green);
+        color: #000;
 }
 
-.dock-btn i {
-    pointer-events: none;
-}
-
+/* Button internal text (LANG) */
 .dock-btn .lang-text {
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+        font-weight: 800;
     font-family: 'Share Tech Mono', monospace;
-    letter-spacing: 1px;
-    pointer-events: none;
+    letter-spacing: 0px;
 }
 
+/* Separator */
 .dock-separator {
-    width: 1px;
-    height: 20px;
-    background: var(--gray-mid);
+    width: 2px;
+        height: 24px;
+        background: repeating-linear-gradient(to bottom,
+                var(--toxic-green),
+                var(--toxic-green) 2px,
+                transparent 2px,
+                transparent 4px);
+        margin: 0 4px;
     opacity: 0.5;
     transition: all 0.3s ease;
     flex-shrink: 0;
 }
 
-/* Ajuste móvil */
+/* --- DECORATIVE ELEMENTS --- */
+.dock-deco-start,
+.dock-deco-end {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.dock-deco-start {
+    padding-right: 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    margin-right: 4px;
+}
+
+/* 3 Little vertical lines */
+.dock-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dock-lines span {
+    width: 12px;
+    height: 2px;
+    background: var(--toxic-green);
+    opacity: 0.5;
+}
+
+.dock-lines span:nth-child(2) {
+    width: 8px;
+}
+
+.dock-lines span:nth-child(3) {
+    width: 12px;
+}
+
+/* End Label */
+.dock-deco-end {
+    margin-left: 4px;
+    padding-left: 8px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dock-label-min {
+    font-size: 0.6rem;
+    color: var(--toxic-green);
+    font-weight: bold;
+    letter-spacing: 1px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    opacity: 0.8;
+}
+
+/* --- MOBILE ADJUSTMENTS --- */
 @media (max-width: 768px) {
     .control-dock {
         top: 10px;
         right: 10px;
-        padding: 8px 12px;
-        gap: 8px;
+        padding: 6px 10px;
     }
     
     .dock-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
+        width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+        }
+        
+        /* Hide the deco elements on very small screens to save space */
+        .dock-deco-start,
+        .dock-deco-end {
+            display: none;
     }
 }
 
-/* Color Theme Buttons */
+/* Color Theme Buttons (keep existing logic) */
 .theme-buttons {
     display: flex;
     gap: 10px;
     margin-top: 5px;
 }
 
+/* Make color buttons square too for consistency */
 .color-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    width: 24px;
+        height: 24px;
+        border-radius: 2px;
+        /* Square */
     background: var(--btn-color);
-    border: 2px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    transition: all 0.3s ease;
-    opacity: 0.6;
+    transition: all 0.2s ease;
+        opacity: 0.7;
     position: relative;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .color-btn:hover {
     opacity: 1;
     transform: scale(1.1);
     box-shadow: 0 0 10px var(--btn-color);
+    z-index: 10;
 }
 
 .color-btn.active {
     opacity: 1;
-    border-color: var(--white);
+    border: 2px solid #fff;
     box-shadow: 0 0 15px var(--btn-color);
     transform: scale(1.1);
 }
+/* End Color Buttons */
 
 .color-btn.active::after {
     content: '';
@@ -4211,6 +4406,21 @@ a, button, .link-block, .stat-box {
     overflow: hidden;
 }
 
+.skills-block canvas {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.skills-legend {
+    margin-top: 15px;
+    display: none;
+    /* Hidden: New Tactical Radar has built-in labels */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
 .form-submit::before {
     content: '';
     position: absolute;
@@ -5093,4 +5303,303 @@ body.performance-mode-low .project-card {
 
 .no-scroll {
     overflow: hidden !important;
+}
+/* ========== MOBILE OPTIMIZATIONS FOR DECOR ========== */
+@media (max-width: 768px) {
+
+    .tech-decals,
+    .tech-overlay,
+    .tech-sidebar-left,
+    .tech-sidebar-right,
+    .barcode-decorative,
+    .decal-layer,
+    .procedural-tech-layer {
+        display: none !important;
+    }
+}
+
+/* Force subtle background grid */
+.grid-3d {
+    opacity: 0.15 !important;
+}
+
+/* ========== SETTINGS GRID REDESIGN ========== */
+.effects-grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+    padding-bottom: 20px;
+}
+
+.effect-tile {
+    background: rgba(0, 0, 0, 0.4);
+    border: var(--border) solid var(--border-color);
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 90px;
+    color: var(--text-secondary);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.effect-tile:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.effect-tile:active {
+    transform: translateY(0);
+}
+
+.effect-tile i {
+    font-size: 1.8rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 5px;
+}
+
+.effect-tile span {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+/* Active State (ON) */
+.effect-tile[data-state="on"] {
+    background: var(--grid-color);
+    /* Uses theme color with transparency */
+    border-color: var(--toxic-green);
+    color: var(--toxic-green);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.effect-tile[data-state="on"] i {
+    transform: scale(1.1);
+    text-shadow: 0 0 15px var(--toxic-green);
+    filter: drop-shadow(0 0 5px var(--toxic-green));
+}
+
+/* Active Indicator Line */
+.effect-tile::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--toxic-green);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.effect-tile[data-state="on"]::after {
+    transform: scaleX(1);
+}
+
+/* Light Theme Adjustments */
+body.light-theme .effect-tile {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.6);
+}
+
+body.light-theme .effect-tile:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+body.light-theme .effect-tile[data-state="on"] {
+    background: rgba(var(--toxic-green), 0.1);
+    border-color: var(--toxic-green);
+    color: var(--toxic-green);
+}
+
+/* ========== SKILLS GRID (TECH CARDS) ========== */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+    width: 100%;
+}
+
+.skill-card-tech {
+    background: rgba(10, 10, 10, 0.9);
+    border: 1px solid #333;
+    border-left: 4px solid var(--skill-color);
+    padding: 15px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    height: 100px;
+    transition: all 0.3s ease;
+    clip-path: polygon(0 0,
+            100% 0,
+            100% 85%,
+            92% 100%,
+            0 100%);
+    /* Chamfered bottom-right corner */
+    opacity: 0;
+    animation: fadeInUp 0.5s forwards;
+}
+
+.skill-card-tech:hover {
+    transform: translateX(5px);
+    background: rgba(20, 20, 20, 0.95);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    border-color: #555;
+    border-left-color: var(--skill-color);
+}
+
+.skill-card-tech:hover .skill-icon-small {
+    color: var(--skill-color);
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Internal Layout */
+.skill-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 15px;
+}
+
+.skill-sidebar {
+    width: 40px;
+    border-left: 1px dashed #444;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding-left: 10px;
+}
+
+/* Header Row */
+.skill-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.skill-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #666;
+    letter-spacing: 1px;
+}
+
+.skill-icon-small {
+    font-size: 1rem;
+    color: #444;
+    transition: all 0.3s ease;
+}
+
+/* Name */
+.skill-name-large {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.1;
+}
+
+/* Progress Bar Complex */
+.skill-bar-complex {
+    margin-top: 10px;
+}
+
+.skill-bar-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-bar-fill {
+    height: 100%;
+    background: var(--skill-color);
+    position: relative;
+    box-shadow: 0 0 10px var(--skill-color);
+}
+
+/* Striped pattern overlay for bar */
+.skill-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(45deg,
+            transparent,
+            transparent 5px,
+            rgba(0, 0, 0, 0.5) 5px,
+            rgba(0, 0, 0, 0.5) 10px);
+}
+
+.skill-value-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--skill-color);
+    text-align: right;
+    margin-top: 4px;
+}
+
+/* Sidebar Elements */
+.mini-barcode {
+    width: 20px;
+    height: 40px;
+    background: repeating-linear-gradient(to bottom,
+            #fff,
+            #fff 2px,
+            transparent 2px,
+            transparent 4px);
+    opacity: 0.3;
+}
+
+.warning-icon {
+    font-size: 1.2rem;
+    opacity: 0.5;
+    cursor: help;
+}
+
+/* Card Cut Deco */
+.card-corner-cut {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, transparent 50%, var(--bg-color) 50%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
