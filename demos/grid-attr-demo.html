@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS attr() Grid Demo</title>
+    <style>
+        @import url(https://fonts.bunny.net/css?family=jura:300,500);
+        @layer base, demo;
+
+        @layer demo {
+            .wrapper {
+                width: min(100%, 600px);
+                display: grid;
+                grid-template-columns: 1fr 100px;
+                grid-template-areas: 
+                    "header header" 
+                    "breadcrumbs side" 
+                    "content side" 
+                    "footer footer";
+                grid-template-rows: 50px 30px 1fr 50px;
+                gap: 1rem;
+                
+                & > * {
+                    background: steelblue;
+                    border-radius: 5px;
+                    /* Core magic: dynamic grid placement via attribute */
+                    grid-area: attr(area type(custom-ident)); 
+                    display: grid;
+                    place-content: center;
+                    position: relative;
+                    padding: 1rem;
+                    color: white;
+
+                    /* Just to show the attribute value */
+                    &::before {
+                        content: attr(area);
+                        text-transform: capitalize;
+                    }
+                    
+                    /* Simulation of content height */
+                    &[area="content"] {
+                        min-height: 150px; 
+                    }
+                }
+            }
+        }
+
+        /* Fallback for browsers that do not support attr() with types */
+        @supports not (grid-area: attr(area type(custom-ident))) {
+            .wrapper > [area="header"] { grid-area: header; }
+            .wrapper > [area="breadcrumbs"] { grid-area: breadcrumbs; }
+            .wrapper > [area="side"] { grid-area: side; }
+            .wrapper > [area="content"] { grid-area: content; }
+            .wrapper > [area="footer"] { grid-area: footer; }
+        }
+
+        @layer base {
+            * {
+                box-sizing: border-box;
+            }
+            :root {
+                color-scheme: light dark;
+                --bg-dark: rgb(16, 24, 40);
+                --bg-light: rgb(255, 237, 212);
+
+                --txt-light: rgb(10, 10, 10);
+                --txt-dark: rgb(245, 245, 245);
+            }
+
+            body {
+                background-color: light-dark(var(--bg-light), var(--bg-dark));
+                color: light-dark(var(--txt-light), var(--txt-dark));
+                min-height: 100svh;
+                margin: 0;
+                padding: 1rem;
+                font-family: "Jura", sans-serif;
+                font-size: 1rem;
+                line-height: 1.5;
+                display: flex;
+                place-items: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 2rem;
+            }
+            h1 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+            
+            .msg-supports {
+                font-size: .8rem;
+                padding: 10px;
+                background: #ffcccc;
+                color: #990000;
+                border-radius: 4px;
+            }
+            
+            /* Hide the warning if supported */
+            @supports (grid-area: attr(area type(custom-ident))) {
+                .msg-supports {
+                    display: none;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Demo: CSS attr() para Grid Areas</h1>
+    
+    <div class="msg-supports">
+        ⚠️ Tu navegador no soporta <code>attr(... type(...))</code>. Se está usando el fallback CSS clásico.
+    </div>
+
+    <!-- 
+        Prueba cambiando los valores 'area' aquí abajo.
+        Por ejemplo, intercambia 'header' por 'footer'.
+    -->
+    <div class="wrapper">
+        <div area="header"></div>
+        <div area="breadcrumbs"></div>
+        <div area="side"></div>
+        <div area="content"></div>
+        <div area="footer"></div>
+    </div>
+
+</body>
+</html>
