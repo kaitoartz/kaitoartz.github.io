@@ -3189,7 +3189,7 @@ class ProjectManager {
                          decoding="async"
                          onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
-                        <button class="view-project-btn" onclick="projectLightbox.open('${proj.image}')">VIEW_DATA</button>
+                        <button class="view-project-btn" onclick="audioManager.playClick(); window.open('${proj.link}', '_blank')">VIEW_DATA</button>
                     </div>
                 </div>
                 <div class="project-info">
