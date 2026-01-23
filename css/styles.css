@@ -2445,6 +2445,7 @@ body.perf-low .tech-gps-tag {
     margin: 0 auto;
     opacity: 0;
     transition: opacity 0.5s ease-in;
+    grid-auto-flow: dense;
 }
 
 .dashboard.visible {
