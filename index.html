@@ -35,6 +35,7 @@
     href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 
 <!-- JSON-LD Structured Data for SEO -->
@@ -314,7 +315,8 @@
             </div>
             
             <h1 class="main-title glitch" data-text="KAITOARTZ">KAITOARTZ</h1>
-            <p class="main-subtitle" data-i18n="header.subtitle">VR DEVELOPER // TECH ARTIST // RESEARCH SUPPORT</p>
+            <p class="main-subtitle" data-i18n="header.subtitle">VR DEVELOPER // TECH ARTIST // EGRESADO EN ARTES Y TECNOLOGÍAS DE
+                LA COMUNICACIÓN</p>
             
             <div class="serial-number">S/N: KA-2026-BARCELONA-OP</div>
             
@@ -349,10 +351,9 @@
             <div class="block-label"><span data-i18n="info.label">SYSTEM_INFO</span> // <span class="label-code">v2.0.226</span>
             </div>
             <p class="info-text" data-i18n="info.text">
-                Diseño experiencias XR con estética brutalista y pipelines experimentales. 
-                Especializado en visualización en tiempo real, instalaciones inmersivas y 
-                herramientas educativas interactivas.
-            </p>
+                Desarrollador y artista técnico especializado en realidad virtual (VR) y experiencias inmersivas interactivas,
+                con más de 3 años de experiencia profesional en el uso de Unity para proyectos de carácter educativo y
+                de investigación. </p>
             
             <div class="barcode">
                 <div class="bar"></div>
@@ -405,7 +406,7 @@
             <div class="link-id">ID_03</div>
         </a>
 
-        <a href="#projects-section" class="grid-item link-block" data-id="04">
+        <a href="javascript:void(0)" class="grid-item link-block" data-id="04" id="vrVideoBtn">
             <div class="corner top-left">+</div>
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
@@ -440,6 +441,19 @@
             <div class="link-subtitle">EMAIL</div>
             <div class="link-id">ID_06</div>
         </a>
+
+        <!-- AWARDS BUTTON -->
+        <div id="awardsBtn" class="grid-item link-block" data-id="07" style="cursor: pointer;">
+            <div class="corner top-left">+</div>
+            <div class="corner top-right">+</div>
+            <div class="corner bottom-left">+</div>
+            <div class="corner bottom-right">+</div>
+        
+            <i class="fa-solid fa-trophy link-icon" style="color: #FFD700;"></i>
+            <div class="link-title">AWARDS</div>
+            <div class="link-subtitle">RECOGNITION</div>
+            <div class="link-id">ID_07</div>
+        </div>
 
         <!-- SKILLS RADAR CHART -->
         <section class="grid-item skills-block">
@@ -513,6 +527,7 @@
                 <button class="filter-btn" data-filter="ar">AR</button>
                 <button class="filter-btn" data-filter="web">WEB</button>
                 <button class="filter-btn" data-filter="3d">3D</button>
+                <button class="filter-btn" data-filter="unreal">UNREAL</button>
             </div>
         
             <div class="projects-grid" id="projectsGrid">
@@ -531,6 +546,13 @@
             <div class="block-label glitch" data-text="CONTACT_FORM"><span data-i18n="contact.label">CONTACT_FORM</span> // <span
                     class="label-code">SECURE_CHANNEL</span></div>
             
+            <div class="contact-info-mini" style="margin-bottom: 15px; font-size: 0.9em; color: var(--text-dim);">
+                <div style="margin-bottom: 5px;"><i class="fa-solid fa-phone"
+                        style="color: var(--accent-color); margin-right: 8px;"></i> +569 46817299</div>
+                <div><i class="fa-solid fa-location-dot" style="color: var(--accent-color); margin-right: 8px;"></i> Maipú,
+                    Santiago, Chile</div>
+            </div>
+
             <form id="contactForm" class="contact-form">
                 <div class="form-group">
                     <label for="contactName" data-i18n="contact.name">NAME_IDENTIFIER:</label>
@@ -644,9 +666,9 @@
         
         <!-- Technical Text Overlays -->
         <div class="tech-overlay overlay-1">
-            <div class="tech-label">LATITUDE: 19.4326° N</div>
-            <div class="tech-label">LONGITUDE: 99.1332° W</div>
-            <div class="tech-label">ALT: 2240M</div>
+            <div class="tech-label">LATITUDE: 33.5102° S</div>
+            <div class="tech-label">LONGITUDE: 70.7523° W</div>
+            <div class="tech-label">ALT: 520M</div>
         </div>
         
         <div class="tech-overlay overlay-2">
@@ -783,11 +805,63 @@
         </div>
     </div>
 
+    <!-- AWARDS MODAL -->
+    <div class="modal-overlay" id="awardsModal">
+        <div class="modal-content tech-border glass-panel box-shadow-neon" style="max-width: 900px; width: 90%;">
+            <div class="modal-header">
+                <div class="modal-title">AWARDS_DATABASE // <span class="label-code"
+                        style="color: var(--accent-color);">RECOGNITION_LOG</span></div>
+                <button class="modal-close" id="awardsClose">✕</button>
+            </div>
+            <div class="awards-grid" id="awardsContainer">
+                <!-- Awards content generated by AwardsManager -->
+            </div>
+        </div>
+    </div>
+
     <!-- PROJECT LIGHTBOX -->
     <div class="lightbox" id="projectLightbox">
         <div class="lightbox-content">
             <button class="lightbox-close" id="lightboxClose">×</button>
             <img class="lightbox-image" id="lightboxImage" src="" alt="Project detail">
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="modal-overlay">
+        <div class="video-modal-content tech-border glass-panel">
+            <div class="modal-header">
+                <h2 class="glitch-text" data-text="LINK START">LINK START</h2>
+                <button class="modal-close-btn" id="videoClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+    
+            <div class="video-container relative">
+                <!-- CRT Overlay Effects -->
+                <div class="crt-overlay pointer-events-none absolute inset-0 z-20">
+                    <div class="scanline"></div>
+                    <div class="noise"></div>
+                </div>
+    
+                <!-- System Initializing Overlay -->
+                <div id="videoLoading" class="absolute inset-0 z-10 flex items-center justify-center bg-black">
+                    <div class="text-cyan-400 font-mono">
+                        <div class="glitch-text" data-text="INITIALIZING...">INITIALIZING...</div>
+                        <div class="loading-bar mt-2 w-32 h-1 bg-gray-800">
+                            <div class="h-full bg-cyan-400 animate-pulse w-full"></div>
+                        </div>
+                    </div>
+                </div>
+    
+                <iframe id="vimeoPlayer" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen class="w-full aspect-video z-0"></iframe>
+            </div>
+    
+            <div class="modal-footer mt-4 flex justify-between items-center text-xs text-cyan-400 font-mono">
+                <span>// CONNECTION_SECURE</span>
+                <span>VR_MODULE_V1.0</span>
+            </div>
         </div>
     </div>
 

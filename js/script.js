@@ -1514,93 +1514,100 @@ class Terminal {
 
     showHelp() {
         this.addOutput(`
-Available commands:<br>
-• help - Show this help message<br>
-• about - Information about KAITOARTZ<br>
-• skills - Display skills and technologies<br>
-• projects - Show recent projects<br>
-• contact - Contact information<br>
-• theme [dark/light] - Switch theme<br>
-• audio [play/stop/test] - Control background music<br>
-<br>
-<span style="color: #00FFFF;">VISUAL EFFECTS:</span><br>
-• matrix - Toggle Matrix rain effect<br>
-• parallax - Toggle parallax layers<br>
-• cursor - Toggle cursor trail<br>
-• scanlines - Toggle CRT scanlines<br>
-• glitch - Toggle glitch effects<br>
-• particles - Toggle particle effects<br>
-<br>
-<span style="color: #FFD700;">PERFORMANCE:</span><br>
-• performance [ultra/high/medium/low] - Set performance preset<br>
-• fps [number] - Set Matrix rain FPS (12-60)<br>
-<br>
-• time - Show current system time<br>
-• whoami - Display user info<br>
-• ls - List files<br>
-• cat [file] - Read file contents<br>
-• hack - Simulate hacking sequence<br>
-• clear - Clear terminal<br>
-• exit/quit - Close terminal<br>
+Available commands:<br/>
+• help - Show this help message<br/>
+• about - Information about KAITOARTZ<br/>
+• skills - Display skills and technologies<br/>
+• projects - Show recent projects<br/>
+• contact - Contact information<br/>
+• theme [dark/light] - Switch theme<br/>
+• audio [play/stop/test] - Control background music<br/>
+<br/>
+<span style="color: #00FFFF;">VISUAL EFFECTS:</span><br/>
+• matrix - Toggle Matrix rain effect<br/>
+• parallax - Toggle parallax layers<br/>
+• cursor - Toggle cursor trail<br/>
+• scanlines - Toggle CRT scanlines<br/>
+• glitch - Toggle glitch effects<br/>
+• particles - Toggle particle effects<br/>
+<br/>
+<span style="color: #FFD700;">PERFORMANCE:</span><br/>
+• performance [ultra/high/medium/low] - Set performance preset<br/>
+• fps [number] - Set Matrix rain FPS (12-60)<br/>
+<br/>
+• time - Show current system time<br/>
+• whoami - Display user info<br/>
+• ls - List files<br/>
+• cat [file] - Read file contents<br/>
+• hack - Simulate hacking sequence<br/>
+• clear - Clear terminal<br/>
+• exit/quit - Close terminal<br/>
 • konami - ??? (try the Konami code)
         `);
     }
 
     showAbout() {
         this.addOutput(`
-<span style="color: #00ff00;">╔════════════════════════════════════╗</span><br>
-<span style="color: #00ff00;">║</span>  KAITOARTZ - VR DEVELOPER      <span style="color: #00ff00;">║</span><br>
-<span style="color: #00ff00;">╚════════════════════════════════════╝</span><br>
-<br>
-Diseño experiencias XR con estética brutalista<br>
-y pipelines experimentales. Especializado en<br>
-visualización en tiempo real, instalaciones<br>
-inmersivas y herramientas educativas interactivas.<br>
-<br>
+<span style="color: #00ff00;">╔════════════════════════════════════╗</span><br/>
+<span style="color: #00ff00;">║</span>  KAITOARTZ - GAME DEVELOPER    <span style="color: #00ff00;">║</span><br/>
+<span style="color: #00ff00;">╚════════════════════════════════════╝</span><br/>
+<br/>
+Game Developer & Designer | Egresado en Artes<br/>
+y Tecnologías de la Comunicación | Jammer<br/>
+Speaker | Especialista en Unity & VR<br/>
+<br/>
+Propongo planes de acción y organizo equipos<br/>
+en torno a la materialización de videojuegos,<br/>
+desde su origen conceptual hasta su publicación.<br/>
+<br/>
 S/N: KA-0226-MX07 | NODE_07
         `);
     }
+
 
     showSkills() {
         this.addOutput(`
     <div style="border-bottom: 1px solid var(--toxic-green); margin-bottom: 10px; padding-bottom: 5px;">
         <span style="color: var(--toxic-green); font-weight: bold;">>> SYSTEM_ANALYSIS // SKILLS_MATRIX</span>
     </div>
-    <span style="color: #00ff00;">TECHNICAL_SKILLS:</span><br>
-    ▓▓▓▓▓▓▓▓▓▓ Unity/C# [95%]<br>
-▓▓▓▓▓▓▓▓▓░ C# / JavaScript [90%]<br>
-▓▓▓▓▓▓▓▓░░ VR/AR Development [85%]<br>
-▓▓▓▓▓▓▓░░░ 3D Modeling [75%]<br>
-▓▓▓▓▓▓▓▓▓░ Shader Programming [90%]<br>
+    <span style="color: #00ff00;">TECHNICAL_SKILLS:</span><br/>
+    ▓▓▓▓▓▓▓▓▓▓ Unity/C# [95%]<br/>
+▓▓▓▓▓▓▓▓▓░ C# / JavaScript [90%]<br/>
+▓▓▓▓▓▓▓▓░░ VR/AR Development [85%]<br/>
+▓▓▓▓▓▓▓░░░ 3D Modeling [75%]<br/>
+▓▓▓▓▓▓▓▓▓░ Shader Programming [90%]<br/>
 ▓▓▓▓▓▓▓▓░░ Web Technologies [80%]
         `);
     }
 
     showProjects() {
         this.addOutput(`
-<span style="color: #00ff00;">RECENT_PROJECTS:</span><br>
-<br>
-[01] VR_GALLERY - Immersive art exhibition<br>
-[02] NEURAL_INTERFACE - Brain-computer integration<br>
-[03] HOLOGRAM_SIM - Real-time holographic display<br>
-[04] EDU_XR - Educational VR platform<br>
-<br>
+<span style="color: #00ff00;">RECENT_PROJECTS:</span><br/>
+<br/>
+[01] VR_GALLERY - Immersive art exhibition<br/>
+[02] NEURAL_INTERFACE - Brain-computer integration<br/>
+[03] HOLOGRAM_SIM - Real-time holographic display<br/>
+[04] EDU_XR - Educational VR platform<br/>
+<br/>
 Visit portfolio for more details...
         `);
     }
 
     showContact() {
         this.addOutput(`
-<span style="color: #00ff00;">CONTACT_PROTOCOL:</span><br>
-<br>
-📧 EMAIL: [Set your email in HTML]<br>
-💼 LINKEDIN: [Add your link]<br>
-🐙 GITHUB: [Add your link]<br>
-🎮 ITCH.IO: [Add your link]<br>
-<br>
+<span style="color: #00ff00;">CONTACT_PROTOCOL:</span><br/>
+<br/>
+📧 EMAIL: kaitoartz.info@gmail.com<br/>
+📱 PHONE: +569 46817299<br/>
+📍 LOC: Maipú, Santiago, Chile<br/>
+💼 LINKEDIN: linkedin.com/in/kaitoarts<br/>
+🐙 GITHUB: github.com/kaitoartz<br/>
+🎮 ITCH.IO: kaitoartz.itch.io<br/>
+<br/>
 STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
         `);
     }
+
 
     toggleTheme(arg) {
         if (!arg) {
@@ -1928,6 +1935,7 @@ const volumeController = new VolumeController();
 const terminal = new Terminal();
 const shortcutsManager = new ShortcutsManager();
 
+
 // ========== TECHNICAL BACKGROUND MANAGER ==========
 class TechnicalBackground {
     constructor() {
@@ -2109,6 +2117,111 @@ class ProjectsManager {
     }
 }
 
+// ========== AWARDS MANAGER ==========
+class AwardsManager {
+    constructor() {
+        this.awards = [
+            {
+                title: 'NOVA - BEST ATMOSPHERE',
+                event: 'SANDA GAME JAM 2025',
+                rank: '1ST PLACE',
+                description: 'Winner for Best Narratice & Atmosphere. Honorable mentions in UI and Inclusive Team.',
+                icon: 'fa-solid fa-trophy',
+                color: '#FFD700'
+            },
+            {
+                title: 'CREHA BITAT',
+                event: 'SOCIAL IMPACT JAM 2024',
+                rank: '2ND PLACE',
+                description: 'Recognition for social impact and educational value in video games.',
+                icon: 'fa-solid fa-medal',
+                color: '#C0C0C0'
+            },
+            {
+                title: 'SHAPE KISSER',
+                event: 'GAME JAM ONLINE 2020',
+                rank: '2ND PLACE',
+                description: 'Award for inclusive puzzle mechanics and accessibility design.',
+                icon: 'fa-solid fa-puzzle-piece',
+                color: '#CD7F32'
+            },
+            {
+                title: 'BE THE HERO',
+                event: 'WOMEN GAME JAM 2025',
+                rank: 'FINALIST',
+                description: 'Developed in 48 hours. Explored ethical dilemmas and collaborative storytelling.',
+                icon: 'fa-solid fa-star',
+                color: '#00FFFF'
+            }
+        ];
+        this.modal = null;
+        this.backdrop = null;
+    }
+
+    init() {
+        this.modal = document.getElementById('awardsModal');
+        if (!this.modal) return;
+
+        // Render Cards
+        this.render();
+
+        // Event Listeners
+        const btn = document.getElementById('awardsBtn');
+        if (btn) btn.addEventListener('click', () => this.open());
+
+        const closeBtn = document.getElementById('awardsClose');
+        if (closeBtn) closeBtn.addEventListener('click', () => this.close());
+    }
+
+    render() {
+        const container = document.getElementById('awardsContainer');
+        if (!container) return;
+
+        container.innerHTML = this.awards.map((award, index) => `
+            <div class="award-card" style="--award-color: ${award.color};">
+                <div class="award-icon-box">
+                    <i class="${award.icon}" style="color: ${award.color};"></i>
+                </div>
+                <div class="award-content">
+                    <div class="award-rank" style="color: ${award.color};">${award.rank}</div>
+                    <div class="award-title">${award.title}</div>
+                    <div class="award-event">${award.event}</div>
+                    <div class="award-desc">${award.description}</div>
+                </div>
+                <div class="award-deco-corner"></div>
+            </div>
+        `).join('');
+    }
+
+    open() {
+        this.modal.classList.add('active');
+        audioManager.playSuccess();
+        
+        // Close on click outside
+        this.modal.onclick = (e) => {
+            if (e.target === this.modal) this.close();
+        };
+
+        // Anime.js Entry Animation
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: '.award-card',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100, {start: 200}),
+                easing: 'easeOutElastic(1, .6)'
+            });
+        }
+    }
+
+    close() {
+        this.modal.classList.remove('active');
+        audioManager.playClick();
+    }
+}
+
+const awardsManager = new AwardsManager();
+
 // ========== NOTIFICATIONS SYSTEM ==========
 class NotificationManager {
     constructor() {
@@ -2271,28 +2384,70 @@ class TimelineManager {
     constructor() {
         this.experiences = [
             {
-                date: 'SEP 2025 - ACTUALIDAD',
-                title: 'Desarrollador Unity Senior',
+                date: 'OCT 2025 - PRESENT',
+                title: 'Desarrollador Unity',
                 company: 'IST (Instituto de Seguridad del Trabajo)',
-                description: 'Liderando simuladores VR de prevención de riesgos. Gestión de hardware Meta Quest y creación de controladores personalizados con Arduino.'
+                description: 'Desarrollo de proyectos de Realidad Virtual y creación de Experiencias Inmersivas.'
             },
             {
-                date: 'MAR 2025 - JUL 2025',
-                title: 'Unity VR Dev & Gestión',
+                date: 'AGO 2025 - AGO 2025',
+                title: 'Diseñador de Videojuegos',
+                company: 'SANDA (SANDA GAME JAM)',
+                description: 'Desarrollo de NOVA. 1er Lugar Mejor Atmósfera/Narrativa. Menciones honoríficas en UI y Equipo Inclusivo.'
+            },
+            {
+                date: 'AGO 2025 - AGO 2025',
+                title: 'Programador Informático',
+                company: 'WOMEN GAME JAM CHILE',
+                description: 'Desarrollo de "Be The Hero" en 48 horas. Exploración de dilemas éticos y trabajo colaborativo.'
+            },
+            {
+                date: 'FEB 2025 - JUN 2025',
+                title: 'Unity VR Dev & Animation',
                 company: 'STAFFY LTDA.',
-                description: 'Arquitectura de software para Meta Quest 3. Logré optimización crítica (35% menos memoria) y estabilización a 72 FPS fijos.'
+                description: 'Frameworks VR para MetaQuest 3. Optimización técnica, modelado 3D (Blender) y liderazgo de proyectos.'
             },
             {
-                date: 'MAY 2024 - NOV 2024',
-                title: 'Tech Artist (Unreal Engine 5)',
-                company: 'CORE JEUX STUDIO',
-                description: 'Shaders personalizados, VFX atmosféricos y sistemas procedurales para generación de niveles.'
+                date: 'MAR 2021 - DIC 2025',
+                title: 'Licenciatura en Artes y Tecnologías',
+                company: 'UNIACC',
+                description: 'Comunicador Digital: Diseño y Desarrollo de Videojuegos. Formación en arte, tecnologías y gestión de proyectos.'
             },
             {
-                date: 'AGO 2023 - FEB 2024',
-                title: 'Unity Developer (Pasantía)',
+                date: 'JUL 2024 - OCT 2024',
+                title: 'Unity Developer',
                 company: 'DREAMS OF HEAVEN',
-                description: 'Creación de herramientas de editor (C#) que redujeron tiempos de arte en un 30%.'
+                description: 'Desarrollo multiplataforma, C#, herramientas de editor y plugins personalizados para optimización de flujos.'
+            },
+            {
+                date: 'MAY 2024 - MAY 2024',
+                title: 'Desarrollador de Videojuegos',
+                company: 'KUWALA',
+                description: 'Desarrollo de "Creha Bitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.'
+            },
+            {
+                date: 'ABR 2022 - ABR 2024',
+                title: 'Técnico Informático',
+                company: 'DUST2.GG',
+                description: 'Distribución de componentes gaming y soluciones tecnológicas. Soporte y hardware.'
+            },
+            {
+                date: 'ENE 2021 - NOV 2021',
+                title: 'Barista',
+                company: 'TAVELLI',
+                description: 'Gestión de comandas y atención al cliente. Coordinación multidisciplinaria.'
+            },
+             {
+                date: 'SEP 2020 - SEP 2020',
+                title: 'Desarrollador Unity',
+                company: 'FFSTUDIOS SPA',
+                description: 'Desarrollo de "Shape Kisser", 2º Lugar en Game Jam Online 2020. Mecánicas de puzzle inclusivas.'
+            },
+            {
+                date: 'DIC 2021 - DIC 2022',
+                title: 'Informática y Comunicaciones',
+                company: 'DESAFÍO LATAM',
+                description: 'Associate\'s degree. Fundamentos de desarrollo web y flujos de trabajo.'
             }
         ];
     }
@@ -2923,39 +3078,48 @@ class ProjectLightboxManager {
 const projectsData = [
     {
         id: '01',
-        title: 'VR_TRAINING_SIM',
-        category: 'vr',
-        description: 'Industrial safety simulator for high-risk environments.',
-        image: 'assets/projects/proj-1.jpg',
-        tech: ['UNITY', 'VR_INTERACTION_TOOLKIT', 'OQUEST'],
-        link: '#'
+        title: 'CREHA_BITACORA',
+        category: 'unity',
+        description: 'Juego educativo sobre corredores biologicos',
+        image: 'assets/projects/crehabitat.jpg',
+        tech: ['UNITY', 'C#', 'MOBILE'],
+        link: 'https://kaitoartz.itch.io/crehabitat'
     },
     {
         id: '02',
-        title: 'MUSEUM_XR_GUIDE',
+        title: 'CANDY_PARTY',
         category: 'unity',
-        description: 'Augmented reality guide for National History Museum.',
-        image: 'assets/projects/proj-2.jpg',
-        tech: ['AR_FOUNDATION', 'C#', 'MOBILE'],
-        link: '#'
+        description: 'Juego de fiesta con temática de dulces.',
+        image: 'assets/projects/candyparty.jpg',
+        tech: ['UNITY', 'C#', 'MOBILE'],
+        link: 'https://kaitoartz.itch.io/candy-party'
     },
     {
         id: '03',
-        title: 'CYBER_SHADER_PACK',
-        category: 'tech-art',
-        description: 'Optimized HLSL shader library for URP/HDRP.',
-        image: 'assets/projects/proj-3.jpg',
-        tech: ['HLSL', 'SHADER_GRAPH', 'VFX'],
-        link: '#'
+        title: 'SHAPE_KISSER',
+        category: 'unity',
+        description: 'Juego de puzzle con temática de formas geométricas.',
+        image: 'https://img.itch.zone/aW1nLzQyMzU1MDUucG5n/347x500/SM7ekS.png',
+        tech: ['UNITY', 'C#', 'MOBILE'],
+        link: 'https://kaitoartz.itch.io/shapekisser'
     },
     {
         id: '04',
-        title: 'NEURAL_VISUALIZER',
-        category: 'tech-art',
-        description: 'Real-time brain activity visualization tool.',
-        image: 'assets/projects/proj-4.jpg',
-        tech: ['COMPUTE_SHADERS', 'DOTS', 'UI_TOOLKIT'],
-        link: '#'
+        title: 'DETECTOR_CAMERA',
+        category: 'web',
+        description: 'Detector de postura con Mediapipe.',
+        image: 'assets/projects/mediapipe.png',
+        tech: ['HTML', 'CSS', 'JS', 'MEDIAPIPE'],
+        link: 'https://desarrolladorvr.github.io/'
+    },
+    {
+        id: '04',
+        title: 'PORTAL_JUEGOS',
+        category: 'web',
+        description: 'Portal Web de Juegos Educativos.',
+        image: 'assets/projects/IstGames.png',
+        tech: ['HTML', 'CSS', 'JS'],
+        link: 'https://istgames.netlify.app/'
     },
     {
         id: '05',
@@ -2974,6 +3138,15 @@ const projectsData = [
         image: 'assets/projects/proj-6.jpg',
         tech: ['THREE.JS', 'REACT', 'WEBGL'],
         link: '#'
+    },
+    {
+        id: '07',
+        title: 'DARALI_DEVEL',
+        category: 'unreal',
+        description: 'Horror game development project.',
+        image: 'https://img.itch.zone/aW1hZ2UvMzEzNzgyMi8xOTA2NjM0OC5qcGc=/original/%2Bw3lwe.jpg',
+        tech: ['UNREAL_ENGINE', 'C++', 'HORROR'],
+        link: 'https://corejeux.itch.io/darali-devel'
     }
 ];
 
@@ -3051,6 +3224,59 @@ class ProjectManager {
     }
 }
 
+// ========== VIDEO MANAGER ==========
+class VideoManager {
+    constructor() {
+        this.modal = null;
+        this.iframe = null;
+        this.videoId = '1157471071'; 
+        this.videoHash = 'c3e7f59c16';
+    }
+
+    init() {
+        this.modal = document.getElementById('videoModal');
+        this.iframe = document.getElementById('vimeoPlayer');
+        if (!this.modal || !this.iframe) return;
+
+        const btn = document.getElementById('vrVideoBtn');
+        const closeBtn = document.getElementById('videoClose');
+
+        if (btn) btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.open();
+        });
+
+        if (closeBtn) closeBtn.addEventListener('click', () => this.close());
+        
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) this.close();
+        });
+    }
+
+    open() {
+        this.modal.classList.add('active');
+        if (typeof audioManager !== 'undefined') audioManager.playSuccess();
+        
+        // Include the hash parameter for unlisted videos
+        this.iframe.src = `https://player.vimeo.com/video/${this.videoId}?h=${this.videoHash}&autoplay=1&title=0&byline=0&portrait=0`;
+        
+        const loader = document.getElementById('videoLoading');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 2000);
+        }
+    }
+
+    close() {
+        this.modal.classList.remove('active');
+        this.iframe.src = '';
+        if (typeof audioManager !== 'undefined') audioManager.playHover();
+    }
+}
+const videoManager = new VideoManager();
+
 // ========== SCROLL REVEAL MANAGER ==========
 class ScrollRevealManager {
     constructor() {
@@ -3118,6 +3344,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             shortcutsManager.init();
             devLog('%c>> INIT: Shortcuts ✓', 'color: #39FF14; font-family: monospace;');
+
+            awardsManager.init();
+            devLog('%c>> INIT: Awards System ✓', 'color: #39FF14; font-family: monospace;');
+
+            videoManager.init();
+            devLog('%c>> INIT: VR Video Module ✓', 'color: #39FF14; font-family: monospace;');
             
             technicalBackground.init();
             devLog('%c>> INIT: Tech Background ✓', 'color: #39FF14; font-family: monospace;');
