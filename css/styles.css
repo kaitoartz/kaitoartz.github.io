@@ -5213,6 +5213,12 @@ body.performance-mode-low .project-card {
     animation: none !important;
 }
 
+/* Fix for Skills Matrix in Low Performance Mode */
+body.performance-mode-low .skill-card-tech {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+}
 /* ========== RESPONSIVE ADJUSTMENTS FOR NEW FEATURES ========== */
 @media (max-width: 767px) {
     .skills-block {
