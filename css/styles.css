@@ -75,6 +75,7 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    max-width: 100vw;
     position: relative;
     line-height: 1.4;
 }
@@ -365,8 +366,8 @@ body.light-theme .tech-corner-bracket {
 .circle-large {
     top: 50%;
     left: 50%;
-    width: 500px;
-    height: 500px;
+    width: min(500px, 80vw);
+    height: min(500px, 80vw);
     transform: translate(-50%, -50%);
     border-width: 1px;
     border-style: solid;
@@ -3692,7 +3693,7 @@ a, button, .link-block, .stat-box {
 
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
     padding: 0 15px;
         transition: height 0.3s ease;
@@ -6402,7 +6403,8 @@ body.light-theme .effect-tile[data-state="on"] {
 
 /* --- CARDS & CONTENT --- */
 .intro-card {
-    width: 320px;
+    width: 90vw;
+    max-width: 320px;
     height: 460px;
     background: var(--intro-card-bg);
     border: 1px solid var(--intro-border);
@@ -6541,4 +6543,65 @@ body.light-theme .effect-tile[data-state="on"] {
 /* Ensure body allows scroll after intro */
 body.no-scroll {
     overflow: hidden !important;
+}
+/* ========== MOBILE REFINEMENTS ========== */
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .main-title {
+        font-size: 1.8rem;
+    }
+    
+    .dashboard {
+        padding: 5px;
+        gap: 10px;
+    }
+    
+    .grid-item {
+        padding: 12px;
+    }
+    
+    /* Hide disruptive large decorative elements */
+    .barcode-decorative, 
+    .hazard-stripes,
+    .tech-warning-label, 
+    .tech-security-badge,
+    .tech-serial-tag {
+        display: none !important;
+    }
+
+    /* Adjust specific tech elements to be subtle */
+    .tech-overlay {
+        transform: scale(0.7);
+        transform-origin: bottom left;
+    }
+    
+    .terminal-button {
+        bottom: 15px;
+        left: auto;
+        right: 15px;
+        padding: 8px 12px;
+    }
+    
+    .intro-big-text {
+        font-size: 12vw;
+    }
+    
+    /* Optimize Timeline for Mobile */
+    .timeline-container {
+        padding-left: 0;
+    }
+    .timeline-container::before {
+        left: 9px;
+    }
+    .timeline-dot {
+        left: 5px;
+        width: 10px;
+        height: 10px;
+    }
+    .timeline-item {
+        padding-left: 30px;
+    }
 }
