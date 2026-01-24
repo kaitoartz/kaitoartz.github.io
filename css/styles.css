@@ -97,6 +97,9 @@ body::before {
     pointer-events: none;
     z-index: 9998;
     animation: scanlineMove 8s linear infinite;
+    will-change: transform;
+        transform: translateZ(0);
+        /* Hardware acceleration */
 }
 
 @keyframes scanlineMove {
@@ -331,6 +334,7 @@ body.light-theme .tech-corner-bracket {
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     animation: rotate 10s linear infinite;
     opacity: 0.6;
+    will-change: transform;
 }
 
 .star-1 {
@@ -355,6 +359,7 @@ body.light-theme .tech-corner-bracket {
     border-radius: 50%;
     opacity: 0.3;
     animation: rotate 20s linear infinite;
+    will-change: transform;
 }
 
 .circle-large {
@@ -471,6 +476,7 @@ body.light-theme .hud-circle {
 /* Float animations */
 .sticker-sidebar-arrow {
     animation: pulseSticker 4s ease-in-out infinite;
+    will-change: opacity;
 }
 
 @keyframes pulseSticker {
@@ -495,6 +501,7 @@ body.light-theme .hud-circle {
     /* We want the colors to pop */
     animation: floatSticker 8s ease-in-out infinite;
     z-index: 1;
+    will-change: transform;
 }
 
 .sticker-alert-side {
@@ -565,6 +572,7 @@ body.light-theme .hud-circle {
     background: var(--toxic-green);
     animation: batCharge 4s infinite linear;
     box-shadow: 0 0 5px var(--toxic-green);
+    will-change: width;
 }
 
 .bat-icon {
@@ -605,6 +613,7 @@ body.light-theme .hud-circle {
     width: 6px;
     background: var(--text-secondary);
     animation: cpuBarHeight 1s infinite ease-in-out alternate;
+    will-change: height;
     animation-delay: var(--d);
 }
 
@@ -713,8 +722,11 @@ body.light-theme .hud-circle {
     inset: 0;
     border: 2px dashed var(--toxic-green);
     border-radius: 50%;
+    border: 2px dashed var(--toxic-green);
+        border-radius: 50%;
     animation: rotate 10s linear infinite;
     opacity: 0.5;
+    will-change: transform;
 }
 
 .badge-icon {
@@ -2788,6 +2800,7 @@ body.perf-low .tech-gps-tag {
 .header-block {
     grid-column: span 1;
     overflow: hidden;
+    order: 1;
 }
 
 .header-block::after {
@@ -3002,6 +3015,7 @@ body.perf-low .tech-gps-tag {
 .info-block {
     grid-column: span 1;
     overflow: hidden;
+    order: 1;
 }
 
 .info-block::before {
@@ -3087,9 +3101,11 @@ body.perf-low .tech-gps-tag {
     justify-content: center;
     align-items: center;
     gap: 10px;
+    gap: 10px;
     min-height: 200px;
     /* transition: all 0.3s ease; REMOVED per user request */
     cursor: pointer;
+    order: 2;
 }
 
 
@@ -3141,6 +3157,7 @@ body.perf-low .tech-gps-tag {
     color: var(--toxic-green) !important;
     border-color: var(--toxic-green) !important;
     height: 200px;
+    order: 7;
 }
 
 @media (min-width: 768px) {
@@ -3189,6 +3206,7 @@ body.perf-low .tech-gps-tag {
 /* ========== FOOTER BLOCK ========== */
 .footer-block {
     grid-column: span 1;
+    order: 8;
 }
 
 @media (min-width: 768px) {
@@ -3585,6 +3603,18 @@ a, button, .link-block, .stat-box {
     justify-content: center;
     gap: 20px;
     padding: 30px !important;
+    grid-column: span 2;
+        /* Default for medium screens */
+        order: 4;
+        /* Place after projects */
+    }
+    
+    @media (min-width: 1200px) {
+        .skills-block {
+            grid-column: span 2;
+            /* Half width on large screens */
+            order: 4;
+        }
 }
 
 #skillsRadar {
@@ -3621,6 +3651,7 @@ a, button, .link-block, .stat-box {
     grid-column: span 2;
     padding: 30px !important;
     overflow: visible;
+    order: 3;
         /* Changed from hidden to visible for popup */
         min-height: 400px;
         padding-bottom: 20px;
@@ -3835,9 +3866,17 @@ a, button, .link-block, .stat-box {
     align-items: center;
     justify-content: center;
     gap: 15px;
-    padding: 20px !important;
-    height: 220px;
-        /* Fixed height for visualizer container */
+    height: 180px;
+        grid-column: span 2;
+        order: 6;
+        /* Full width bottom */
+    }
+    
+    @media (min-width: 1200px) {
+        .visualizer-block {
+            grid-column: span 4;
+            /* Full width */
+        }
 }
 
 #audioVisualizer {
@@ -3858,6 +3897,17 @@ a, button, .link-block, .stat-box {
 .timeline-block {
     grid-column: span 2;
     padding: 30px !important;
+    order: 5;
+        /* Beside skills */
+        align-self: start;
+        /* Fix for empty space below block */
+    }
+    
+    @media (min-width: 1200px) {
+        .timeline-block {
+            grid-column: span 2;
+            /* Half width */
+        }
 }
 
 .timeline-container {
@@ -4611,6 +4661,7 @@ a, button, .link-block, .stat-box {
 .contact-block {
     grid-column: span 2;
     padding: 30px !important;
+    order: 7;
 }
 
 .contact-form {
@@ -6057,4 +6108,141 @@ body.light-theme .effect-tile[data-state="on"] {
     width: 100%;
     height: 100%;
     opacity: 0;
+}
+/* ========== TIMELINE SCROLL OPTIMIZATION ========== */
+.timeline-container {
+    max-height: 600px;
+    /* Limit height to prevent infinite growth */
+    overflow-y: auto;
+    /* Enable vertical scroll */
+    padding-right: 10px;
+    /* Space for scrollbar */
+    margin-right: -5px;
+    /* Compensate for padding to keep alignment */
+
+    /* Scrollbar Styling for Webkit (Chrome/Edge/Safari) */
+}
+
+.timeline-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timeline-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--text-secondary);
+}
+
+.timeline-container::-webkit-scrollbar-thumb {
+    background: var(--toxic-green);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--toxic-green);
+}
+
+.timeline-container::-webkit-scrollbar-thumb:hover {
+    background: #fff;
+}
+
+/* ========== TIMELINE V2 REDESIGN ========== */
+.timeline-container {
+    position: relative;
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+/* The vertical connecting line */
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 19px;
+    /* Aligned with dots */
+    width: 2px;
+    background: linear-gradient(to bottom,
+            transparent,
+            var(--toxic-green) 10%,
+            var(--toxic-green) 90%,
+            transparent);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 35px;
+    /* Space for line/dot */
+    margin-bottom: 30px;
+    border-left: 2px solid transparent;
+    /* Placeholder for hover effect */
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+    background: linear-gradient(90deg, rgba(226, 255, 0, 0.05) 0%, transparent 100%);
+    padding-left: 40px;
+    /* Slight shift */
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 4px;
+    /* (35px padding - 10px width)/2 roughly, adjusted for line at 19px. Line is at 19px (left: 10px + 9px?). Let's Center it. */
+    left: 5px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    background: var(--bg-primary);
+    border: 2px solid var(--toxic-green);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--toxic-green);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover .timeline-dot {
+    background: var(--toxic-green);
+    box-shadow: 0 0 15px var(--toxic-green);
+    transform: scale(1.2);
+}
+
+.timeline-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--toxic-green);
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.timeline-title {
+    font-size: 1.2rem;
+    /* Increased size */
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
+}
+
+.timeline-company {
+    font-size: 0.95rem;
+    /* Increased size */
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timeline-description {
+    font-size: 0.9rem;
+    /* Increased size */
+    line-height: 1.5;
+    color: var(--text-secondary);
+    opacity: 0.9;
+    max-width: 95%;
+}
+
+.timeline-block {
+    align-self: start;
+    /* Fix for empty space below block */
 }

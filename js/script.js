@@ -36,7 +36,7 @@ class FrameRateMonitor {
 
         const avgFps = this.history.reduce((a, b) => a + b, 0) / this.history.length;
 
-        // Downgrade if consistently low FPS (> 3s under 30fps)
+        // Downgrade if consistently low FPS (> 5s under 30fps)
         if (avgFps < 30 && !this.isOptimizing && performanceManager.currentPreset !== 'low') {
             this.optimize();
         }
@@ -49,12 +49,20 @@ class FrameRateMonitor {
         if (typeof notificationManager !== 'undefined') {
             notificationManager.warning(
                 'PERFORMANCE_PROTOCOL',
-                'Low FPS detected. Disabling effects to optimize system.'
+                'System overloaded. Adjusting quality settings...'
             );
         }
 
-        // Force downgrade
-        performanceManager.applyPreset('low');
+        // Gradual downgrade logic
+        const tiers = ['ultra', 'high', 'medium', 'low'];
+        const currentIndex = tiers.indexOf(performanceManager.currentPreset);
+        
+        if (currentIndex < tiers.length - 1) {
+            const nextTier = tiers[currentIndex + 1] || 'low'; // Fallback to medium if auto or unknown
+            performanceManager.applyPreset(nextTier);
+        } else {
+             performanceManager.applyPreset('low');
+        }
 
         // Cooldown
         setTimeout(() => { this.isOptimizing = false; }, 10000);
@@ -274,23 +282,26 @@ class PerformanceManager {
         if (canvas) {
             canvas.style.display = enable ? 'block' : 'none';
         }
+        
         if (this.cursorInstance) {
-            this.cursorInstance.enabled = enable;
+            if (enable) this.cursorInstance.start();
+            else this.cursorInstance.stop();
         }
+
         if (!enable) {
-        document.body.style.cursor = 'auto';
-        // Forzamos cursor pointer en elementos interactivos
-        document.documentElement.style.setProperty('--cursor-type', 'auto');
-        // Agrega esto a tu CSS global: a, button { cursor: pointer !important; } cuando esté desactivado
-        const style = document.createElement('style');
-        style.id = 'cursor-fix';
-        style.innerHTML = `* { cursor: auto !important; } a, button, .link-block { cursor: pointer !important; }`;
-        if(!document.getElementById('cursor-fix')) document.head.appendChild(style);
-    } else {
-        document.body.style.cursor = 'none';
-        const fix = document.getElementById('cursor-fix');
-        if(fix) fix.remove();
-    }
+            document.body.style.cursor = 'auto';
+            // Forzamos cursor pointer en elementos interactivos
+            document.documentElement.style.setProperty('--cursor-type', 'auto');
+            // Agrega esto a tu CSS global: a, button { cursor: pointer !important; } cuando esté desactivado
+            const style = document.createElement('style');
+            style.id = 'cursor-fix';
+            style.innerHTML = `* { cursor: auto !important; } a, button, .link-block { cursor: pointer !important; }`;
+            if(!document.getElementById('cursor-fix')) document.head.appendChild(style);
+        } else {
+            document.body.style.cursor = 'none';
+            const fix = document.getElementById('cursor-fix');
+            if(fix) fix.remove();
+        }
     }
 
     toggleScanlines(enable) {
@@ -330,6 +341,12 @@ class PerformanceManager {
         const vizBlock = document.querySelector('.visualizer-block');
         if (vizBlock) {
             vizBlock.style.display = enable ? 'flex' : 'none';
+        }
+        
+        // Find the visualizer instance (it's global 'audioVisualizer' or attached to manager)
+        if (typeof audioVisualizer !== 'undefined') {
+            if (enable) audioVisualizer.start();
+            else audioVisualizer.stop();
         }
     }
 
@@ -1287,6 +1304,8 @@ class CursorManager {
         this.cursor = { x: 0, y: 0 };
         this.trail = [];
         this.maxTrail = 20;
+        this.running = false;
+        this.animationId = null;
     }
 
     init() {
@@ -1297,13 +1316,23 @@ class CursorManager {
         this.resize();
         
         document.addEventListener('mousemove', (e) => {
+            if (!this.running) return;
             this.cursor = { x: e.clientX, y: e.clientY };
             this.trail.push({ ...this.cursor, life: 1 });
             if (this.trail.length > this.maxTrail) this.trail.shift();
         });
         
         window.addEventListener('resize', () => this.resize());
-        this.animate();
+        
+        // Register with performance manager
+        if (typeof performanceManager !== 'undefined') {
+            performanceManager.registerEffect('cursor', this);
+            if (performanceManager.effects.cursorTrail) {
+                this.start();
+            }
+        } else {
+             this.start();
+        }
     }
 
     resize() {
@@ -1311,7 +1340,28 @@ class CursorManager {
         this.canvas.height = window.innerHeight;
     }
 
+    start() {
+        if (this.running) return;
+        this.running = true;
+        this.animate();
+    }
+
+    stop() {
+        this.running = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        // Clear canvas when stopped
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        this.trail = [];
+    }
+
     animate() {
+        if (!this.running) return;
+        
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         const cursorColor = getComputedStyle(document.documentElement).getPropertyValue('--toxic-green').trim();
@@ -1343,7 +1393,7 @@ class CursorManager {
         this.ctx.fillStyle = cursorColor;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
-        requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame(() => this.animate());
     }
 
     hexToRgb(hex) {
@@ -1470,12 +1520,14 @@ class Terminal {
         this.modal.classList.add('active');
         this.backdrop.classList.add('active');
         this.input.focus();
+        document.body.classList.add('no-scroll');
         audioManager.playSuccess();
     }
 
     close() {
         this.modal.classList.remove('active');
         this.backdrop.classList.remove('active');
+        document.body.classList.remove('no-scroll');
         audioManager.playClick();
     }
 
@@ -1913,6 +1965,7 @@ class ShortcutsManager {
         
         this.modal.classList.add('active');
         this.backdrop.classList.add('active');
+        document.body.classList.add('no-scroll');
         audioManager.playSuccess();
     }
 
@@ -1921,6 +1974,7 @@ class ShortcutsManager {
         if (this.backdrop) {
             this.backdrop.classList.remove('active');
         }
+        document.body.classList.remove('no-scroll');
         audioManager.playClick();
     }
 }
@@ -2195,6 +2249,7 @@ class AwardsManager {
 
     open() {
         this.modal.classList.add('active');
+        document.body.classList.add('no-scroll');
         audioManager.playSuccess();
         
         // Close on click outside
@@ -2216,6 +2271,7 @@ class AwardsManager {
 
     close() {
         this.modal.classList.remove('active');
+        document.body.classList.remove('no-scroll');
         audioManager.playClick();
     }
 }
@@ -2301,6 +2357,7 @@ class AudioVisualizer {
         this.dataArray = null;
         this.bufferLength = 0;
         this.active = false;
+        this.animationId = null;
     }
 
     init(audioManager) {
@@ -2325,10 +2382,30 @@ class AudioVisualizer {
         }
     }
 
+    start() {
+        if (this.active) return;
+        if (!this.analyser) return; // Cannot start if not initialized
+        this.active = true;
+        this.draw();
+        const statusEl = document.getElementById('visualizerStatus');
+        if (statusEl) statusEl.textContent = 'ACTIVE';
+    }
+
+    stop() {
+        this.active = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        const statusEl = document.getElementById('visualizerStatus');
+        if (statusEl) statusEl.textContent = 'STANDBY';
+        this.drawStandby();
+    }
+
     draw() {
         if (!this.active) return;
         
-        requestAnimationFrame(() => this.draw());
+        this.animationId = requestAnimationFrame(() => this.draw());
         
         this.analyser.getByteFrequencyData(this.dataArray);
         
@@ -2359,6 +2436,7 @@ class AudioVisualizer {
     }
 
     drawStandby() {
+        if (!this.canvas || !this.ctx) return;
         const ctx = this.ctx;
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -2461,7 +2539,7 @@ class TimelineManager {
         if (!container) return;
         
         container.innerHTML = this.experiences.map(exp => `
-            <div class="timeline-item">
+            <div class="timeline-item" style="opacity: 0; transform: translateX(-20px);">
                 <div class="timeline-dot"></div>
                 <div class="timeline-date">${exp.date}</div>
                 <div class="timeline-title">${exp.title}</div>
@@ -2469,6 +2547,18 @@ class TimelineManager {
                 <div class="timeline-description">${exp.description}</div>
             </div>
         `).join('');
+
+        // Animation with Anime.js
+        if (typeof anime !== 'undefined') {
+            anime({
+                targets: '.timeline-item',
+                opacity: [0, 1],
+                translateX: [-20, 0],
+                delay: anime.stagger(150),
+                easing: 'easeOutQuad',
+                duration: 800
+            });
+        }
     }
 }
 
@@ -3065,11 +3155,13 @@ class ProjectLightboxManager {
     open(src) {
         this.image.src = src;
         this.lightbox.classList.add('active');
+        document.body.classList.add('no-scroll');
         audioManager.playSound('click');
     }
 
     close() {
         this.lightbox.classList.remove('active');
+        document.body.classList.remove('no-scroll');
         audioManager.playSound('click');
     }
 }
@@ -3081,7 +3173,7 @@ const projectsData = [
         title: 'CREHA_BITACORA',
         category: 'unity',
         description: 'Juego educativo sobre corredores biologicos',
-        image: 'assets/projects/crehabitat.jpg',
+        image: 'assets/projects/crehabitat.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/crehabitat'
     },
@@ -3090,7 +3182,7 @@ const projectsData = [
         title: 'CANDY_PARTY',
         category: 'unity',
         description: 'Juego de fiesta con temática de dulces.',
-        image: 'assets/projects/candyparty.jpg',
+        image: 'assets/projects/candyparty.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/candy-party'
     },
@@ -3108,7 +3200,7 @@ const projectsData = [
         title: 'DETECTOR_CAMERA',
         category: 'web',
         description: 'Detector de postura con Mediapipe.',
-        image: 'assets/projects/mediapipe.png',
+        image: 'assets/projects/mediapipe.webp',
         tech: ['HTML', 'CSS', 'JS', 'MEDIAPIPE'],
         link: 'https://desarrolladorvr.github.io/'
     },
@@ -3117,7 +3209,7 @@ const projectsData = [
         title: 'PORTAL_JUEGOS',
         category: 'web',
         description: 'Portal Web de Juegos Educativos.',
-        image: 'assets/projects/IstGames.png',
+        image: 'assets/projects/IstGames.webp',
         tech: ['HTML', 'CSS', 'JS'],
         link: 'https://istgames.netlify.app/'
     },
@@ -3255,6 +3347,7 @@ class VideoManager {
 
     open() {
         this.modal.classList.add('active');
+        document.body.classList.add('no-scroll');
         if (typeof audioManager !== 'undefined') audioManager.playSuccess();
         
         // Include the hash parameter for unlisted videos
@@ -3272,6 +3365,7 @@ class VideoManager {
     close() {
         this.modal.classList.remove('active');
         this.iframe.src = '';
+        document.body.classList.remove('no-scroll');
         if (typeof audioManager !== 'undefined') audioManager.playHover();
     }
 }
