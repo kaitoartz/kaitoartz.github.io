@@ -6605,3 +6605,75 @@ body.no-scroll {
         padding-left: 30px;
     }
 }
+
+/* Fix: Ensure dashboard is visible in Low Performance Mode */
+.performance-mode-low .dashboard {
+    opacity: 1 !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+.performance-mode-low .intro-viewport,
+.performance-mode-low #hyper-intro-layer {
+    display: none !important;
+}
+
+/* Force Console & Terminal Visibility in Low Performance */
+.performance-mode-low .console-block,
+.performance-mode-low .terminal-button,
+.performance-mode-low .terminal-modal {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.performance-mode-low .terminal-button {
+    display: flex !important; /* Restore flex for button */
+}
+
+/* Fix: Ensure terminal button interacts and positions correctly in low mode */
+.performance-mode-low .terminal-button {
+    transform: translateY(0) !important;
+    pointer-events: all !important;
+    display: flex !important;
+}
+
+/* FORCE Terminal Visibility Global Override */
+#terminalButton {
+    z-index: 10005 !important;
+}
+
+.performance-mode-low #terminalButton {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: all !important;
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* Optimization: Simplify Hyper Scroll visuals in Low Performance Mode */
+.performance-mode-low .intro-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    box-shadow: none !important;
+    border-color: var(--intro-border) !important;
+    transform: translate(-50%, -50%) !important; /* Keep essential transform */
+    transition: none !important; /* Disable hover transitions */
+}
+
+.performance-mode-low .intro-card:hover {
+    box-shadow: none !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1 !important;
+}
+
+.performance-mode-low .intro-big-text {
+    text-shadow: none !important;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.performance-mode-low .intro-star {
+    border-radius: 0 !important; /* Square stars are faster to render */
+    box-shadow: none !important;
+}

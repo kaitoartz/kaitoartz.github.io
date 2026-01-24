@@ -470,6 +470,13 @@ class PerformanceManager {
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
+                
+                // If we were in low mode, clean up restrictive classes
+                if (this.currentPreset === 'low' || document.body.classList.contains('performance-mode-low')) {
+                    document.body.classList.remove('performance-mode-low');
+                    document.body.classList.remove('no-scanlines');
+                }
+                
                 this.toggleEffect(effect);
                 this.currentPreset = 'custom';
                 this.savePreferences();
@@ -682,16 +689,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== HYPER SCROLL INTRO ==========
 class HyperScrollIntro {
     constructor() {
+        // Dynamic configuration based on performance tier
+        const isLowSpec = typeof performanceManager !== 'undefined' && 
+                          (performanceManager.hardware.isMobile || performanceManager.hardware.tier === 'low' || performanceManager.hardware.tier === 'medium');
+
         this.config = {
-            itemCount: 20,
-            starCount: 150,
+            itemCount: isLowSpec ? 10 : 20,
+            starCount: isLowSpec ? 60 : 150,
             zGap: 800,
-            camSpeed: 2.5,
+            camSpeed: isLowSpec ? 2.0 : 2.5,
             loopSize: 0 // Calculated later
         };
         this.config.loopSize = this.config.itemCount * this.config.zGap;
         
-        this.texts = ["IMPACT", "VELOCITY", "BRUTAL", "SYSTEM", "FUTURE", "DESIGN", "PIXEL", "HYPER", "NEON", "VOID"];
+        this.texts = ["KAITOARTZ", "NEW", "PORTFOLIO", "WEB", "TECHNICAL", "ARTIST", "PIXEL", "HYPER", "NEON", "VOID"];
         
         this.state = {
             scroll: 0,
