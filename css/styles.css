@@ -3604,9 +3604,8 @@ a, button, .link-block, .stat-box {
     gap: 20px;
     padding: 30px !important;
     grid-column: span 2;
-        /* Default for medium screens */
-        order: 4;
-        /* Place after projects */
+    order: 4;
+    /* Place after projects */
     }
     
     @media (min-width: 1200px) {
@@ -6245,4 +6244,301 @@ body.light-theme .effect-tile[data-state="on"] {
 .timeline-block {
     align-self: start;
     /* Fix for empty space below block */
+}
+
+/* =========================================
+   HYPER SCROLL INTRO STYLES
+   ========================================= */
+
+:root {
+    /* Mapeo de variables del intro a las del sistema o propias */
+    --intro-bg: var(--bg-primary); /* #030303 in demo */
+    --intro-card-bg: rgba(10, 10, 10, 0.4);
+    --intro-text: var(--text-primary);
+    --intro-accent: var(--toxic-green); /* Was #ff003c */
+    --intro-accent-2: var(--secondary-accent); /* Was #00f3ff */
+    --intro-border: rgba(255, 255, 255, 0.1);
+    --font-display: 'Syncopate', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+}
+
+#hyper-intro-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--intro-bg);
+    overflow: hidden;
+    font-family: var(--font-display);
+    color: var(--intro-text);
+}
+
+/* --- POST PROCESSING & OVERLAYS --- */
+.intro-scanlines {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0) 50%,
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(0, 0, 0, 0.2));
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.intro-vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, transparent 40%, #000 120%);
+    z-index: 11;
+    pointer-events: none;
+}
+
+.intro-noise {
+    position: fixed;
+    inset: 0;
+    z-index: 12;
+    opacity: 0.07;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* --- HUD --- */
+.intro-hud {
+    position: fixed;
+    inset: 2rem;
+    z-index: 20;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: var(--font-code);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+}
+
+.intro-hud-top,
+.intro-hud-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.intro-hud-bottom {
+    pointer-events: auto;
+}
+
+.intro-hud strong {
+    color: var(--intro-accent-2);
+}
+
+.intro-hud-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 1rem;
+    position: relative;
+}
+
+.intro-hud-line::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -2px;
+    width: 5px;
+    height: 5px;
+    background: var(--intro-accent);
+}
+
+.enter-system-btn {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--intro-accent);
+    color: var(--intro-accent);
+    padding: 10px 20px;
+    font-family: var(--font-code);
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    font-size: 1rem;
+    letter-spacing: 2px;
+}
+
+.enter-system-btn:hover {
+    background: var(--intro-accent);
+    color: #000;
+    box-shadow: 0 0 15px var(--intro-accent);
+}
+
+/* --- 3D SCENE --- */
+.intro-viewport {
+    position: fixed;
+    inset: 0;
+    perspective: 1000px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.intro-world {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.intro-item {
+    position: absolute;
+    left: 0;
+    top: 0;
+    backface-visibility: hidden;
+    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- CARDS & CONTENT --- */
+.intro-card {
+    width: 320px;
+    height: 460px;
+    background: var(--intro-card-bg);
+    border: 1px solid var(--intro-border);
+    position: relative;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform: translate(-50%, -50%);
+}
+
+@media (hover: hover) {
+    .intro-card:hover {
+        border-color: var(--intro-accent);
+        box-shadow: 0 0 30px rgba(226, 255, 0, 0.2);
+        background: rgba(20, 20, 20, 0.8);
+        z-index: 100;
+    }
+}
+
+.intro-card::before,
+.intro-card::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid transparent;
+    transition: 0.3s;
+}
+
+.intro-card::before {
+    top: -1px;
+    left: -1px;
+    border-top-color: var(--intro-text);
+    border-left-color: var(--intro-text);
+}
+
+.intro-card::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom-color: var(--intro-text);
+    border-right-color: var(--intro-text);
+}
+
+.intro-card:hover::before,
+.intro-card:hover::after {
+    width: 100%;
+    height: 100%;
+    border-color: var(--intro-accent);
+}
+
+.intro-card-header {
+    border-bottom: 1px solid var(--intro-border);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.intro-card-id {
+    font-family: var(--font-code);
+    color: var(--intro-accent);
+    font-size: 0.8rem;
+}
+
+.intro-card h2 {
+    font-size: 2.5rem;
+    line-height: 0.9;
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #fff;
+    mix-blend-mode: hard-light;
+}
+
+.intro-card-footer {
+    margin-top: auto;
+    font-family: var(--font-code);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- BIG TEXT --- */
+.intro-big-text {
+    font-size: 15vw;
+    font-weight: 800;
+    color: transparent;
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.15);
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    letter-spacing: -0.5rem;
+    mix-blend-mode: overlay;
+}
+
+/* --- PARTICLES --- */
+.intro-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    transform: translate(-50%, -50%);
+}
+
+/* --- SCROLL PROXY --- */
+.intro-scroll-proxy {
+    height: 10000vh;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* =========================================
+   DASHBOARD TRANSITION FIXES
+   ========================================= */
+
+.dashboard {
+    opacity: 0;
+    will-change: opacity;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Ensure body allows scroll after intro */
+body.no-scroll {
+    overflow: hidden !important;
 }

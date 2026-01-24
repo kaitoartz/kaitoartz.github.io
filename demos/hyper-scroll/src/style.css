@@ -1,0 +1,253 @@
+        :root {
+            --bg: #030303;
+            --card-bg: rgba(10, 10, 10, 0.4);
+            --text: #e0e0e0;
+            --accent: #ff003c;
+            /* Cyber Red */
+            --accent-2: #00f3ff;
+            /* Cyber Cyan */
+            --border: rgba(255, 255, 255, 0.1);
+            --font-display: 'Syncopate', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-display);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        /* --- POST PROCESSING & OVERLAYS --- */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.2) 50%,
+                    rgba(0, 0, 0, 0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 40%, #000 120%);
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 12;
+            opacity: 0.07;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* --- HUD --- */
+        .hud {
+            position: fixed;
+            inset: 2rem;
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: var(--font-code);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        .hud-top,
+        .hud-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hud strong {
+            color: var(--accent-2);
+        }
+
+        .hud-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .hud-line::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -2px;
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+        }
+
+        /* --- 3D SCENE --- */
+        .viewport {
+            position: fixed;
+            inset: 0;
+            perspective: 1000px;
+            /* Dynamic */
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .world {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        .item {
+            position: absolute;
+            left: 0;
+            top: 0;
+            backface-visibility: hidden;
+            transform-origin: center center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- CARDS & CONTENT --- */
+        .card {
+            width: 320px;
+            height: 460px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            position: relative;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* Glassmorphism */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 20px 50px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: translate(-50%, -50%);
+        }
+
+        /* Hover Effect for non-touch */
+        @media (hover: hover) {
+            .card:hover {
+                border-color: var(--accent);
+                box-shadow: 0 0 30px rgba(255, 0, 60, 0.2);
+                background: rgba(20, 20, 20, 0.8);
+                z-index: 100;
+            }
+        }
+
+        .card::before,
+        .card::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .card::before {
+            top: -1px;
+            left: -1px;
+            border-top-color: var(--text);
+            border-left-color: var(--text);
+        }
+
+        .card::after {
+            bottom: -1px;
+            right: -1px;
+            border-bottom-color: var(--text);
+            border-right-color: var(--text);
+        }
+
+        .card:hover::before,
+        .card:hover::after {
+            width: 100%;
+            height: 100%;
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-id {
+            font-family: var(--font-code);
+            color: var(--accent);
+            font-size: 0.8rem;
+        }
+
+        .card h2 {
+            font-size: 2.5rem;
+            line-height: 0.9;
+            margin: 0;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #fff;
+            mix-blend-mode: hard-light;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            font-family: var(--font-code);
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- BIG TEXT --- */
+        .big-text {
+            font-size: 15vw;
+            font-weight: 800;
+            color: transparent;
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.15);
+            text-transform: uppercase;
+            white-space: nowrap;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            letter-spacing: -0.5rem;
+            mix-blend-mode: overlay;
+        }
+
+        /* --- PARTICLES --- */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            transform: translate(-50%, -50%);
+        }
+
+        /* --- SCROLL PROXY --- */
+        .scroll-proxy {
+            height: 10000vh;
+            position: absolute;
+            width: 100%;
+            z-index: -1;
+        }

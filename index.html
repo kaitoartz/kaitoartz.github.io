@@ -60,124 +60,46 @@
 </head>
 <body>
     
-    <!-- START SCREEN -->
-    <div class="start-screen">
-        <!-- TECH BACKGROUND LAYERS -->
-        <div class="tactical-grid-bg"></div>
 
-        <!-- DECORATIVE HUD ELEMENTS -->
-        <div class="tech-decals">
-            <div class="hazard-stripes stripes-top"></div>
-            <div class="hazard-stripes stripes-bottom"></div>
-            <div class="cyber-star star-1"></div>
-            <div class="cyber-star star-2"></div>
-            <div class="hud-circle circle-large"></div>
-            <div class="hud-circle circle-small"></div>
-        </div>
-        <div class="tech-corner-bracket top-left"></div>
-        <div class="tech-corner-bracket top-right"></div>
-        <div class="tech-corner-bracket bottom-left"></div>
-        <div class="tech-corner-bracket bottom-right"></div>
-        
-        <div class="tech-header-info">
-            <span>SYS_STATUS: <span class="status-ok">OPTIMAL</span></span>
-            <span>ID: <span class="user-id">GUEST_07</span></span>
-            <span>ACCESS: <span class="access-lvl">RESTRICTED</span></span>
-            <span class="date-display">2026.01.15</span>
-        </div>
-        
-        <div class="tech-sidebar-left">
-            <div class="vertical-ruler">
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-text">0226</div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
-                <div class="ruler-mark"></div>
+    <!-- LENIS FOR SMOOTH SCROLL (Hyper Intro) -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- OVERLAYS (Hyper Intro) -->
+    <div id="hyper-intro-layer">
+        <div class="intro-scanlines"></div>
+        <div class="intro-vignette"></div>
+        <div class="intro-noise"></div>
+
+        <!-- HUD -->
+        <div class="intro-hud">
+            <div class="intro-hud-top">
+                <span>SYS.READY</span>
+                <div class="intro-hud-line"></div>
+                <span>FPS: <strong id="intro-fps">60</strong></span>
             </div>
-            <div class="side-text rotate-text">SECTOR_07 // TERMINAL_ACCESS</div>
-        </div>
-        
-        <div class="tech-sidebar-right">
-            <div class="tech-data-block">
-                <div class="tech-data-row"><span>MODULE</span><span>A-01</span></div>
-                <div class="tech-data-row"><span>UNIT</span><span>734</span></div>
-                <div class="tech-data-row"><span>LOAD</span><span>89%</span></div>
+            <div class="center-nav"
+                style="position: fixed; left: 2rem; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; pointer-events: none;">
+                SCROLL VELOCITY // <strong id="intro-vel-readout">0.00</strong>
             </div>
-            <div class="tech-barcode">
-                <div class="bar"></div>
-                <div class="bar wide"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar wide"></div>
-                <div class="bar"></div>
-                <div class="bar wide"></div>
-            </div>
-            <div class="coordinates">
-                35.6895° N<br>139.6917° E
+            <div class="intro-hud-bottom">
+                <span>COORD: <strong id="intro-coord">000.000</strong></span>
+                <div class="intro-hud-line"></div>
+                <button id="enterSystemBtn" class="enter-system-btn">
+                    [ ENTER_SYSTEM ]
+                </button>
             </div>
         </div>
 
-        <div class="start-content">
-            <div class="start-logo">
-                <div class="logo-frame">
-                    <span class="corner-mark tl">+</span>
-                    <span class="corner-mark tr">+</span>
-                    <span class="corner-mark bl">+</span>
-                    <span class="corner-mark br">+</span>
-                    <div class="logo-text">KA</div>
-                </div>
-            </div>
-            <h1 class="start-title" data-i18n="start.title">SECTOR_07</h1>
-            <p class="start-subtitle" data-i18n="start.subtitle">BIOMETRIC VERIFICATION REQUIRED</p>
-            <button class="start-button" id="startButton">
-                <span class="button-text" data-i18n="start.access">[ ACCESS SYSTEM ]</span>
-                <span class="button-indicator">▶</span>
-            </button>
-            <div class="start-info">
-                <span>S/N: KA-0226-MX07</span>
-                <span class="separator">|</span>
-                <span>NODE_07</span>
-                <span class="separator">|</span>
-                <span class="date-display">2026.01.04</span>
-            </div>
+        <!-- 3D WORLD -->
+        <div class="intro-viewport" id="intro-viewport">
+            <div class="intro-world" id="intro-world"></div>
         </div>
+        
+        <!-- SCROLL PROXY (for Lenis) -->
+        <div class="intro-scroll-proxy"></div>
     </div>
 
-    <!-- BOOT SEQUENCE OVERLAY -->
-    <div class="boot-overlay" style="display: none;">
-        <div class="boot-grid"></div>
-        <div class="boot-content">
-            <div class="boot-logo">KA-SYSTEMS</div>
-        
-            <div class="boot-loader-wrapper">
-                <div class="loader-bar-container">
-                    <div class="loader-bar" id="bootLoaderBar"></div>
-                </div>
-                <div class="loader-labels">
-                    <div class="loader-text" data-text="INITIALIZING...">INITIALIZING...</div>
-                    <div class="loader-percent"><span id="loadProgress">0</span>%</div>
-                </div>
-            </div>
-        
-            <div class="boot-log-container">
-                <div class="boot-log" id="bootLog">
-                    <!-- Log lines will be injected here -->
-                </div>
-                <div class="log-overlay"></div>
-            </div>
-        
-            <div class="boot-status-row">
-                <span>MEM: 64TB OK</span>
-                <span>NET: CONNECTED</span>
-                <span>SEC: ENCRYPTED</span>
-            </div>
-        </div>
-    </div>
 
     <!-- SETTINGS PANEL -->
     <div class="settings-panel" id="settingsPanel">

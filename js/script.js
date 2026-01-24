@@ -679,64 +679,319 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 });
 
-// ========== START BUTTON ==========
-document.addEventListener('DOMContentLoaded', () => {
-    // Bloquear scroll al cargar la página
-    document.body.classList.add('no-scroll');
-    console.log('%c>> SCROLL: Blocked during start screen', 'color: #FFB86C; font-family: monospace;');
-    
-    const startButton = document.getElementById('startButton');
-    const startScreen = document.querySelector('.start-screen');
-    const bootOverlay = document.querySelector('.boot-overlay');
+// ========== HYPER SCROLL INTRO ==========
+class HyperScrollIntro {
+    constructor() {
+        this.config = {
+            itemCount: 20,
+            starCount: 150,
+            zGap: 800,
+            camSpeed: 2.5,
+            loopSize: 0 // Calculated later
+        };
+        this.config.loopSize = this.config.itemCount * this.config.zGap;
+        
+        this.texts = ["IMPACT", "VELOCITY", "BRUTAL", "SYSTEM", "FUTURE", "DESIGN", "PIXEL", "HYPER", "NEON", "VOID"];
+        
+        this.state = {
+            scroll: 0,
+            velocity: 0,
+            targetSpeed: 0,
+            mouseX: 0,
+            mouseY: 0,
+            active: true,
+            warping: false,
+            fading: false
+        };
 
-    // Trigger decoding effect on start screen elements
-    if (typeof decodeTextElements === 'function') {
-        decodeTextElements();
+        this.items = [];
+        this.rafId = null;
+        this.lenis = null;
     }
 
-    startButton.addEventListener('click', async () => {
-        console.log('%c>> SYSTEM: Start button clicked', 'color: #39FF14; font-family: monospace;');
-        
-        // Initialize audio on user interaction
-        await audioManager.init();
-        audioManager.playClick();
-        audioManager.playBoot();
-          // Ocultar matrix rain durante la transición
-        const matrixCanvas = document.getElementById('matrixCanvas');
-        if (matrixCanvas) {
-            matrixCanvas.style.display = 'none';
-        }
-        
-        // Start background music with proper timing
-        setTimeout(() => {
-            console.log('%c>> SYSTEM: Starting background music...', 'color: #00FFFF; font-family: monospace;');
-            audioManager.playBackgroundMusic(0.3); // Increased volume to 30%
-            
-            // Actualizar botón de audio después de iniciar la música
-            setTimeout(() => {
-                if (typeof settingsManager !== 'undefined') {
-                    settingsManager.updateAudioButton(true);
-                }
-            }, 100);
-            
-            // Initialize visualizer after audio nodes are ready
-            setTimeout(() => {
-                audioVisualizer.init(audioManager);
-            }, 300);
-        }, 1000);
+    init() {
+        const layer = document.getElementById('hyper-intro-layer');
+        if (!layer) return;
 
-        // Hide start screen
-        startScreen.style.transition = 'opacity 0.5s ease-out';
-        startScreen.style.opacity = '0';
+        this.world = document.getElementById('intro-world');
+        this.viewport = document.getElementById('intro-viewport');
         
-        setTimeout(() => {
-            startScreen.style.display = 'none';
-            bootOverlay.style.display = 'block';
+        // Bloquear scroll del body nativo
+        document.body.classList.add('no-scroll');
+
+        this.createWorld();
+        this.initLenis();
+        this.bindEvents();
+        this.startLoop();
+        
+        console.log('%c>> HYPER INTRO: SYSTEM ONLINE', 'color: #E2FF00; font-family: monospace;');
+
+        // Auto-initialize Audio Manager (silent)
+        if (typeof audioManager !== 'undefined') {
+            // Wait for interaction
+        }
+    }
+
+    createWorld() {
+        if (!this.world) return;
+        
+        // Create Items
+        for (let i = 0; i < this.config.itemCount; i++) {
+            const el = document.createElement('div');
+            el.className = 'intro-item';
+
+            const isHeading = i % 4 === 0;
+
+            if (isHeading) {
+                const txt = document.createElement('div');
+                txt.className = 'intro-big-text';
+                txt.innerText = this.texts[i % this.texts.length];
+                el.appendChild(txt);
+                this.items.push({
+                    el, type: 'text',
+                    x: 0, y: 0, rot: 0,
+                    baseZ: -i * this.config.zGap
+                });
+            } else {
+                const card = document.createElement('div');
+                card.className = 'intro-card';
+                const randId = Math.floor(Math.random() * 9999);
+                card.innerHTML = `
+                    <div class="intro-card-header">
+                        <span class="intro-card-id">ID-${randId}</span>
+                        <div style="width: 10px; height: 10px; background: var(--intro-accent);"></div>
+                    </div>
+                    <h2>${this.texts[i % this.texts.length]}</h2>
+                    <div class="intro-card-footer">
+                        <span>GRID: ${Math.floor(Math.random() * 10)}x${Math.floor(Math.random() * 10)}</span>
+                        <span>DATA_SIZE: ${(Math.random() * 100).toFixed(1)}MB</span>
+                    </div>
+                    <div style="position:absolute; bottom:2rem; right:2rem; font-size:4rem; opacity:0.1; font-weight:900;">0${i}</div>
+                `;
+                el.appendChild(card);
+
+                const angle = (i / this.config.itemCount) * Math.PI * 6;
+                const radius = 400 + Math.random() * 200;
+                const x = Math.cos(angle) * (window.innerWidth * 0.3);
+                const y = Math.sin(angle) * (window.innerHeight * 0.3);
+                const rot = (Math.random() - 0.5) * 30;
+
+                this.items.push({
+                    el, type: 'card',
+                    x, y, rot,
+                    baseZ: -i * this.config.zGap
+                });
+            }
+            this.world.appendChild(el);
+        }
+
+        // Create Stars
+        for (let i = 0; i < this.config.starCount; i++) {
+            const el = document.createElement('div');
+            el.className = 'intro-star';
+            this.world.appendChild(el);
+            this.items.push({
+                el, type: 'star',
+                x: (Math.random() - 0.5) * 3000,
+                y: (Math.random() - 0.5) * 3000,
+                baseZ: -Math.random() * this.config.loopSize
+            });
+        }
+    }
+
+    initLenis() {
+        if (typeof Lenis !== 'undefined') {
+            // Usamos un wrapper específico si es posible, pero para el efecto global
+            // el demo usa window. Solo controlamos que no afecte al dashboard después
+            this.lenis = new Lenis({
+                smooth: true,
+                lerp: 0.08,
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smoothTouch: true,
+                touchMultiplier: 2,
+            });
+
+            this.lenis.on('scroll', ({ scroll, velocity }) => {
+                if (!this.state.warping && this.state.active) {
+                    this.state.scroll = scroll;
+                    this.state.targetSpeed = velocity;
+                }
+            });
+        }
+    }
+
+    bindEvents() {
+        window.addEventListener('mousemove', (e) => {
+            if (!this.state.active) return;
+            this.state.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            this.state.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        const btn = document.getElementById('enterSystemBtn');
+        if (btn) {
+            btn.addEventListener('click', () => this.warpAndEnter());
+        }
+    }
+
+    async warpAndEnter() {
+        if (this.state.warping) return;
+        this.state.warping = true;
+        
+        console.log('%c>> HYPER INTRO: WARP ENGAGED', 'color: #E2FF00; font-family: monospace;');
+        
+        // Init Audio
+        await audioManager.init();
+        audioManager.playBoot();
+        audioManager.playBackgroundMusic();
+        
+        // Update UI
+        const btn = document.getElementById('enterSystemBtn');
+        if(btn) {
+            btn.innerText = "ACCESSING...";
+            btn.style.borderColor = "#fff";
+            btn.style.color = "#fff";
+        }
+    }
+
+    startLoop() {
+        const feedbackVel = document.getElementById('intro-vel-readout');
+        const feedbackFPS = document.getElementById('intro-fps');
+        const feedbackCoord = document.getElementById('intro-coord');
+        
+        let lastTime = 0;
+
+        const loop = (time) => {
+            if (!this.state.active) return;
             
-            // Start boot sequence
-            startBootSequence();
-        }, 500);
-    });
+            this.rafId = requestAnimationFrame(loop);
+            
+            if (this.lenis) this.lenis.raf(time);
+
+            // FPS Calculation
+            const delta = time - lastTime;
+            lastTime = time;
+            if (feedbackFPS && time % 10 < 1) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+
+            // Logic
+            if (this.state.warping) {
+                // Accelerate hard
+                this.state.targetSpeed = 150; // Warp speed
+                this.state.scroll += this.state.velocity * 0.5; // Manual advance
+                
+                // Trigger fade out after reaching high speed
+                if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
+                    this.state.fading = true;
+                    setTimeout(() => this.endIntro(), 1000);
+                }
+            }
+
+            // Smooth Velocity Interp
+            this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.05;
+
+            // HUD Updates
+            if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+            if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+
+            // Camera logic
+            const shake = this.state.velocity * 0.2;
+            const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; // Reduced tilt impact
+            const tiltY = this.state.mouseX * 5;
+
+            if (this.world) {
+                this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            }
+
+            // FOV Dynamic
+            const baseFov = 1000;
+            const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
+            if (this.viewport) this.viewport.style.perspective = `${fov}px`;
+
+            // Items Loop
+            const cameraZ = this.state.scroll * this.config.camSpeed;
+
+            this.items.forEach(item => {
+                let relZ = item.baseZ + cameraZ;
+                const modC = this.config.loopSize;
+                
+                // Infinite Tunnel Math
+                let vizZ = ((relZ % modC) + modC) % modC;
+                if (vizZ > 500) vizZ -= modC;
+
+                // Opacity
+                let alpha = 1;
+                if (vizZ < -3000) alpha = 0;
+                else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
+                if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400); // Fade out close
+                if (alpha < 0) alpha = 0;
+                
+                item.el.style.opacity = alpha;
+
+                if (alpha > 0) {
+                    let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
+
+                    if (item.type === 'star') {
+                        const stretch = Math.max(1, Math.min(1 + Math.abs(this.state.velocity) * 0.1, 20));
+                        trans += ` scale3d(1, 1, ${stretch})`;
+                    } else if (item.type === 'text') {
+                        trans += ` rotateZ(${item.rot}deg)`;
+                        // RGB Split
+                         if (Math.abs(this.state.velocity) > 2) {
+                            const offset = this.state.velocity * 0.5;
+                            item.el.style.textShadow = `${offset}px 0 red, ${-offset}px 0 cyan`;
+                        } else {
+                            item.el.style.textShadow = 'none';
+                        }
+                    } else {
+                        const t = time * 0.001;
+                        const float = Math.sin(t + item.x) * 10;
+                        trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                    }
+                    item.el.style.transform = trans;
+                }
+            });
+        };
+        
+        requestAnimationFrame(loop);
+    }
+
+    endIntro() {
+        const layer = document.getElementById('hyper-intro-layer');
+        if (layer) {
+             // White out effect or Black out
+            layer.style.transition = "opacity 0.8s ease-out, filter 0.8s ease-out";
+            layer.style.opacity = 0;
+            layer.style.filter = "brightness(2) blur(10px)";
+            
+            setTimeout(() => {
+                layer.style.display = 'none';
+                this.state.active = false;
+                if (this.lenis) this.lenis.destroy();
+                
+                // Allow scrolling again
+                document.body.classList.remove('no-scroll');
+                
+                // Trigger Main Dashboard animations
+                // Maybe fade in dashboard?
+                const main = document.querySelector('main');
+                if(main) {
+                    main.style.animation = "fadeIn 1s ease forwards";
+                }
+                
+                // Optional: Trigger legacy boot sequence visuals briefly or just logging
+                // For now, we assume direct access to dashboard
+                
+            }, 800);
+        }
+    }
+}
+
+// Instantiate Global
+const hyperIntro = new HyperScrollIntro();
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Start the Hyper Scroll Intro
+    hyperIntro.init();
 });
 
 // ========== BOOT SEQUENCE ==========
