@@ -26,24 +26,48 @@ body.theme-pink {
     --toxic-green: #FF00CC;
     /* Neon Pink */
     --accent-color: #FF00CC;
+    --secondary-accent: #00FFFF; /* Cyan contrast */
     --shadow-color: rgba(255, 0, 204, 0.3);
     --grid-color: rgba(255, 0, 204, 0.15);
+    
+    /* Intro Overrides */
+    --intro-accent: #FF00CC;
+    --intro-accent-2: #00FFFF;
+    --intro-text: #FF00CC;
+    --intro-glitch-1: #00FFFF;
+    --intro-glitch-2: #FF00CC;
 }
 
 body.theme-orange {
     --toxic-green: #FF9900;
     /* Tech Orange */
     --accent-color: #FF9900;
+    --secondary-accent: #FF4500; /* Red-Orange contrast */
     --shadow-color: rgba(255, 153, 0, 0.3);
     --grid-color: rgba(255, 153, 0, 0.15);
+
+    /* Intro Overrides */
+    --intro-accent: #FF9900;
+    --intro-accent-2: #FF4500;
+    --intro-text: #FF9900;
+    --intro-glitch-1: #FF4500;
+    --intro-glitch-2: #FF9900;
 }
 
 body.theme-white {
     --toxic-green: #FFFFFF;
     /* Pure White */
     --accent-color: #FFFFFF;
+    --secondary-accent: #AAAAAA; /* Gray contrast */
     --shadow-color: rgba(255, 255, 255, 0.3);
     --grid-color: rgba(255, 255, 255, 0.1);
+
+    /* Intro Overrides */
+    --intro-accent: #FFFFFF;
+    --intro-accent-2: #AAAAAA;
+    --intro-text: #FFFFFF;
+    --intro-glitch-1: #AAAAAA;
+    --intro-glitch-2: #FFFFFF;
 }
 
 /* Ensure overrides work in light mode too */
@@ -6013,6 +6037,67 @@ body.light-theme .effect-tile[data-state="on"] {
     overflow: hidden;
 }
 
+/* ========== VIDEO LOADER ========== */
+.video-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.video-loader-content {
+    font-family: var(--font-code);
+    color: var(--toxic-green);
+    text-align: center;
+}
+
+.loader-status-text {
+    font-size: 1rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.loader-bar-container {
+    width: 150px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.loader-bar-fill {
+    height: 100%;
+    background: var(--toxic-green);
+    width: 100%;
+    animation: loaderPulse 1.5s infinite ease-in-out;
+    transform-origin: left;
+}
+
+@keyframes loaderPulse {
+    0% { transform: scaleX(0.1); opacity: 0.5; }
+    50% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(0.1); opacity: 0.5; transform-origin: right; }
+}
+
+/* Light Theme Loader */
+body.light-theme .video-loader {
+    background: rgba(255,255,255,0.98);
+}
+body.light-theme .video-loader-content {
+    color: #111;
+}
+body.light-theme .loader-bar-container {
+    background: rgba(0,0,0,0.1);
+}
+body.light-theme .loader-bar-fill {
+    background: var(--toxic-green);
+}
+
 .video-modal-content .modal-footer {
     padding: 10px 20px;
     background: rgba(0, 10, 10, 0.9);
@@ -6255,12 +6340,28 @@ body.light-theme .effect-tile[data-state="on"] {
     /* Mapeo de variables del intro a las del sistema o propias */
     --intro-bg: var(--bg-primary); /* #030303 in demo */
     --intro-card-bg: rgba(10, 10, 10, 0.4);
-    --intro-text: var(--text-primary);
+    --intro-text: var(--toxic-green);
     --intro-accent: var(--toxic-green); /* Was #ff003c */
-    --intro-accent-2: var(--secondary-accent); /* Was #00f3ff */
+    --intro-accent-2: var(--toxic-green); /* Was #00f3ff */
     --intro-border: rgba(255, 255, 255, 0.1);
     --font-display: 'Syncopate', sans-serif;
     --font-code: 'JetBrains Mono', monospace;
+    
+    /* New Variables for Theme Compatibility */
+    --intro-star-color: white;
+    --intro-text-stroke: rgba(255, 255, 255, 0.15);
+    --intro-glitch-1: var(--secondary-accent);
+    --intro-glitch-2: var(--toxic-green);
+}
+
+/* Light Theme Overrides for Intro */
+body.light-theme {
+    --intro-bg: var(--bg-primary);
+    --intro-card-bg: rgba(10, 10, 10, 0.9);
+    --intro-border: rgba(255, 255, 255, 0.15);
+    --intro-star-color: #333;
+    --intro-text-stroke: rgba(0, 0, 0, 0.3);
+    --intro-text: #f0f0f0;
 }
 
 #hyper-intro-layer {
@@ -6331,7 +6432,7 @@ body.light-theme .effect-tile[data-state="on"] {
 }
 
 .intro-hud strong {
-    color: var(--intro-accent-2);
+    color: var(--intro-accent);
 }
 
 .intro-hud-line {
@@ -6499,7 +6600,7 @@ body.light-theme .effect-tile[data-state="on"] {
     font-size: 15vw;
     font-weight: 800;
     color: transparent;
-    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.15);
+    -webkit-text-stroke: 2px var(--intro-text-stroke);
     text-transform: uppercase;
     white-space: nowrap;
     transform: translate(-50%, -50%);
@@ -6513,7 +6614,7 @@ body.light-theme .effect-tile[data-state="on"] {
     position: absolute;
     width: 2px;
     height: 2px;
-    background: white;
+    background: var(--intro-star-color);
     transform: translate(-50%, -50%);
 }
 
@@ -6676,4 +6777,105 @@ body.no-scroll {
 .performance-mode-low .intro-star {
     border-radius: 0 !important; /* Square stars are faster to render */
     box-shadow: none !important;
+}
+
+/* =========================================
+   LIGHT THEME COMPONENT FIXES
+   ========================================= */
+
+/* Fix Console Block in Light Mode */
+body.light-theme .console-block {
+    background: #f0f0f0 !important;
+    color: #333 !important;
+    border-color: #999 !important;
+}
+
+body.light-theme .console-block .block-label,
+body.light-theme .console-block .corner {
+    color: #555 !important;
+}
+
+body.light-theme .console-block .hex-small {
+    background: #555;
+    opacity: 0.3;
+}
+
+/* Fix Video Modal/VR Projects in Light Mode */
+body.light-theme .video-modal-content {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .video-modal-content .modal-header {
+    background: rgba(240, 240, 240, 0.95);
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+    color: #111;
+}
+
+body.light-theme .video-modal-content .modal-footer {
+    background: rgba(240, 240, 240, 0.95);
+    border-top-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+body.light-theme .glitch-text {
+    color: #111;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+body.light-theme .modal-close-btn {
+    color: #333 !important;
+}
+
+/* Fix Awards/Recognition Log in Light Mode */
+body.light-theme #awardsModal .modal-content {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .award-card {
+    background: rgba(240, 240, 240, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    box-shadow: none;
+}
+
+body.light-theme .award-card:hover {
+    background: white !important;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important;
+    border-color: var(--award-color) !important;
+}
+
+body.light-theme .award-icon-box {
+    background: rgba(0,0,0,0.05); /* Very light gray */
+    border-color: rgba(0,0,0,0.1);
+}
+
+body.light-theme .award-title {
+    color: #111;
+}
+
+body.light-theme .award-rank {
+    /* award-color typically handles this, but ensuring contrast */
+    filter: brightness(0.8); /* Darken slightly for white bg */
+}
+
+body.light-theme .award-desc, 
+body.light-theme .award-event {
+    color: #444;
+}
+
+/* Modal header/footer overrides */
+body.light-theme .modal-header {
+    background: rgba(240, 240, 240, 0.95);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-theme .modal-title {
+    color: #111;
+}
+
+body.light-theme .modal-close {
+    color: #555;
 }

@@ -949,7 +949,7 @@ class HyperScrollIntro {
                         // RGB Split
                          if (Math.abs(this.state.velocity) > 2) {
                             const offset = this.state.velocity * 0.5;
-                            item.el.style.textShadow = `${offset}px 0 red, ${-offset}px 0 cyan`;
+                            item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
                         } else {
                             item.el.style.textShadow = 'none';
                         }
@@ -981,6 +981,8 @@ class HyperScrollIntro {
                 
                 // Allow scrolling again
                 document.body.classList.remove('no-scroll');
+                window.scrollTo(0, 0); // Force scroll to top
+                document.documentElement.scrollTop = 0; // Double ensure for some browsers
                 
                 // Trigger Main Dashboard animations
                 // Maybe fade in dashboard?
@@ -3616,16 +3618,38 @@ class VideoManager {
         document.body.classList.add('no-scroll');
         if (typeof audioManager !== 'undefined') audioManager.playSuccess();
         
+        const loader = document.getElementById('videoLoading');
+        const statusText = document.getElementById('videoStatus');
+        
+        // Reset Loader State
+        if (loader) loader.style.display = 'flex';
+        if (statusText) statusText.innerText = "INITIALIZING...";
+
+        // Check Connection
+        if (!navigator.onLine) {
+             if (statusText) statusText.innerText = "OFFLINE // DATA_UNAVAILABLE";
+             // Optional: Don't load iframe if offline to save resources/errors
+             return;
+        }
+
         // Include the hash parameter for unlisted videos
         this.iframe.src = `https://player.vimeo.com/video/${this.videoId}?h=${this.videoHash}&autoplay=1&title=0&byline=0&portrait=0`;
         
-        const loader = document.getElementById('videoLoading');
-        if (loader) {
-            loader.style.display = 'flex';
+        // Timeout for slow connection feedback
+        this.loadTimeout = setTimeout(() => {
+            if (loader && loader.style.display !== 'none') {
+                if (statusText) statusText.innerText = "WARN: SLOW CONNECTION...";
+            }
+        }, 5000);
+
+        // Real Load Event
+        this.iframe.onload = () => {
+            clearTimeout(this.loadTimeout);
+            // Small buffer to ensure visual smoothness
             setTimeout(() => {
-                loader.style.display = 'none';
-            }, 2000);
-        }
+                if (loader) loader.style.display = 'none';
+            }, 500);
+        };
     }
 
     close() {

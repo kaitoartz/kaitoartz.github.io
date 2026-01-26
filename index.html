@@ -754,11 +754,11 @@
                 </div>
     
                 <!-- System Initializing Overlay -->
-                <div id="videoLoading" class="absolute inset-0 z-10 flex items-center justify-center bg-black">
-                    <div class="text-cyan-400 font-mono">
-                        <div class="glitch-text" data-text="INITIALIZING...">INITIALIZING...</div>
-                        <div class="loading-bar mt-2 w-32 h-1 bg-gray-800">
-                            <div class="h-full bg-cyan-400 animate-pulse w-full"></div>
+                <div id="videoLoading" class="video-loader">
+                    <div class="video-loader-content">
+                        <div id="videoStatus" class="loader-status-text glitch-text" data-text="INITIALIZING...">INITIALIZING...</div>
+                        <div class="loader-bar-container">
+                            <div class="loader-bar-fill"></div>
                         </div>
                     </div>
                 </div>
