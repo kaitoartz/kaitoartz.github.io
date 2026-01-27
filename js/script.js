@@ -2626,6 +2626,8 @@ class AudioVisualizer {
         this.bufferLength = 0;
         this.active = false;
         this.animationId = null;
+        this.gradientCache = [];
+        this.lastHeight = 0;
     }
 
     init(audioManager) {
@@ -2683,20 +2685,38 @@ class AudioVisualizer {
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.fillRect(0, 0, width, height);
+
+        // Clear cache if height changed
+        if (height !== this.lastHeight) {
+            this.gradientCache = [];
+            this.lastHeight = height;
+        }
         
         const barWidth = (width / this.bufferLength) * 2.5;
         let barHeight;
         let x = 0;
         
         for (let i = 0; i < this.bufferLength; i++) {
-            barHeight = (this.dataArray[i] / 255) * height;
+            const value = this.dataArray[i];
+
+            // Optimization: Skip 0 values
+            if (value === 0) {
+                x += barWidth + 1;
+                continue;
+            }
+
+            barHeight = (value / 255) * height;
             
-            const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-            gradient.addColorStop(0, '#39FF14');
-            gradient.addColorStop(0.5, '#00FFFF');
-            gradient.addColorStop(1, '#FF00FF');
+            // Optimization: Cache gradients
+            if (!this.gradientCache[value]) {
+                const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+                gradient.addColorStop(0, '#39FF14');
+                gradient.addColorStop(0.5, '#00FFFF');
+                gradient.addColorStop(1, '#FF00FF');
+                this.gradientCache[value] = gradient;
+            }
             
-            ctx.fillStyle = gradient;
+            ctx.fillStyle = this.gradientCache[value];
             ctx.fillRect(x, height - barHeight, barWidth, barHeight);
             
             x += barWidth + 1;
