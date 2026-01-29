@@ -28,8 +28,8 @@ class FrameRateMonitor {
     }
 
     checkPerformance() {
-        // Ignore during boot
-        if (document.querySelector('.boot-overlay') && document.querySelector('.boot-overlay').style.display !== 'none') return;
+        // Ignore during boot or if tab is hidden
+        if (document.hidden || (document.querySelector('.boot-overlay') && document.querySelector('.boot-overlay').style.display !== 'none')) return;
 
         this.history.push(this.fps);
         if (this.history.length > 5) this.history.shift();
@@ -718,6 +718,10 @@ class HyperScrollIntro {
         this.items = [];
         this.rafId = null;
         this.lenis = null;
+        
+        // Performance: Cache dimensions
+        this.winW = window.innerWidth;
+        this.winH = window.innerHeight;
     }
 
     init() {
@@ -835,9 +839,15 @@ class HyperScrollIntro {
     bindEvents() {
         window.addEventListener('mousemove', (e) => {
             if (!this.state.active) return;
-            this.state.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-            this.state.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-        });
+            // Performance: Use cached dimensions
+            this.state.mouseX = (e.clientX / this.winW - 0.5) * 2;
+            this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
+        }, { passive: true });
+        
+        window.addEventListener('resize', () => {
+            this.winW = window.innerWidth;
+            this.winH = window.innerHeight;
+        }, { passive: true });
 
         const btn = document.getElementById('enterSystemBtn');
         if (btn) {
@@ -900,9 +910,12 @@ class HyperScrollIntro {
             // Smooth Velocity Interp
             this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.05;
 
-            // HUD Updates
-            if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
-            if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+            // HUD Updates (Throttled to minimize layout thrashing)
+            // Update only every 6th frame (~100ms at 60fps)
+            if (this.rafId % 6 === 0) {
+                if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+                if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+            }
 
             // Camera logic
             const shake = this.state.velocity * 0.2;
@@ -1588,7 +1601,7 @@ class CursorManager {
             this.cursor = { x: e.clientX, y: e.clientY };
             this.trail.push({ ...this.cursor, life: 1 });
             if (this.trail.length > this.maxTrail) this.trail.shift();
-        });
+        }, { passive: true });
         
         window.addEventListener('resize', () => this.resize());
         

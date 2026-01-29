@@ -6720,9 +6720,9 @@ body.no-scroll {
 }
 
 /* Force Console & Terminal Visibility in Low Performance */
+/* Force Console & Terminal Visibility in Low Performance */
 .performance-mode-low .console-block,
-.performance-mode-low .terminal-button,
-.performance-mode-low .terminal-modal {
+.performance-mode-low .terminal-button {
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;

@@ -58,6 +58,16 @@
     }
     </script>
 </head>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https:;
+        object-src 'none';
+    ">
+    
 <body>
     
 
@@ -609,25 +619,30 @@
         <!-- HEADER STICKER: Warning/Caution label near top left -->
         <!-- Expected file: warning_label.png -->
         <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label"
-            loading="lazy">
+            width="200" height="100" loading="lazy">
     
         <!-- SIDEBAR STICKER: "Removable" or Arrow near social links -->
         <!-- Expected file: arrow_ui.png -->
-        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow" loading="lazy">
+        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow" 
+            width="100" height="100" loading="lazy">
     
         <!-- INFO STICKER: "Datacorp" or "Specs" style sticker near intro text -->
         <!-- Expected file: data_badge.png -->
-        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge" loading="lazy">
+        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge" 
+            width="150" height="150" loading="lazy">
     
         <!-- FOOTER STICKER: "Hacked" or "Void" sticker -->
         <!-- Expected file: hacked_label.png -->
-        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label" loading="lazy">
+        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label" 
+            width="250" height="80" loading="lazy">
         <!-- NEW COLORFUL ASSETS (From second batch) -->
         <!-- Expected file: sticker_neon.png (The yellow/green ones) -->
-        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge" loading="lazy">
+        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge" 
+            width="120" height="120" loading="lazy">
     
         <!-- Expected file: sticker_alert.png (The red ones) -->
-        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label" loading="lazy">
+        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label" 
+            width="100" height="100" loading="lazy">
     </div>
 
     <!-- PURE CSS TECH ICONS (Created by System) -->
