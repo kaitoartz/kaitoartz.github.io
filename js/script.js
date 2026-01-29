@@ -694,8 +694,9 @@ class HyperScrollIntro {
                           (performanceManager.hardware.isMobile || performanceManager.hardware.tier === 'low' || performanceManager.hardware.tier === 'medium');
 
         this.config = {
+            isLowSpec: isLowSpec, // Store this for runtime checks
             itemCount: isLowSpec ? 10 : 20,
-            starCount: isLowSpec ? 60 : 150,
+            starCount: isLowSpec ? 20 : 150, // Reduced from 60 to 40 for better mobile pert
             zGap: 800,
             camSpeed: isLowSpec ? 2.0 : 2.5,
             loopSize: 0 // Calculated later
@@ -903,12 +904,16 @@ class HyperScrollIntro {
                 // Trigger fade out after reaching high speed
                 if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
                     this.state.fading = true;
-                    setTimeout(() => this.endIntro(), 1000);
+                    // Slightly longer delay for low spec to ensure frame stability
+                    setTimeout(() => this.endIntro(), this.config.isLowSpec ? 500 : 1000);
                 }
             }
 
             // Smooth Velocity Interp
             this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.05;
+
+            // Check dynamic low performance mode (in case it changed)
+            const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
 
             // HUD Updates (Throttled to minimize layout thrashing)
             // Update only every 6th frame (~100ms at 60fps)
@@ -918,12 +923,18 @@ class HyperScrollIntro {
             }
 
             // Camera logic
-            const shake = this.state.velocity * 0.2;
-            const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; // Reduced tilt impact
-            const tiltY = this.state.mouseX * 5;
+            // Skip tilt calculations on low spec to save layout thrashing
+            if (!isLowPerf) {
+                const shake = this.state.velocity * 0.2;
+                const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; 
+                const tiltY = this.state.mouseX * 5;
 
-            if (this.world) {
-                this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                if (this.world) {
+                    this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                }
+            } else if (this.world) {
+                 // Minimal static tilt or none for performance
+                 this.world.style.transform = `rotateX(0deg) rotateY(0deg)`;
             }
 
             // FOV Dynamic
@@ -959,8 +970,8 @@ class HyperScrollIntro {
                         trans += ` scale3d(1, 1, ${stretch})`;
                     } else if (item.type === 'text') {
                         trans += ` rotateZ(${item.rot}deg)`;
-                        // RGB Split
-                         if (Math.abs(this.state.velocity) > 2) {
+                        // RGB Split - SKIP on low spec
+                         if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
                             const offset = this.state.velocity * 0.5;
                             item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
                         } else {
@@ -983,9 +994,16 @@ class HyperScrollIntro {
         const layer = document.getElementById('hyper-intro-layer');
         if (layer) {
              // White out effect or Black out
-            layer.style.transition = "opacity 0.8s ease-out, filter 0.8s ease-out";
-            layer.style.opacity = 0;
-            layer.style.filter = "brightness(2) blur(10px)";
+            // Performance: Simplify transition for low spec
+            if (this.config.isLowSpec) {
+                layer.style.transition = "opacity 0.5s ease-out";
+                layer.style.opacity = 0;
+                 // No filter blur for low performance
+            } else {
+                layer.style.transition = "opacity 0.8s ease-out, filter 0.8s ease-out";
+                layer.style.opacity = 0;
+                layer.style.filter = "brightness(2) blur(10px)";
+            }
             
             setTimeout(() => {
                 layer.style.display = 'none';

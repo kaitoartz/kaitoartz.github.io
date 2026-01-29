@@ -3276,6 +3276,32 @@ body.perf-low .tech-gps-tag {
     .stats-row {
         grid-template-columns: 1fr;
     }
+
+    .projects-grid {
+        grid-template-columns: 1fr; /* Force single column on very small screens */
+    }
+
+    .terminal-button {
+      bottom: 60px; /* Avoid overlap with potentially other fixed elements */
+      right: 20px;
+      left: auto;
+      padding: 10px 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 1.5rem; /* Further reduce for very small screens */
+    }
+
+    .circle-large {
+        width: 90vw;
+        height: 90vw;
+    }
+
+   .barcode-decorative, .hazard-stripes {
+        display: none; /* Hide decorative elements to prevent overflow */
+   }
 }
 
 /* ========== PARTICLE SYSTEM ========== */
@@ -6506,7 +6532,7 @@ body.light-theme {
 .intro-card {
     width: 90vw;
     max-width: 320px;
-    height: 460px;
+    height: min(460px, 70vh); /* Prevent overflow on landscape mobile */
     background: var(--intro-card-bg);
     border: 1px solid var(--intro-border);
     position: relative;
@@ -6597,9 +6623,9 @@ body.light-theme {
 
 /* --- BIG TEXT --- */
 .intro-big-text {
-    font-size: 15vw;
+    font-size: 12vw;
     font-weight: 800;
-    color: transparent;
+    color: var(--accent-color);
     -webkit-text-stroke: 2px var(--intro-text-stroke);
     text-transform: uppercase;
     white-space: nowrap;
@@ -6617,6 +6643,42 @@ body.light-theme {
     background: var(--intro-star-color);
     transform: translate(-50%, -50%);
 }
+
+/* =========================================
+   PERFORMANCE OVERRIDES
+   ========================================= */
+.performance-mode-low .intro-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    box-shadow: none !important;
+    border-color: var(--intro-border) !important;
+    transform: translate(-50%, -50%) !important;
+    transition: transform 0.3s ease !important; /* Simplified transition */
+}
+
+.performance-mode-low .intro-card:hover {
+    box-shadow: none !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1 !important;
+}
+
+.performance-mode-low .intro-big-text {
+    text-shadow: none !important;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.performance-mode-low .intro-star {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Simplify exit transition to avoid blur */
+.performance-mode-low #hyper-intro-layer {
+    transition: opacity 0.5s ease-out !important; 
+    filter: none !important;
+}
+
 
 /* --- SCROLL PROXY --- */
 .intro-scroll-proxy {
