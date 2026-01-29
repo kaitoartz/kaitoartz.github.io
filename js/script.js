@@ -2,6 +2,16 @@
 const DEV_MODE = false; // Set to true for development logging
 const devLog = (...args) => DEV_MODE && console.log(...args);
 
+// ========== UTILITIES ==========
+const debounce = (func, wait) => {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+};
+
 // ========== PERFORMANCE MONITOR ==========
 class FrameRateMonitor {
     constructor() {
@@ -844,10 +854,10 @@ class HyperScrollIntro {
             this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
         }, { passive: true });
         
-        window.addEventListener('resize', () => {
+        window.addEventListener('resize', debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
-        }, { passive: true });
+        }, 200), { passive: true });
 
         const btn = document.getElementById('enterSystemBtn');
         if (btn) {
@@ -1605,7 +1615,7 @@ class CursorManager {
             if (this.trail.length > this.maxTrail) this.trail.shift();
         }, { passive: true });
         
-        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('resize', debounce(() => this.resize(), 200));
         
         // Observer for theme changes (Performance Optimization: avoid getComputedStyle in loop)
         const observer = new MutationObserver(() => {
@@ -2905,7 +2915,7 @@ class MatrixRain {
         this.ctx = this.canvas.getContext('2d');
         this.resize();
         
-        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('resize', debounce(() => this.resize(), 200));
         
         // Register with performance manager
         performanceManager.registerEffect('matrixRain', this);
