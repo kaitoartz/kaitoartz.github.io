@@ -1574,6 +1574,7 @@ class CursorManager {
         this.maxTrail = 20;
         this.running = false;
         this.animationId = null;
+        this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
     }
 
     init() {
@@ -1582,6 +1583,7 @@ class CursorManager {
         
         this.ctx = this.canvas.getContext('2d');
         this.resize();
+        this.updateColor(); // Initial color fetch
         
         document.addEventListener('mousemove', (e) => {
             if (!this.running) return;
@@ -1592,6 +1594,12 @@ class CursorManager {
         
         window.addEventListener('resize', () => this.resize());
         
+        // Observer for theme changes (Performance Optimization: avoid getComputedStyle in loop)
+        const observer = new MutationObserver(() => {
+            this.updateColor();
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
         // Register with performance manager
         if (typeof performanceManager !== 'undefined') {
             performanceManager.registerEffect('cursor', this);
@@ -1600,6 +1608,14 @@ class CursorManager {
             }
         } else {
              this.start();
+        }
+    }
+
+    updateColor() {
+        // Use document.body to respect theme classes
+        const cursorColor = getComputedStyle(document.body).getPropertyValue('--toxic-green').trim();
+        if (cursorColor) {
+            this.rgb = this.hexToRgb(cursorColor);
         }
     }
 
@@ -1632,14 +1648,14 @@ class CursorManager {
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        const cursorColor = getComputedStyle(document.documentElement).getPropertyValue('--toxic-green').trim();
-        const rgb = this.hexToRgb(cursorColor);
+        // Use cached RGB instead of calling getComputedStyle every frame
+        const { r, g, b } = this.rgb;
         
         // Draw trail
         this.trail.forEach(point => {
             point.life -= 0.05;
             const size = 3 * point.life;
-            this.ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${point.life * 0.5})`;
+            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
             this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
         });
         this.trail = this.trail.filter(p => p.life > 0);
@@ -1647,7 +1663,7 @@ class CursorManager {
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;
-        this.ctx.strokeStyle = cursorColor;
+        this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
         this.ctx.lineWidth = 1;
         
         this.ctx.beginPath();
@@ -1658,13 +1674,16 @@ class CursorManager {
         this.ctx.lineTo(x, y + size);
         this.ctx.stroke();
         
-        this.ctx.fillStyle = cursorColor;
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
     hexToRgb(hex) {
+        // Handle empty or invalid hex
+        if (!hex) return { r: 57, g: 255, b: 20 };
+
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? {
             r: parseInt(result[1], 16),
