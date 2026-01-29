@@ -89,7 +89,7 @@ body.light-theme.theme-white {
     box-sizing: border-box;
 }
 
-body {
+body, html {
     font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
     background-color: var(--bg-primary);
     background-image: 
@@ -98,10 +98,12 @@ body {
     background-size: 20px 20px;
     color: var(--text-primary);
     min-height: 100vh;
-    overflow-x: hidden;
+    width: 100%;
     max-width: 100vw;
+    overflow-x: hidden;
     position: relative;
     line-height: 1.4;
+    overscroll-behavior-x: none; /* Prevent swipe navigation */
 }
 
 /* Global Scanline Effect */
