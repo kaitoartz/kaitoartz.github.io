@@ -1,7 +1,8 @@
         // --- CONFIGURATION ---
+        const isMobile = window.innerWidth < 768;
         const CONFIG = {
             itemCount: 20,
-            starCount: 150,
+            starCount: isMobile ? 40 : 150, // Drastically reduce stars on mobile
             zGap: 800,
             loopSize: 0, // Calculated
             camSpeed: 2.5,
@@ -187,6 +188,8 @@
 
                 if (alpha < 0) alpha = 0;
                 item.el.style.opacity = alpha;
+                // Optimization: Remove from paint tree if invisible
+                item.el.style.visibility = alpha < 0.01 ? 'hidden' : 'visible';
 
                 if (alpha > 0) {
                     let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
