@@ -3264,6 +3264,7 @@ body.perf-low .tech-gps-tag {
     .dashboard {
         padding: 10px;
         gap: 10px;
+        grid-template-columns: 1fr; /* Force single column layout */
     }
 
     .grid-item {
@@ -5582,6 +5583,13 @@ body.performance-mode-low * {
     animation: none !important;
     transition: none !important;
     box-shadow: none !important; /* Las sombras consumen caleta de GPU */
+    filter: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none !important;
+}
+
+body.performance-mode-low {
+    background-image: none !important; /* Remove complex grid background */
 }
 
 /* EXCEPTION: Keep timeline animations even in low performance mode */

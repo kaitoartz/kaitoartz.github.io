@@ -46,6 +46,13 @@ class FrameRateMonitor {
 
         const avgFps = this.history.reduce((a, b) => a + b, 0) / this.history.length;
 
+        // CRITICAL: If FPS < 20, jump straight to LOW
+        if (avgFps < 20 && performanceManager.currentPreset !== 'low') {
+             console.warn('>> PERF: Critical FPS drop. Enforcing LOW mode immediately.');
+             performanceManager.applyPreset('low');
+             return;
+        }
+
         // Downgrade if consistently low FPS (> 5s under 30fps)
         if (avgFps < 30 && !this.isOptimizing && performanceManager.currentPreset !== 'low') {
             this.optimize();
@@ -130,7 +137,7 @@ class PerformanceManager {
         
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
-        
+
         if (isMobile) score -= 25; // Increased penalty for mobile (was 20)
 
         // CPU Scoring: Budget phones often have 8 cores but low IPC.
@@ -228,12 +235,14 @@ class PerformanceManager {
 
         // LÓGICA NUEVA: Inyectar clase al body para control total CSS
         if (preset === 'low') {
-        document.body.classList.add('performance-mode-low');
-        document.body.classList.add('no-scanlines'); // Asegurar scanlines fuera
-        this.toggleParticles(false); // Forzar apagado JS
+            document.body.classList.add('performance-mode-low');
+            document.body.classList.add('no-scanlines'); // Asegurar scanlines fuera
+            document.body.classList.add('no-glitch'); // Disable glitches
+            this.toggleParticles(false); // Forzar apagado JS
         } else {
-        document.body.classList.remove('performance-mode-low');
-        document.body.classList.remove('no-scanlines');
+            document.body.classList.remove('performance-mode-low');
+            document.body.classList.remove('no-scanlines');
+            document.body.classList.remove('no-glitch');
         }
         
         const targetPreset = preset === 'auto' ? presets[this.hardware.tier] : presets[preset];
@@ -720,8 +729,8 @@ class HyperScrollIntro {
 
         this.config = {
             isLowSpec: isLowSpec, // Store this for runtime checks
-            itemCount: isLowSpec ? 10 : 20,
-            starCount: isLowSpec ? 20 : 150, // Reduced from 60 to 40 for better mobile pert
+            itemCount: isLowSpec ? 6 : 20, // Reduced further for extreme low mode
+            starCount: isLowSpec ? 10 : 150, // Reduced further
             zGap: 800,
             camSpeed: isLowSpec ? 2.0 : 2.5,
             loopSize: 0 // Calculated later
