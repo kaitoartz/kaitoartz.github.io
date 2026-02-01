@@ -119,20 +119,28 @@ class PerformanceManager {
         }
         
         // Calculate performance score (0-100)
-        let score = 50; // Base score
+        let score = 40; // Reduced Base score (was 50) to be more conservative
         
-        if (isMobile) score -= 20;
-        score += Math.min(cores * 5, 20); // Up to +20 for CPU
-        score += Math.min(memory * 3, 15); // Up to +15 for RAM
+        if (isMobile) score -= 25; // Increased penalty for mobile (was 20)
+
+        // CPU Scoring: Budget phones often have 8 cores but low IPC.
+        // Reduce weight: +2.5 per core instead of +5
+        score += Math.min(cores * 2.5, 20);
+
+        // RAM Scoring: 4GB is now minimum for smooth WebGL.
+        // Increase weight slightly but cap logic remains
+        score += Math.min(memory * 4, 20);
         
         if (effectiveType === '4g') score += 10;
-        else if (effectiveType === '3g') score += 5;
-        else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 10;
+        else if (effectiveType === '3g') score -= 5; // Penalty for 3G
+        else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 20; // Heavy penalty
         
         // Penalize iOS devices that report low cores due to privacy
         if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
             // Assume modern iOS is at least medium, but don't let it hit ultra easily due to thermal throttling concerns
             if (score > 60) score = Math.min(score, 75);
+            // Boost score slightly for iOS if it dropped too low due to core masking
+            if (score < 40) score = 45;
         }
 
         score = Math.max(0, Math.min(100, score));
@@ -150,10 +158,11 @@ class PerformanceManager {
     }
 
     getPerformanceTier(score) {
-        if (score >= 80) return 'ultra';
-        if (score >= 60) return 'high';
-        if (score >= 40) return 'medium';
-        return 'low';
+        // Stricter thresholds for dynamic performance
+        if (score >= 85) return 'ultra'; // Was 80
+        if (score >= 65) return 'high';  // Was 60
+        if (score >= 45) return 'medium';// Was 40
+        return 'low'; // < 45 is low (covers most budget devices like A32)
     }
 
     applyPreset(preset) {
@@ -2963,7 +2972,7 @@ class MatrixRain {
         // Optimize resolution for mobile/low-end
         const isLowPerf = performanceManager.currentPreset === 'low' || performanceManager.hardware.isMobile;
         const dpr = isLowPerf ? 1 : Math.min(window.devicePixelRatio, 2);
-        
+
         this.canvas.width = window.innerWidth * dpr;
         this.canvas.height = window.innerHeight * dpr;
         this.ctx.scale(dpr, dpr);

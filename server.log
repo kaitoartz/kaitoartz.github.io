@@ -23,3 +23,10 @@
 127.0.0.1 - - [01/Feb/2026 01:42:59] "GET /assets/projects/mediapipe.webp HTTP/1.1" 200 -
 127.0.0.1 - - [01/Feb/2026 01:42:59] "GET /assets/projects/candyparty.webp HTTP/1.1" 200 -
 127.0.0.1 - - [01/Feb/2026 01:42:59] "GET /assets/projects/IstGames.webp HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:50] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:50] "GET /css/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:51] "GET /js/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:52] "GET /assets/projects/candyparty.webp HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:52] "GET /assets/projects/crehabitat.webp HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:52] "GET /assets/projects/mediapipe.webp HTTP/1.1" 200 -
+127.0.0.1 - - [01/Feb/2026 02:04:52] "GET /assets/projects/IstGames.webp HTTP/1.1" 200 -
