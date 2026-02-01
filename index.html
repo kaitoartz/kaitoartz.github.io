@@ -16,7 +16,7 @@
     <meta property="og:url" content="https://kaitoartz.github.io/">
     <meta property="og:title" content="KAITOARTZ - VR Developer & Tech Artist">
     <meta property="og:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
-    <meta property="og:image" content="https://kaitoartz.github.io/preview.jpg">
+    <meta property="og:image" content="assets/projects/crehabitat.webp">
     <meta property="og:site_name" content="KAITOARTZ Portfolio">
     
     <!-- Twitter -->
@@ -24,7 +24,7 @@
     <meta name="twitter:url" content="https://kaitoartz.github.io/">
     <meta name="twitter:title" content="KAITOARTZ - VR Developer & Tech Artist">
     <meta name="twitter:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
-    <meta name="twitter:image" content="https://kaitoartz.github.io/preview.jpg">
+    <meta name="twitter:image" content="assets/projects/crehabitat.webp">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -35,8 +35,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
 
@@ -48,7 +47,7 @@
       "name": "KAITOARTZ",
       "url": "https://kaitoartz.github.io/",
       "jobTitle": "VR Developer & Tech Artist",
-      "image": "https://kaitoartz.github.io/preview.jpg",
+      "image": "assets/projects/crehabitat.webp",
       "sameAs": [
         "https://github.com/kaitoartz",
         "https://www.linkedin.com/in/kaitoarts",
@@ -71,9 +70,6 @@
     
 <body>
     
-
-    <!-- LENIS FOR SMOOTH SCROLL (Hyper Intro) -->
-    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- OVERLAYS (Hyper Intro) -->
@@ -116,7 +112,7 @@
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
             <span>SETTINGS // CONFIG</span>
-            <button class="settings-close" id="settingsClose">
+            <button class="settings-close" id="settingsClose" aria-label="Close Settings">
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
@@ -619,31 +615,31 @@
     <div class="decal-layer">
         <!-- HEADER STICKER: Warning/Caution label near top left -->
         <!-- Expected file: warning_label.png -->
-        <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label"
-            width="200" height="100" loading="lazy">
+        <!-- <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label"
+            width="200" height="100" loading="lazy"> -->
     
         <!-- SIDEBAR STICKER: "Removable" or Arrow near social links -->
         <!-- Expected file: arrow_ui.png -->
-        <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow" 
-            width="100" height="100" loading="lazy">
+        <!-- <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow"
+            width="100" height="100" loading="lazy"> -->
     
         <!-- INFO STICKER: "Datacorp" or "Specs" style sticker near intro text -->
         <!-- Expected file: data_badge.png -->
-        <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge" 
-            width="150" height="150" loading="lazy">
+        <!-- <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge"
+            width="150" height="150" loading="lazy"> -->
     
         <!-- FOOTER STICKER: "Hacked" or "Void" sticker -->
         <!-- Expected file: hacked_label.png -->
-        <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label" 
-            width="250" height="80" loading="lazy">
+        <!-- <img src="assets/decals/hacked_label.png" class="tech-sticker sticker-footer-hacked" alt="Hacked Label"
+            width="250" height="80" loading="lazy"> -->
         <!-- NEW COLORFUL ASSETS (From second batch) -->
         <!-- Expected file: sticker_neon.png (The yellow/green ones) -->
-        <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge" 
-            width="120" height="120" loading="lazy">
+        <!-- <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge"
+            width="120" height="120" loading="lazy"> -->
     
         <!-- Expected file: sticker_alert.png (The red ones) -->
-        <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label" 
-            width="100" height="100" loading="lazy">
+        <!-- <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label"
+            width="100" height="100" loading="lazy"> -->
     </div>
 
     <!-- PURE CSS TECH ICONS (Created by System) -->
@@ -700,7 +696,7 @@
     <div class="terminal-modal" id="terminalModal">
         <div class="terminal-header">
             <span>TERMINAL_ACCESS // SYSTEM_SHELL</span>
-            <button class="terminal-close" id="terminalClose">✕</button>
+            <button class="terminal-close" id="terminalClose" aria-label="Close Terminal">✕</button>
         </div>
         <div class="terminal-output" id="terminalOutput">
             <div class="terminal-line">
@@ -718,7 +714,7 @@
     <div class="shortcuts-modal" id="shortcutsModal">
         <div class="shortcuts-header">
             <span>⌨️ KEYBOARD_SHORTCUTS</span>
-            <button class="shortcuts-close" id="shortcutsClose">✕</button>
+            <button class="shortcuts-close" id="shortcutsClose" aria-label="Close Shortcuts">✕</button>
         </div>
         <div class="shortcuts-content">
             <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Open Terminal</span></div>
@@ -736,7 +732,7 @@
             <div class="modal-header">
                 <div class="modal-title">AWARDS_DATABASE // <span class="label-code"
                         style="color: var(--accent-color);">RECOGNITION_LOG</span></div>
-                <button class="modal-close" id="awardsClose">✕</button>
+                <button class="modal-close" id="awardsClose" aria-label="Close Awards">✕</button>
             </div>
             <div class="awards-grid" id="awardsContainer">
                 <!-- Awards content generated by AwardsManager -->
@@ -747,7 +743,7 @@
     <!-- PROJECT LIGHTBOX -->
     <div class="lightbox" id="projectLightbox">
         <div class="lightbox-content">
-            <button class="lightbox-close" id="lightboxClose">×</button>
+            <button class="lightbox-close" id="lightboxClose" aria-label="Close Lightbox">×</button>
             <img class="lightbox-image" id="lightboxImage" src="" alt="Project detail">
         </div>
     </div>
@@ -757,7 +753,7 @@
         <div class="video-modal-content tech-border glass-panel">
             <div class="modal-header">
                 <h2 class="glitch-text" data-text="LINK START">LINK START</h2>
-                <button class="modal-close-btn" id="videoClose">
+                <button class="modal-close-btn" id="videoClose" aria-label="Close Video">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -790,7 +786,10 @@
         </div>
     </div>
 
-    <script src="js/script.js"></script>
+    <!-- LENIS FOR SMOOTH SCROLL (Hyper Intro) -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
+    <script src="js/script.js" defer></script>
     
     <!-- CONTROL DOCK -->
     <div class="control-dock collapsed" data-expanded="false">
@@ -799,21 +798,21 @@
                 <span></span><span></span><span></span>
             </div>
         </div>
-        <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme">
+        <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
             <i class="fa-solid fa-sun theme-icon"></i>
         </button>
 
-        <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]">
+        <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
             <i class="fa-solid fa-volume-high audio-icon"></i>
         </button>
         
-        <button class="dock-btn" id="langToggleBtn" title="Language / Idioma">
+        <button class="dock-btn" id="langToggleBtn" title="Language / Idioma" aria-label="Toggle Language">
             <span class="lang-text">ES</span>
         </button>
         
         <div class="dock-separator"></div>
 
-        <button class="dock-btn" id="burgerMenu" title="Settings">
+        <button class="dock-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
             <i class="fa-solid fa-gear"></i>
         </button>
 <div class="dock-deco-end">
