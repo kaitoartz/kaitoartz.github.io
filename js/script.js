@@ -129,16 +129,30 @@ class PerformanceManager {
         }
         
         // Calculate performance score (0-100)
-        let score = 50; // Base score
+        let score = 40; // Reduced Base score (was 50) to be more conservative
         
-        if (isMobile) score -= 20;
-        score += Math.min(cores * 5, 20); // Up to +20 for CPU
-        score += Math.min(memory * 3, 15); // Up to +15 for RAM
+        if (isMobile) score -= 25; // Increased penalty for mobile (was 20)
+
+        // CPU Scoring: Budget phones often have 8 cores but low IPC.
+        // Reduce weight: +2.5 per core instead of +5
+        score += Math.min(cores * 2.5, 20);
+
+        // RAM Scoring: 4GB is now minimum for smooth WebGL.
+        // Increase weight slightly but cap logic remains
+        score += Math.min(memory * 4, 20);
         
         if (effectiveType === '4g') score += 10;
-        else if (effectiveType === '3g') score += 5;
-        else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 10;
+        else if (effectiveType === '3g') score -= 5; // Penalty for 3G
+        else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 20; // Heavy penalty
         
+        // Penalize iOS devices that report low cores due to privacy
+        if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            // Assume modern iOS is at least medium, but don't let it hit ultra easily due to thermal throttling concerns
+            if (score > 60) score = Math.min(score, 75);
+            // Boost score slightly for iOS if it dropped too low due to core masking
+            if (score < 40) score = 45;
+        }
+
         score = Math.max(0, Math.min(100, score));
         
         return {
@@ -154,10 +168,11 @@ class PerformanceManager {
     }
 
     getPerformanceTier(score) {
-        if (score >= 80) return 'ultra';
-        if (score >= 60) return 'high';
-        if (score >= 40) return 'medium';
-        return 'low';
+        // Stricter thresholds for dynamic performance
+        if (score >= 85) return 'ultra'; // Was 80
+        if (score >= 65) return 'high';  // Was 60
+        if (score >= 45) return 'medium';// Was 40
+        return 'low'; // < 45 is low (covers most budget devices like A32)
     }
 
     applyPreset(preset) {
@@ -519,12 +534,12 @@ class AudioManager {
         
         // Audio file paths
         this.audioFiles = {
-            background: 'assets/audio/background.mp3',
-            hover: 'assets/audio/hover.mp3',
-            click: 'assets/audio/click.mp3',
-            boot: 'assets/audio/boot.mp3',
-            glitch: 'assets/audio/glitch.mp3',
-            success: 'assets/audio/success.mp3'
+            background: 'assets/audio/background.mp3'
+            // hover: 'assets/audio/hover.mp3',
+            // click: 'assets/audio/click.mp3',
+            // boot: 'assets/audio/boot.mp3',
+            // glitch: 'assets/audio/glitch.mp3',
+            // success: 'assets/audio/success.mp3'
         };
     }
 
@@ -826,7 +841,8 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        if (typeof Lenis !== 'undefined') {
+        // Disable Lenis on mobile for performance and better native feel
+        if (typeof Lenis !== 'undefined' && !performanceManager.hardware.isMobile) {
             // Usamos un wrapper específico si es posible, pero para el efecto global
             // el demo usa window. Solo controlamos que no afecte al dashboard después
             this.lenis = new Lenis({
@@ -834,7 +850,7 @@ class HyperScrollIntro {
                 lerp: 0.08,
                 direction: 'vertical',
                 gestureDirection: 'vertical',
-                smoothTouch: true,
+                smoothTouch: false, // Explicitly disable smooth touch to rely on native
                 touchMultiplier: 2,
             });
 
@@ -2628,7 +2644,7 @@ class NotificationManager {
         notification.innerHTML = `
             <div class="notification-header">
                 <div class="notification-title">${title}</div>
-                <button class="notification-close">&times;</button>
+                <button class="notification-close" aria-label="Close Notification">&times;</button>
             </div>
             <div class="notification-message">${message}</div>
         `;
@@ -2696,14 +2712,27 @@ class AudioVisualizer {
         
         this.ctx = this.canvas.getContext('2d');
         
+        // Setup visibility observer to stop render loop when off-screen
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && this.analyser) {
+                    this.start();
+                } else {
+                    this.stop(false); // Don't reset UI status, just stop rendering
+                }
+            });
+        });
+        this.observer.observe(this.canvas);
+
         // Use the already-created analyser node
         if (audioManager && audioManager.analyserNode) {
             this.analyser = audioManager.analyserNode;
             this.bufferLength = this.analyser.frequencyBinCount;
             this.dataArray = new Uint8Array(this.bufferLength);
             
-            this.active = true;
-            this.draw();
+            // Only start if visible (IntersectionObserver will handle it, but we set initial state)
+            // this.active = true;
+            // this.draw();
             
             const statusEl = document.getElementById('visualizerStatus');
             if (statusEl) statusEl.textContent = 'ACTIVE';
@@ -2721,15 +2750,18 @@ class AudioVisualizer {
         if (statusEl) statusEl.textContent = 'ACTIVE';
     }
 
-    stop() {
+    stop(updateUI = true) {
         this.active = false;
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
-        const statusEl = document.getElementById('visualizerStatus');
-        if (statusEl) statusEl.textContent = 'STANDBY';
-        this.drawStandby();
+
+        if (updateUI) {
+            const statusEl = document.getElementById('visualizerStatus');
+            if (statusEl) statusEl.textContent = 'STANDBY';
+            this.drawStandby();
+        }
     }
 
     draw() {
@@ -2947,10 +2979,18 @@ class MatrixRain {
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        
-        this.columns = Math.floor(this.canvas.width / this.fontSize);
+        // Optimize resolution for mobile/low-end
+        const isLowPerf = performanceManager.currentPreset === 'low' || performanceManager.hardware.isMobile;
+        const dpr = isLowPerf ? 1 : Math.min(window.devicePixelRatio, 2);
+
+        this.canvas.width = window.innerWidth * dpr;
+        this.canvas.height = window.innerHeight * dpr;
+        this.ctx.scale(dpr, dpr);
+
+        // Adjust font size scaling if necessary, but here we keep it simple relative to logical pixels
+        // The scale() call above handles the drawing coordinate space
+
+        this.columns = Math.floor(window.innerWidth / this.fontSize);
         this.drops = Array(this.columns).fill(1);
     }
 
@@ -3566,7 +3606,7 @@ const projectsData = [
         title: 'METAVERSE_AVATAR',
         category: '3d',
         description: 'High-fidelity avatar system with facial tracking.',
-        image: 'assets/projects/proj-5.jpg',
+        image: 'https://placehold.co/600x400/111/39FF14?text=METAVERSE',
         tech: ['BLENDER', 'UNITY', 'LIP_SYNC'],
         link: '#'
     },
@@ -3575,7 +3615,7 @@ const projectsData = [
         title: 'WEBGL_PORTFOLIO',
         category: 'web',
         description: 'Immersive 3D portfolio using Three.js.',
-        image: 'assets/projects/proj-6.jpg',
+        image: 'https://placehold.co/600x400/111/39FF14?text=WEBGL',
         tech: ['THREE.JS', 'REACT', 'WEBGL'],
         link: '#'
     },
@@ -3788,86 +3828,53 @@ const scrollRevealManager = new ScrollRevealManager();
 document.addEventListener('DOMContentLoaded', () => {
     devLog('%c>> DOM: Ready', 'color: #39FF14; font-family: monospace;');
     
-    // Initialize Performance Manager first
+    // Initialize Performance Manager first (Critical for deciding other inits)
     performanceManager.init();
     devLog('%c>> INIT: Performance Manager ✓', 'color: #39FF14; font-family: monospace;');
     
-    setTimeout(() => {
+    // Critical UI systems - Init immediately
+    burgerMenuManager.init();
+    settingsManager.init();
+    languageManager.init();
+    contactFormManager.init();
+    projectManager.init();
+
+    // Deferred initialization for heavy/non-critical systems
+    const initDeferredSystems = () => {
         try {
+            // UI Interactive elements
+            volumeController.init();
+            terminal.init();
+            shortcutsManager.init();
+            awardsManager.init();
+            videoManager.init();
+            projectLightboxManager.init();
+            notificationManager.init();
+            timelineManager.init();
+            skillsManager.init();
+            scrollRevealManager.init();
+
+            // Heavy Visuals
             if (window.innerWidth > 767) {
                 cursorManager.init();
                 performanceManager.registerEffect('cursor', cursorManager);
-                devLog('%c>> INIT: Cursor ✓', 'color: #39FF14; font-family: monospace;');
             }
-            
-            volumeController.init();
-            devLog('%c>> INIT: Volume ✓', 'color: #39FF14; font-family: monospace;');
-            
-            terminal.init();
-            devLog('%c>> INIT: Terminal ✓', 'color: #39FF14; font-family: monospace;');
-            
-            shortcutsManager.init();
-            devLog('%c>> INIT: Shortcuts ✓', 'color: #39FF14; font-family: monospace;');
-
-            awardsManager.init();
-            devLog('%c>> INIT: Awards System ✓', 'color: #39FF14; font-family: monospace;');
-
-            videoManager.init();
-            devLog('%c>> INIT: VR Video Module ✓', 'color: #39FF14; font-family: monospace;');
             
             technicalBackground.init();
-            devLog('%c>> INIT: Tech Background ✓', 'color: #39FF14; font-family: monospace;');
-            
-            // Initialize new features
-            skillsManager.init();
-            devLog('%c>> INIT: Skills Radar ✓', 'color: #39FF14; font-family: monospace;');
-            
-            projectManager.init(); // Fixed name
-            devLog('%c>> INIT: Projects ✓', 'color: #39FF14; font-family: monospace;');
-            
-            notificationManager.init();
-            devLog('%c>> INIT: Notifications ✓', 'color: #39FF14; font-family: monospace;');
-            
-            timelineManager.init();
-            devLog('%c>> INIT: Timeline ✓', 'color: #39FF14; font-family: monospace;');
-            
-            contactFormManager.init();
-            devLog('%c>> INIT: Contact Form ✓', 'color: #39FF14; font-family: monospace;');
-            
             parallaxManager.init();
-            devLog('%c>> INIT: Parallax ✓', 'color: #39FF14; font-family: monospace;');
-            
             matrixRain.init();
-            devLog('%c>> INIT: Matrix Rain ✓', 'color: #39FF14; font-family: monospace;');
             
-            burgerMenuManager.init();
-            devLog('%c>> INIT: Burger Menu ✓', 'color: #39FF14; font-family: monospace;');
+            devLog('%c>> SYSTEM: Deferred modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
             
-            settingsManager.init();
-            devLog('%c>> INIT: Settings Panel ✓', 'color: #39FF14; font-family: monospace;');
-            
-            languageManager.init();
-            devLog('%c>> INIT: Language System ✓', 'color: #39FF14; font-family: monospace;');
-            
-            projectLightboxManager.init();
-            devLog('%c>> INIT: Project Lightbox ✓', 'color: #39FF14; font-family: monospace;');
-            
-            // projectFiltersManager.init(); // Removed
-            
-            scrollRevealManager.init();
-            console.log('%c>> INIT: Scroll Reveal ✓', 'color: #39FF14; font-family: monospace;');
-            
-            // Terminal button click handler
+            // Terminal button
             const terminalButton = document.getElementById('terminalButton');
             if (terminalButton) {
-                terminalButton.addEventListener('click', () => {
-                    terminal.open();
-                });
+                terminalButton.addEventListener('click', () => terminal.open());
             }
-            
-            // Welcome notification after boot
+
+            // Welcome notification
             setTimeout(() => {
-                if (document.querySelector('.dashboard').classList.contains('visible')) {
+                if (document.querySelector('.dashboard')?.classList.contains('visible')) {
                     const presetName = performanceManager.currentPreset.toUpperCase();
                     const tier = performanceManager.hardware.tier.toUpperCase();
                     notificationManager.success(
@@ -3875,11 +3882,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         `Performance preset: ${presetName} | Hardware tier: ${tier}`
                     );
                 }
-            }, 3000);
-            
-            devLog('%c>> SYSTEM: All modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
+            }, 2000);
+
         } catch (error) {
-            console.error('%c>> ERROR: Init failed', 'color: #FF6B6B; font-family: monospace;', error);
+            console.error('%c>> ERROR: Deferred init failed', 'color: #FF6B6B; font-family: monospace;', error);
         }
-    }, 100);
+    };
+
+    // Use requestIdleCallback if available, otherwise fallback to setTimeout
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => initDeferredSystems(), { timeout: 2000 });
+    } else {
+        setTimeout(initDeferredSystems, 200);
+    }
 });
