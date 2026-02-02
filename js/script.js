@@ -1224,6 +1224,7 @@ const counterObserver = new IntersectionObserver((entries) => {
         if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
             animateCounter(entry.target, parseInt(entry.target.dataset.count, 10));
             entry.target.classList.add('counted');
+            counterObserver.unobserve(entry.target);
         }
     });
 }, { threshold: 0.5 });
@@ -3810,6 +3811,7 @@ class ScrollRevealManager {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('reveal');
+                    this.observer.unobserve(entry.target);
                 }
             });
         }, options);
