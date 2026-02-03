@@ -115,8 +115,10 @@
 
         // --- RAF LOOP ---
         const feedbackVel = document.getElementById('vel-readout');
+        const coordEl = document.getElementById('coord');
         const feedbackFPS = document.getElementById('fps');
         let lastTime = 0;
+        let lastHudUpdate = 0;
         
         // Performance Monitoring
         let frameCount = 0;
@@ -157,8 +159,11 @@
             state.velocity += (state.targetSpeed - state.velocity) * 0.1;
 
             // HUD Updates
-            feedbackVel.innerText = Math.abs(state.velocity).toFixed(2);
-            document.getElementById('coord').innerText = `${state.scroll.toFixed(0)}`;
+            if (time - lastHudUpdate > 100) {
+                feedbackVel.innerText = Math.abs(state.velocity).toFixed(2);
+                coordEl.innerText = `${state.scroll.toFixed(0)}`;
+                lastHudUpdate = time;
+            }
 
             // --- RENDER LOGIC ---
 
