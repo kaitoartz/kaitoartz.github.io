@@ -117,14 +117,41 @@
         const feedbackVel = document.getElementById('vel-readout');
         const feedbackFPS = document.getElementById('fps');
         let lastTime = 0;
+        
+        // Performance Monitoring
+        let frameCount = 0;
+        let lastCheckTime = 0;
+        let perfMode = 0; // 0: Normal, 1: Low (No Stars/Shadows), 2: Ultra (No Rotations/Floats)
+        const sysStatus = document.querySelector('.hud-top span:first-child');
 
         function raf(time) {
             lenis.raf(time);
 
-            // FPS
+            // FPS Calculation
             const delta = time - lastTime;
             lastTime = time;
-            if (time % 10 < 1) feedbackFPS.innerText = Math.round(1000 / delta);
+            
+            // Monitor Performance (Check every 1 second)
+            if (time - lastCheckTime > 1000) {
+                const fps = Math.round(1000 / delta);
+                feedbackFPS.innerText = fps;
+                
+                // Adaptive Degrade Logic (Wait 2s at start before judging)
+                if (time > 2000) {
+                     if (fps < 15 && perfMode < 2) {
+                        perfMode = 2;
+                        document.querySelectorAll('.star').forEach(el => el.style.display = 'none'); // Kill stars
+                        sysStatus.innerText = "SYS.MODE: BARE";
+                        sysStatus.style.color = "red";
+                    } else if (fps < 30 && perfMode < 1) {
+                        perfMode = 1;
+                        document.querySelectorAll('.star').forEach(el => el.style.display = 'none'); // Kill stars
+                        sysStatus.innerText = "SYS.MODE: ECO";
+                        sysStatus.style.color = "orange";
+                    }
+                }
+                lastCheckTime = time;
+            }
 
             // Smooth Velocity
             state.velocity += (state.targetSpeed - state.velocity) * 0.1;
@@ -135,63 +162,50 @@
 
             // --- RENDER LOGIC ---
 
-            // 1. Camera Tilt & Shake
-            // Add slight noise based on velocity
-            const shake = state.velocity * 0.2;
-            const tiltX = state.mouseY * 5 - state.velocity * 0.5;
-            const tiltY = state.mouseX * 5;
+            // 1. Camera Tilt & Shake (Disable in Ultra Mode)
+            if (perfMode < 2) {
+                const shake = state.velocity * 0.2;
+                const tiltX = state.mouseY * 5 - state.velocity * 0.5;
+                const tiltY = state.mouseX * 5;
+                world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            } else {
+                 world.style.transform = 'none'; // Lock camera in ultra mode
+            }
 
-            world.style.transform = `
-                rotateX(${tiltX}deg) 
-                rotateY(${tiltY}deg)
-            `;
-
-            // 2. Dynamic Perspective (Warp)
+            // 2. Dynamic Perspective (Warp) - Keep this, it's cheap CSS
             const baseFov = 1000;
             const fov = baseFov - Math.min(Math.abs(state.velocity) * 10, 600);
             viewport.style.perspective = `${fov}px`;
-
-            // 3. Chromatic Aberration Simulation (simulated via global filter or just on elements)
-            // Just applying a subtle shift to the body might be heavy, let's do it on text maybe?
-            // Or use the scanline color offset
 
             // 4. Item Loop
             const cameraZ = state.scroll * CONFIG.camSpeed;
 
             items.forEach(item => {
+                // Skip stars in perf modes
+                if (perfMode > 0 && item.type === 'star') return;
+
                 // Calculate position relative to camera
-                // We want items to move TOWARDS camera (positive Z)
-                // item.baseZ is negative. 
-
                 let relZ = item.baseZ + cameraZ;
-
-                // Infinite Wrapping modulo
-                // We want relZ to be within [-loopSize, 0] relative to some viewport
-                // But simplified: 
                 const modC = CONFIG.loopSize;
-
-                // Centering the repeat
-                // ((relZ % modC) + modC) % modC  -> maps to [0, modC]
-                // We want range [-modC + 500, 500] approx
-
                 let vizZ = ((relZ % modC) + modC) % modC;
-                if (vizZ > 500) vizZ -= modC; // Wrap back if too close/behind
+                if (vizZ > 500) vizZ -= modC; 
 
-                // Determine Opacity
-                // Fade in at -4000, fade out at 200
-                // Opacity logic
+                // Visibility Culling
                 let alpha = 1;
                 if (vizZ < -3000) alpha = 0;
                 else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
-
                 if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400);
 
                 if (alpha < 0) alpha = 0;
                 item.el.style.opacity = alpha;
-                // Optimization: Remove from paint tree if invisible
-                item.el.style.visibility = alpha < 0.01 ? 'hidden' : 'visible';
+                
+                // Hard Culling: Don't touch style if hidden
+                const isVisible = alpha > 0.01;
+                if (item.el.style.visibility !== (isVisible ? 'visible' : 'hidden')) {
+                     item.el.style.visibility = isVisible ? 'visible' : 'hidden';
+                }
 
-                if (alpha > 0) {
+                if (isVisible) {
                     let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
 
                     if (item.type === 'star') {
@@ -199,19 +213,23 @@
                         const stretch = Math.max(1, Math.min(1 + Math.abs(state.velocity) * 0.1, 10));
                         trans += ` scale3d(1, 1, ${stretch})`;
                     } else if (item.type === 'text') {
-                        trans += ` rotateZ(${item.rot}deg)`;
-                        // RGB Split effect on text (simulated with text-shadow)
-                        if (Math.abs(state.velocity) > 1) {
+                        // Rotation - Disable in Ultra Mode
+                        if (perfMode < 2) trans += ` rotateZ(${item.rot}deg)`;
+                        
+                        // RGB Split - Disable in Low Mode
+                        if (perfMode < 1 && Math.abs(state.velocity) > 1) {
                             const offset = state.velocity * 2;
                             item.el.style.textShadow = `${offset}px 0 red, ${-offset}px 0 cyan`;
                         } else {
                             item.el.style.textShadow = 'none';
                         }
                     } else {
-                        // Card floats
-                        const t = time * 0.001;
-                        const float = Math.sin(t + item.x) * 10;
-                        trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        // Card floats - Disable in Ultra Mode
+                        if (perfMode < 2) {
+                            const t = time * 0.001;
+                            const float = Math.sin(t + item.x) * 10;
+                            trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        }
                     }
 
                     item.el.style.transform = trans;
