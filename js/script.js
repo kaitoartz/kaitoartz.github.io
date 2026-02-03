@@ -3024,8 +3024,10 @@ class MatrixRain {
         this.ctx.fillStyle = '#39FF14';
         this.ctx.font = `${this.fontSize}px monospace`;
 
-        // Dibujar solo cada segunda columna para mejor rendimiento
-        for (let i = 0; i < this.drops.length; i++) {
+        // Dibujar solo cada segunda columna para mejor rendimiento (excepto en Ultra)
+        const step = (typeof performanceManager !== 'undefined' && performanceManager.currentPreset === 'ultra') ? 1 : 2;
+
+        for (let i = 0; i < this.drops.length; i += step) {
             const text = this.characters[Math.floor(Math.random() * this.characters.length)];
             const x = i * this.fontSize;
             const y = this.drops[i] * this.fontSize;
