@@ -1637,8 +1637,10 @@ class CursorManager {
         this.canvas = null;
         this.ctx = null;
         this.cursor = { x: 0, y: 0 };
-        this.trail = [];
         this.maxTrail = 20;
+        // Pre-allocate array and objects to avoid GC
+        this.trail = new Array(this.maxTrail).fill(null).map(() => ({ x: 0, y: 0, life: 0 }));
+        this.head = 0; // Ring buffer pointer
         this.running = false;
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
@@ -1654,9 +1656,17 @@ class CursorManager {
         
         document.addEventListener('mousemove', (e) => {
             if (!this.running) return;
-            this.cursor = { x: e.clientX, y: e.clientY };
-            this.trail.push({ ...this.cursor, life: 1 });
-            if (this.trail.length > this.maxTrail) this.trail.shift();
+            // Update cursor position in place
+            this.cursor.x = e.clientX;
+            this.cursor.y = e.clientY;
+
+            // Update trail ring buffer
+            const point = this.trail[this.head];
+            point.x = e.clientX;
+            point.y = e.clientY;
+            point.life = 1;
+
+            this.head = (this.head + 1) % this.maxTrail;
         }, { passive: true });
         
         window.addEventListener('resize', debounce(() => this.resize(), 200));
@@ -1707,7 +1717,10 @@ class CursorManager {
         if (this.ctx && this.canvas) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
-        this.trail = [];
+        // Reset trail without destroying objects
+        for (let i = 0; i < this.trail.length; i++) {
+            this.trail[i].life = 0;
+        }
     }
 
     animate() {
@@ -1718,14 +1731,20 @@ class CursorManager {
         // Use cached RGB instead of calling getComputedStyle every frame
         const { r, g, b } = this.rgb;
         
-        // Draw trail
-        this.trail.forEach(point => {
-            point.life -= 0.05;
-            const size = 3 * point.life;
-            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
-            this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
-        });
-        this.trail = this.trail.filter(p => p.life > 0);
+        // Draw trail - Iterate ring buffer from oldest to newest
+        for (let i = 0; i < this.maxTrail; i++) {
+            const idx = (this.head + i) % this.maxTrail;
+            const point = this.trail[idx];
+
+            if (point.life > 0) {
+                point.life -= 0.05;
+                if (point.life > 0) {
+                    const size = 3 * point.life;
+                    this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
+                    this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
+                }
+            }
+        }
         
         // Draw crosshair
         const { x, y } = this.cursor;
