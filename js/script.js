@@ -2990,17 +2990,28 @@ class MatrixRain {
 
     resize() {
         // Optimize resolution for mobile/low-end
-        const isLowPerf = performanceManager.currentPreset === 'low' || performanceManager.hardware.isMobile;
-        const dpr = isLowPerf ? 1 : Math.min(window.devicePixelRatio, 2);
+        const preset = performanceManager.currentPreset;
+        let scale = 1;
 
-        this.canvas.width = window.innerWidth * dpr;
-        this.canvas.height = window.innerHeight * dpr;
-        this.ctx.scale(dpr, dpr);
+        if (preset === 'low') {
+            scale = 0.5; // Reduce resolution by half for low performance mode
+        } else if (performanceManager.hardware.isMobile) {
+            scale = 1;
+        } else {
+            scale = Math.min(window.devicePixelRatio, 2);
+        }
+
+        this.logicalWidth = window.innerWidth;
+        this.logicalHeight = window.innerHeight;
+
+        this.canvas.width = this.logicalWidth * scale;
+        this.canvas.height = this.logicalHeight * scale;
+        this.ctx.scale(scale, scale);
 
         // Adjust font size scaling if necessary, but here we keep it simple relative to logical pixels
         // The scale() call above handles the drawing coordinate space
 
-        this.columns = Math.floor(window.innerWidth / this.fontSize);
+        this.columns = Math.floor(this.logicalWidth / this.fontSize);
         this.drops = Array(this.columns).fill(1);
     }
 
@@ -3018,7 +3029,7 @@ class MatrixRain {
 
         // Semi-transparent black for trailing effect
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, this.logicalWidth || window.innerWidth, this.logicalHeight || window.innerHeight);
 
         // Green text
         this.ctx.fillStyle = '#39FF14';
