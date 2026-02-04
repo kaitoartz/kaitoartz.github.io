@@ -2502,7 +2502,7 @@ class ProjectsManager {
             {
                 title: 'NOVA (SANDA JAM)',
                 description: '🏆 1º Lugar Mejor Atmósfera/Narrativa. Juego inmersivo creado en 48hrs con equipo internacional.',
-                image: 'ruta/a/imagen_nova.jpg', // ¡Sube una imagen y pon la ruta aquí!
+                image: 'https://placehold.co/600x400/111/39FF14?text=NOVA', // ¡Sube una imagen y pon la ruta aquí!
                 tags: ['Unity', 'Narrative', 'Award Winner'],
                 category: 'vr',
                 github: 'https://github.com/kaitoartz', // Pon el link real si tienes

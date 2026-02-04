@@ -1,0 +1,7 @@
+127.0.0.1 - - [04/Feb/2026 00:58:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:00] "GET /css/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:01] "GET /js/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:02] "GET /assets/projects/candyparty.webp HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:02] "GET /assets/projects/IstGames.webp HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:02] "GET /assets/projects/crehabitat.webp HTTP/1.1" 200 -
+127.0.0.1 - - [04/Feb/2026 00:58:02] "GET /assets/projects/mediapipe.webp HTTP/1.1" 200 -
