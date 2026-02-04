@@ -2520,7 +2520,7 @@ class ProjectsManager {
             {
                 title: 'UNITY OPTIMIZER TOOLS',
                 description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
-                image: 'ruta/a/imagen_tools.jpg',
+                image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
                 tags: ['Tooling', 'C#', 'Editor Scripting'],
                 category: '3d',
                 github: 'https://github.com/kaitoartz',
@@ -3700,6 +3700,15 @@ const projectsData = [
         image: 'https://img.itch.zone/aW1hZ2UvMzEzNzgyMi8xOTA2NjM0OC5qcGc=/original/%2Bw3lwe.jpg',
         tech: ['UNREAL_ENGINE', 'C++', 'HORROR'],
         link: 'https://corejeux.itch.io/darali-devel'
+    },
+    {
+        id: '08',
+        title: 'UNITY_OPTIMIZER',
+        category: '3d',
+        description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
+        image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
+        tech: ['TOOLING', 'C#', 'EDITOR_SCRIPTING'],
+        link: 'https://github.com/kaitoartz'
     }
 ];
 
