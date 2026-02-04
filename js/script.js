@@ -2529,7 +2529,7 @@ class ProjectsManager {
             {
                 title: 'CREHA BITAT',
                 description: '🥈 2º Lugar Social Impact Jam. Videojuego con enfoque social y educativo.',
-                image: 'ruta/a/imagen_creha.jpg',
+                image: 'assets/projects/crehabitat.webp',
                 tags: ['Unity', 'Social Impact', '2D'],
                 category: 'web',
                 github: 'https://github.com/kaitoartz',
