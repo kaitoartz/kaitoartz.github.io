@@ -904,17 +904,19 @@ class HyperScrollIntro {
     }
 
     bindEvents() {
-        window.addEventListener('mousemove', (e) => {
+        this.handleMouseMove = (e) => {
             if (!this.state.active) return;
             // Performance: Use cached dimensions
             this.state.mouseX = (e.clientX / this.winW - 0.5) * 2;
             this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
-        }, { passive: true });
+        };
+        window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
         
-        window.addEventListener('resize', debounce(() => {
+        this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
-        }, 200), { passive: true });
+        }, 200);
+        window.addEventListener('resize', this.handleResize, { passive: true });
 
         const btn = document.getElementById('enterSystemBtn');
         if (btn) {
@@ -1076,6 +1078,10 @@ class HyperScrollIntro {
                 this.state.active = false;
                 if (this.lenis) this.lenis.destroy();
                 
+                // Remove listeners to save resources
+                if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
+                if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+
                 // Allow scrolling again
                 document.body.classList.remove('no-scroll');
                 window.scrollTo(0, 0); // Force scroll to top
@@ -2494,85 +2500,6 @@ class SkillsManager {
     }
 }
 
-// ========== PROJECTS MANAGER ==========
-class ProjectsManager {
-    constructor() {
-        this.projects = [
-            {
-                title: 'NOVA (SANDA JAM)',
-                description: '🏆 1º Lugar Mejor Atmósfera/Narrativa. Juego inmersivo creado en 48hrs con equipo internacional.',
-                image: 'https://placehold.co/600x400/111/39FF14?text=NOVA', // ¡Sube una imagen y pon la ruta aquí!
-                tags: ['Unity', 'Narrative', 'Award Winner'],
-                category: 'vr',
-                github: 'https://github.com/kaitoartz', // Pon el link real si tienes
-                demo: 'https://kaitoartz.itch.io/' 
-            },
-            {
-                title: 'SIMULADORES IST',
-                description: 'Entornos de capacitación industrial con físicas complejas y hand-tracking en Meta Quest.',
-                image: 'assets/projects/IstGames.webp',
-                tags: ['VR', 'Oculus SDK', 'Industrial'],
-                category: 'vr',
-                github: '#', // Privado
-                demo: '#'
-            },
-            {
-                title: 'UNITY OPTIMIZER TOOLS',
-                description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
-                image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
-                tags: ['Tooling', 'C#', 'Editor Scripting'],
-                category: '3d',
-                github: 'https://github.com/kaitoartz',
-                demo: '#'
-            },
-            {
-                title: 'CREHA BITAT',
-                description: '🥈 2º Lugar Social Impact Jam. Videojuego con enfoque social y educativo.',
-                image: 'assets/projects/crehabitat.webp',
-                tags: ['Unity', 'Social Impact', '2D'],
-                category: 'web',
-                github: 'https://github.com/kaitoartz',
-                demo: 'https://kaitoartz.itch.io/'
-            }
-        ];
-    }
-    // ... init() y render() igual ...
-
-    init() {
-        this.render();
-    }
-
-    render() {
-        const container = document.getElementById('projectsGrid');
-        if (!container) return;
-        
-        container.innerHTML = this.projects.map(project => `
-            <div class="project-card" data-category="${project.category}">
-                <div class="project-card-inner">
-                    <div class="project-card-front">
-                        <img src="${project.image}" alt="${project.title}" class="project-image">
-                        <div class="project-title">${project.title}</div>
-                        <div class="project-description">${project.description}</div>
-                        <div class="project-tags">
-                            ${project.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('')}
-                        </div>
-                    </div>
-                    <div class="project-card-back">
-                        <div class="project-title">${project.title}</div>
-                        <div class="project-description">${project.description}</div>
-                        <div class="project-tags">
-                            ${project.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('')}
-                        </div>
-                        <div class="project-links">
-                            <a href="${project.github}" class="project-link" target="_blank" rel="noopener">GITHUB</a>
-                            <a href="${project.demo}" class="project-link" target="_blank" rel="noopener">DEMO</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-}
 
 // ========== AWARDS MANAGER ==========
 class AwardsManager {
