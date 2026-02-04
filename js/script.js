@@ -1082,7 +1082,6 @@ class HyperScrollIntro {
                 document.documentElement.scrollTop = 0; // Double ensure for some browsers
                 
                 // Trigger Main Dashboard animations
-                // Maybe fade in dashboard?
                 const main = document.querySelector('main');
                 if(main) {
                     main.style.animation = "fadeIn 1s ease forwards";
