@@ -105,7 +105,7 @@
             lerp: 0.08, // Increased weight for heavy feel
             direction: 'vertical',
             gestureDirection: 'vertical',
-            smoothTouch: true
+            smoothTouch: !isMobile
         });
 
         lenis.on('scroll', ({ scroll, velocity }) => {
