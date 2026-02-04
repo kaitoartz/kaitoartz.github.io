@@ -2511,7 +2511,7 @@ class ProjectsManager {
             {
                 title: 'SIMULADORES IST',
                 description: 'Entornos de capacitación industrial con físicas complejas y hand-tracking en Meta Quest.',
-                image: 'ruta/a/imagen_simulador.jpg', 
+                image: 'assets/projects/IstGames.webp',
                 tags: ['VR', 'Oculus SDK', 'Industrial'],
                 category: 'vr',
                 github: '#', // Privado
