@@ -1678,6 +1678,7 @@ class CursorManager {
         this.trail = new Array(this.maxTrail).fill(null).map(() => ({ x: 0, y: 0, life: 0 }));
         this.head = 0; // Ring buffer pointer
         this.running = false;
+        this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
     }
@@ -1703,6 +1704,11 @@ class CursorManager {
             point.life = 1;
 
             this.head = (this.head + 1) % this.maxTrail;
+
+            if (!this.looping) {
+                this.looping = true;
+                this.animate();
+            }
         }, { passive: true });
         
         window.addEventListener('resize', debounce(() => this.resize(), 200));
@@ -1735,16 +1741,24 @@ class CursorManager {
     resize() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        if (this.running && !this.looping) {
+            this.looping = true;
+            this.animate();
+        }
     }
 
     start() {
         if (this.running) return;
         this.running = true;
-        this.animate();
+        if (!this.looping) {
+            this.looping = true;
+            this.animate();
+        }
     }
 
     stop() {
         this.running = false;
+        this.looping = false;
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
@@ -1760,7 +1774,10 @@ class CursorManager {
     }
 
     animate() {
-        if (!this.running) return;
+        if (!this.running) {
+            this.looping = false;
+            return;
+        }
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -1799,6 +1816,14 @@ class CursorManager {
         this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
+        // Optimization: Stop loop if idle (no trails and static cursor)
+        const hasActiveTrails = this.trail.some(p => p.life > 0);
+        if (!hasActiveTrails) {
+            this.looping = false;
+            this.animationId = null;
+            return;
+        }
+
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
