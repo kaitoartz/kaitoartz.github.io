@@ -2937,6 +2937,7 @@ class MatrixRain {
         this.drops = [];
         this.fontSize = 16; // Aumentado para menos columnas
         this.characters = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.charLength = this.characters.length;
         this.animationId = null;
         this.isActive = false;
         this.fps = 24; // Limitado a 24fps para mejor rendimiento
@@ -2989,6 +2990,9 @@ class MatrixRain {
 
         this.columns = Math.floor(this.logicalWidth / this.fontSize);
         this.drops = Array(this.columns).fill(1);
+
+        // Optimize: Set font once on resize instead of every frame
+        this.ctx.font = `${this.fontSize}px monospace`;
     }
 
     draw(currentTime = 0) {
@@ -3009,13 +3013,13 @@ class MatrixRain {
 
         // Green text
         this.ctx.fillStyle = '#39FF14';
-        this.ctx.font = `${this.fontSize}px monospace`;
+        // Font is set in resize() to avoid parsing overhead every frame
 
         // Dibujar solo cada segunda columna para mejor rendimiento (excepto en Ultra)
         const step = (typeof performanceManager !== 'undefined' && performanceManager.currentPreset === 'ultra') ? 1 : 2;
 
         for (let i = 0; i < this.drops.length; i += step) {
-            const text = this.characters[Math.floor(Math.random() * this.characters.length)];
+            const text = this.characters[Math.floor(Math.random() * this.charLength)];
             const x = i * this.fontSize;
             const y = this.drops[i] * this.fontSize;
 
