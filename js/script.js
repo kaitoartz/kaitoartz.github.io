@@ -20,6 +20,9 @@ class FrameRateMonitor {
         this.lastTime = performance.now();
         this.history = [];
         this.isOptimizing = false;
+
+        // Bind for RAF loop optimization (prevents GC allocation per frame)
+        this.update = this.update.bind(this);
     }
 
     update() {
@@ -34,7 +37,7 @@ class FrameRateMonitor {
             this.checkPerformance();
         }
 
-        requestAnimationFrame(() => this.update());
+        requestAnimationFrame(this.update);
     }
 
     checkPerformance() {
@@ -783,6 +786,7 @@ class HyperScrollIntro {
 
         this.items = [];
         this.rafId = null;
+        this.frameCount = 0; // Better than relying on rafId for throttling
         this.lenis = null;
         
         // Performance: Cache dimensions
@@ -955,13 +959,15 @@ class HyperScrollIntro {
             if (!this.state.active) return;
             
             this.rafId = requestAnimationFrame(loop);
+            this.frameCount++;
             
             if (this.lenis) this.lenis.raf(time);
 
             // FPS Calculation
             const delta = time - lastTime;
             lastTime = time;
-            if (feedbackFPS && time % 10 < 1) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+            // Use deterministic frame count instead of erratic time check
+            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
 
             // Logic
             if (this.state.warping) {
@@ -985,7 +991,7 @@ class HyperScrollIntro {
 
             // HUD Updates (Throttled to minimize layout thrashing)
             // Update only every 6th frame (~100ms at 60fps)
-            if (this.rafId % 6 === 0) {
+            if (this.frameCount % 6 === 0) {
                 if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
                 if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
             }
@@ -2715,6 +2721,9 @@ class AudioVisualizer {
         this.animationId = null;
         this.gradientCache = [];
         this.lastHeight = 0;
+
+        // Bind for RAF optimization
+        this.draw = this.draw.bind(this);
     }
 
     init(audioManager) {
@@ -2778,7 +2787,7 @@ class AudioVisualizer {
     draw() {
         if (!this.active) return;
         
-        this.animationId = requestAnimationFrame(() => this.draw());
+        this.animationId = requestAnimationFrame(this.draw);
         
         this.analyser.getByteFrequencyData(this.dataArray);
         
@@ -2968,6 +2977,9 @@ class MatrixRain {
         this.fps = 24; // Limitado a 24fps para mejor rendimiento
         this.lastFrameTime = 0;
         this.frameInterval = 1000 / this.fps;
+
+        // Bind for RAF optimization
+        this.draw = this.draw.bind(this);
     }
 
     init() {
@@ -3022,7 +3034,7 @@ class MatrixRain {
 
     draw(currentTime = 0) {
         if (this.isActive) {
-            this.animationId = requestAnimationFrame((time) => this.draw(time));
+            this.animationId = requestAnimationFrame(this.draw);
         }
         
         // Control de FPS
