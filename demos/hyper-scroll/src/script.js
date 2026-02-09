@@ -42,7 +42,8 @@
                     items.push({
                         el, type: 'text',
                         x: 0, y: 0, rot: 0,
-                        baseZ: -i * CONFIG.zGap
+                        baseZ: -i * CONFIG.zGap,
+                        isVisible: true
                     });
                 } else {
                     const card = document.createElement('div');
@@ -72,7 +73,8 @@
                     items.push({
                         el, type: 'card',
                         x, y, rot,
-                        baseZ: -i * CONFIG.zGap
+                        baseZ: -i * CONFIG.zGap,
+                        isVisible: true
                     });
                 }
                 world.appendChild(el);
@@ -87,7 +89,8 @@
                     el, type: 'star',
                     x: (Math.random() - 0.5) * 3000,
                     y: (Math.random() - 0.5) * 3000,
-                    baseZ: -Math.random() * CONFIG.loopSize
+                    baseZ: -Math.random() * CONFIG.loopSize,
+                    isVisible: true
                 });
             }
 
@@ -206,8 +209,9 @@
                 
                 // Hard Culling: Don't touch style if hidden
                 const isVisible = alpha > 0.01;
-                if (item.el.style.visibility !== (isVisible ? 'visible' : 'hidden')) {
+                if (item.isVisible !== isVisible) {
                      item.el.style.visibility = isVisible ? 'visible' : 'hidden';
+                     item.isVisible = isVisible;
                 }
 
                 if (isVisible) {

@@ -312,6 +312,10 @@ class PerformanceManager {
         layers.forEach(layer => {
             layer.style.display = enable ? 'block' : 'none';
         });
+
+        if (enable && this.parallaxInstance) {
+            this.parallaxInstance.requestTick();
+        }
     }
 
     toggleCursorTrail(enable) {
@@ -2972,6 +2976,13 @@ class MatrixRain {
         this.fontSize = 16; // Aumentado para menos columnas
         this.characters = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         this.charLength = this.characters.length;
+
+        // Performance: Pre-calculate random indices and characters
+        this.charArray = this.characters.split(''); // Faster access
+        this.randomIndices = new Uint8Array(4096); // Buffer size power of 2
+        this.randomIndex = 0;
+        this.fillRandomBuffer();
+
         this.animationId = null;
         this.isActive = false;
         this.fps = 24; // Limitado a 24fps para mejor rendimiento
@@ -2980,6 +2991,12 @@ class MatrixRain {
 
         // Bind for RAF optimization
         this.draw = this.draw.bind(this);
+    }
+
+    fillRandomBuffer() {
+        for (let i = 0; i < this.randomIndices.length; i++) {
+            this.randomIndices[i] = Math.floor(Math.random() * this.charLength);
+        }
     }
 
     init() {
@@ -3056,7 +3073,11 @@ class MatrixRain {
         const step = (typeof performanceManager !== 'undefined' && performanceManager.currentPreset === 'ultra') ? 1 : 2;
 
         for (let i = 0; i < this.drops.length; i += step) {
-            const text = this.characters[Math.floor(Math.random() * this.charLength)];
+            // Optimization: Use pre-calculated random buffer
+            const charIdx = this.randomIndices[this.randomIndex];
+            const text = this.charArray[charIdx];
+            this.randomIndex = (this.randomIndex + 1) & 4095; // Fast modulus
+
             const x = i * this.fontSize;
             const y = this.drops[i] * this.fontSize;
 
@@ -3110,7 +3131,8 @@ class ParallaxManager {
         this.layers = document.querySelectorAll('.parallax-layer');
         if (this.layers.length === 0) return;
 
-        window.addEventListener('scroll', () => this.requestTick());
+        // Optimization: Use passive listener to prevent blocking scroll
+        window.addEventListener('scroll', () => this.requestTick(), { passive: true });
         
         // Register with performance manager
         performanceManager.registerEffect('parallax', this);
@@ -3124,6 +3146,9 @@ class ParallaxManager {
     }
 
     requestTick() {
+        // Optimization: Skip calculations if effect is disabled
+        if (!performanceManager.effects.parallax) return;
+
         if (!this.ticking) {
             window.requestAnimationFrame(() => this.update());
             this.ticking = true;
