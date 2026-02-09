@@ -309,6 +309,10 @@ class PerformanceManager {
         layers.forEach(layer => {
             layer.style.display = enable ? 'block' : 'none';
         });
+
+        if (enable && this.parallaxInstance) {
+            this.parallaxInstance.requestTick();
+        }
     }
 
     toggleCursorTrail(enable) {
@@ -3098,7 +3102,8 @@ class ParallaxManager {
         this.layers = document.querySelectorAll('.parallax-layer');
         if (this.layers.length === 0) return;
 
-        window.addEventListener('scroll', () => this.requestTick());
+        // Optimization: Use passive listener to prevent blocking scroll
+        window.addEventListener('scroll', () => this.requestTick(), { passive: true });
         
         // Register with performance manager
         performanceManager.registerEffect('parallax', this);
@@ -3112,6 +3117,9 @@ class ParallaxManager {
     }
 
     requestTick() {
+        // Optimization: Skip calculations if effect is disabled
+        if (!performanceManager.effects.parallax) return;
+
         if (!this.ticking) {
             window.requestAnimationFrame(() => this.update());
             this.ticking = true;
