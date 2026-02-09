@@ -491,14 +491,6 @@ body.light-theme .hud-circle {
     /* Subtle blend for this one */
 }
 
-.sticker-footer-hacked {
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%) rotate(-2deg);
-    width: 200px;
-    opacity: 0.9;
-    z-index: 10;
-}
 
 /* Float animations */
 .sticker-sidebar-arrow {
@@ -1439,7 +1431,7 @@ body.light-theme .hud-circle {
 
 /* --- 25. HACKED LABEL --- */
 .tech-hacked-label {
-    width: 180px;
+    width: 250px;
     height: 80px;
     background: rgba(0, 0, 0, 0.95);
     border: 3px solid var(--toxic-green);
@@ -1448,6 +1440,38 @@ body.light-theme .hud-circle {
     align-items: center;
     justify-content: center;
     gap: 5px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+}
+
+.tech-hacked-label::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--toxic-green);
+    box-shadow: 0 0 10px var(--toxic-green);
+    animation: labelScan 3s linear infinite;
+    z-index: 2;
+    opacity: 0.5;
+}
+
+@keyframes labelScan {
+    0% { top: -2px; }
+    100% { top: 100%; }
+}
+
+.sticker-footer-hacked {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 250px;
+    opacity: 0.9;
+    z-index: 10;
 }
 
 .top-center-mod {
@@ -1464,15 +1488,20 @@ body.light-theme .hud-circle {
 }
 
 .hacked-text {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
     color: var(--toxic-green);
-    letter-spacing: 3px;
+    letter-spacing: 5px;
+    text-shadow: 0 0 10px var(--toxic-green);
 }
 
 .hacked-sub {
-    font-size: 0.5rem;
-    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--toxic-green);
+    letter-spacing: 2px;
+    opacity: 0.7;
 }
 
 /* --- 26. ACCESS CARD --- */
