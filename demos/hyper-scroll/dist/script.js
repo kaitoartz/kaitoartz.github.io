@@ -41,7 +41,8 @@
                     items.push({
                         el, type: 'text',
                         x: 0, y: 0, rot: 0,
-                        baseZ: -i * CONFIG.zGap
+                        baseZ: -i * CONFIG.zGap,
+                        isVisible: true
                     });
                 } else {
                     const card = document.createElement('div');
@@ -71,7 +72,8 @@
                     items.push({
                         el, type: 'card',
                         x, y, rot,
-                        baseZ: -i * CONFIG.zGap
+                        baseZ: -i * CONFIG.zGap,
+                        isVisible: true
                     });
                 }
                 world.appendChild(el);
@@ -86,7 +88,8 @@
                     el, type: 'star',
                     x: (Math.random() - 0.5) * 3000,
                     y: (Math.random() - 0.5) * 3000,
-                    baseZ: -Math.random() * CONFIG.loopSize
+                    baseZ: -Math.random() * CONFIG.loopSize,
+                    isVisible: true
                 });
             }
 
@@ -188,7 +191,13 @@
                 if (alpha < 0) alpha = 0;
                 item.el.style.opacity = alpha;
 
-                if (alpha > 0) {
+                const isVisible = alpha > 0.01;
+                if (item.isVisible !== isVisible) {
+                    item.el.style.visibility = isVisible ? 'visible' : 'hidden';
+                    item.isVisible = isVisible;
+                }
+
+                if (isVisible) {
                     let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
 
                     if (item.type === 'star') {

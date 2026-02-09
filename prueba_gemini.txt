@@ -1,3 +1,0 @@
-Este es un archivo de prueba para la integración con Gemini CLI.
-Nombre sugerido: prueba_gemini.txt
-Contenido: Hola, este archivo fue creado como parte de una prueba automatizada usando Gemini CLI y la instrucción /jules.
