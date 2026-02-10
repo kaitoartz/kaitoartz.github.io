@@ -1102,6 +1102,13 @@ class HyperScrollIntro {
                 if(main) {
                     main.style.animation = "fadeIn 1s ease forwards";
                 }
+
+                // Optimization: Start background effects now that they are visible
+                if (typeof matrixRain !== 'undefined' &&
+                    typeof performanceManager !== 'undefined' &&
+                    performanceManager.effects.matrixRain) {
+                     matrixRain.start(true);
+                }
                 
                 // Optional: Trigger legacy boot sequence visuals briefly or just logging
                 // For now, we assume direct access to dashboard
@@ -3092,7 +3099,10 @@ class MatrixRain {
         }
     }
 
-    start() {
+    start(force = false) {
+        // Optimization: Don't start if Intro is active to save resources
+        if (!force && typeof hyperIntro !== 'undefined' && hyperIntro.state.active) return;
+
         if (this.isActive) return;
         this.isActive = true;
         this.canvas.style.opacity = '0.15';
