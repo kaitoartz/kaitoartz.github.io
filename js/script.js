@@ -117,7 +117,8 @@ class PerformanceManager {
         this.parallaxInstance = null;
         this.cursorInstance = null;
         this.terminalInstance = null;
-        this.detectHardware(); // Call detectHardware to set initial tier
+        // Fix: Store the result of detectHardware in this.hardware
+        this.hardware = { ...this.hardware, ...this.detectHardware() };
     }
 
     detectHardware() {
