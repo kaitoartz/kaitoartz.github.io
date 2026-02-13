@@ -3139,8 +3139,14 @@ class ParallaxManager {
     }
 
     init() {
-        this.layers = document.querySelectorAll('.parallax-layer');
-        if (this.layers.length === 0) return;
+        const layers = document.querySelectorAll('.parallax-layer');
+        if (layers.length === 0) return;
+
+        // Optimization: Pre-calculate speed and cache elements to avoid DOM access in loop
+        this.items = Array.from(layers).map(layer => ({
+            el: layer,
+            speed: parseFloat(layer.dataset.speed) || 0.5
+        }));
 
         // Optimization: Use passive listener to prevent blocking scroll
         window.addEventListener('scroll', () => this.requestTick(), { passive: true });
@@ -3150,10 +3156,10 @@ class ParallaxManager {
         
         // Apply initial state
         if (!performanceManager.effects.parallax) {
-            this.layers.forEach(layer => layer.style.display = 'none');
+            this.items.forEach(item => item.el.style.display = 'none');
         }
         
-        devLog('Parallax initialized with', this.layers.length, 'layers');
+        devLog('Parallax initialized with', this.items.length, 'layers');
     }
 
     requestTick() {
@@ -3169,10 +3175,9 @@ class ParallaxManager {
     update() {
         this.lastScrollY = window.scrollY;
         
-        this.layers.forEach(layer => {
-            const speed = parseFloat(layer.dataset.speed) || 0.5;
-            const yPos = -(this.lastScrollY * speed);
-            layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
+        this.items.forEach(item => {
+            const yPos = -(this.lastScrollY * item.speed);
+            item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
         });
 
         this.ticking = false;
