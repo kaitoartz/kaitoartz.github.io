@@ -17,3 +17,7 @@
 ## 2025-02-23 - Reliable Throttling in RAF
 **Learning:** Relying on `rafId % N` or `time % N` for throttling updates inside `requestAnimationFrame` is unreliable because `rafId` is not guaranteed to be sequential and `time` is high-precision float.
 **Action:** Use a dedicated `this.frameCount` variable incremented every frame for deterministic throttling (e.g., `if (this.frameCount % 10 === 0)`).
+
+## 2025-02-23 - Dirty Checking in RAF Loops
+**Learning:** Updating DOM properties like `style.opacity` or `style.transform` every frame, even with the same value, triggers browser work (style recalc). In scenes with many objects (like the Intro sequence), this adds up.
+**Action:** Cache the last applied value (e.g., `item.currentAlpha`) and strictly compare it with the new value before writing to the DOM. Use `Math.abs(diff) > epsilon` for floats to avoid noise.
