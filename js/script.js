@@ -840,7 +840,9 @@ class HyperScrollIntro {
                 this.items.push({
                     el, type: 'text',
                     x: 0, y: 0, rot: 0,
-                    baseZ: -i * this.config.zGap
+                    baseZ: -i * this.config.zGap,
+                    currentAlpha: -1,
+                    currentTrans: null
                 });
             } else {
                 const card = document.createElement('div');
@@ -869,7 +871,9 @@ class HyperScrollIntro {
                 this.items.push({
                     el, type: 'card',
                     x, y, rot,
-                    baseZ: -i * this.config.zGap
+                    baseZ: -i * this.config.zGap,
+                    currentAlpha: -1,
+                    currentTrans: null
                 });
             }
             this.world.appendChild(el);
@@ -884,7 +888,9 @@ class HyperScrollIntro {
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
                 y: (Math.random() - 0.5) * 3000,
-                baseZ: -Math.random() * this.config.loopSize
+                baseZ: -Math.random() * this.config.loopSize,
+                currentAlpha: -1,
+                currentTrans: null
             });
         }
     }
@@ -1039,7 +1045,11 @@ class HyperScrollIntro {
                 if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400); // Fade out close
                 if (alpha < 0) alpha = 0;
                 
-                item.el.style.opacity = alpha;
+                // Optimization: Update opacity only if changed significantly
+                if (Math.abs(item.currentAlpha - alpha) > 0.001) {
+                    item.el.style.opacity = alpha;
+                    item.currentAlpha = alpha;
+                }
 
                 if (alpha > 0) {
                     let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
@@ -1061,7 +1071,12 @@ class HyperScrollIntro {
                         const float = Math.sin(t + item.x) * 10;
                         trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
                     }
-                    item.el.style.transform = trans;
+
+                    // Optimization: Update transform only if changed
+                    if (item.currentTrans !== trans) {
+                        item.el.style.transform = trans;
+                        item.currentTrans = trans;
+                    }
                 }
             });
         };
