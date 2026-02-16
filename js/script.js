@@ -128,17 +128,6 @@ class PerformanceManager {
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
         
-        // Battery API (if available)
-        let batteryLevel = 1;
-        let isCharging = true;
-        
-        if (navigator.getBattery) {
-            navigator.getBattery().then(battery => {
-                batteryLevel = battery.level;
-                isCharging = battery.charging;
-            });
-        }
-        
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
@@ -171,8 +160,6 @@ class PerformanceManager {
             cores,
             memory,
             connection: effectiveType,
-            batteryLevel,
-            isCharging,
             score,
             tier: this.getPerformanceTier(score)
         };
@@ -797,6 +784,7 @@ class HyperScrollIntro {
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
+        this.lastFov = 0;
     }
 
     init() {
@@ -842,7 +830,8 @@ class HyperScrollIntro {
                     x: 0, y: 0, rot: 0,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
-                    currentTrans: null
+                    currentTrans: null,
+                    currentShadow: null
                 });
             } else {
                 const card = document.createElement('div');
@@ -978,7 +967,7 @@ class HyperScrollIntro {
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
-            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.textContent = Math.round(1000 / delta) || 60;
 
             // Logic
             if (this.state.warping) {
@@ -1003,8 +992,8 @@ class HyperScrollIntro {
             // HUD Updates (Throttled to minimize layout thrashing)
             // Update only every 6th frame (~100ms at 60fps)
             if (this.frameCount % 6 === 0) {
-                if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
-                if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+                if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
+                if (feedbackCoord) feedbackCoord.textContent = this.state.scroll.toFixed(0);
             }
 
             // Camera logic
@@ -1025,7 +1014,10 @@ class HyperScrollIntro {
             // FOV Dynamic
             const baseFov = 1000;
             const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-            if (this.viewport) this.viewport.style.perspective = `${fov}px`;
+            if (this.viewport && Math.abs(this.lastFov - fov) > 0.1) {
+                this.viewport.style.perspective = `${fov}px`;
+                this.lastFov = fov;
+            }
 
             // Items Loop
             const cameraZ = this.state.scroll * this.config.camSpeed;
@@ -1060,11 +1052,16 @@ class HyperScrollIntro {
                     } else if (item.type === 'text') {
                         trans += ` rotateZ(${item.rot}deg)`;
                         // RGB Split - SKIP on low spec
+                        let shadow = 'none';
                          if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
                             const offset = this.state.velocity * 0.5;
-                            item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                        } else {
-                            item.el.style.textShadow = 'none';
+                            shadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
+                        }
+
+                        // Optimization: Cache text shadow
+                        if (item.currentShadow !== shadow) {
+                            item.el.style.textShadow = shadow;
+                            item.currentShadow = shadow;
                         }
                     } else {
                         const t = time * 0.001;
