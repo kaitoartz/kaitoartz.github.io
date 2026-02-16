@@ -128,17 +128,6 @@ class PerformanceManager {
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
         
-        // Battery API (if available)
-        let batteryLevel = 1;
-        let isCharging = true;
-        
-        if (navigator.getBattery) {
-            navigator.getBattery().then(battery => {
-                batteryLevel = battery.level;
-                isCharging = battery.charging;
-            });
-        }
-        
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
@@ -171,8 +160,6 @@ class PerformanceManager {
             cores,
             memory,
             connection: effectiveType,
-            batteryLevel,
-            isCharging,
             score,
             tier: this.getPerformanceTier(score)
         };
@@ -548,10 +535,8 @@ class AudioManager {
         this.bgMusic = null;
         this.mediaSource = null;
         this.analyserNode = null;
+        this.lastHoveredTarget = null;
         
-        // Performance optimization: Bind playHover once
-        this.boundPlayHover = this.playHover.bind(this);
-
         // Audio file paths
         this.audioFiles = {
             background: 'assets/audio/background.mp3'
@@ -702,45 +687,28 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
-    addHoverListeners(root) {
+    handleMouseOver(e) {
+        if (!this.enabled) return;
+
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
+        const target = e.target.closest(selector);
 
-        // Helper to attach listener safely
-        const attach = (el) => {
-            el.removeEventListener('mouseenter', this.boundPlayHover);
-            el.addEventListener('mouseenter', this.boundPlayHover);
-        };
-
-        // If the root element itself matches
-        if (root.matches && root.matches(selector)) {
-            attach(root);
-        }
-
-        // Find all matching children
-        if (root.querySelectorAll) {
-            root.querySelectorAll(selector).forEach(attach);
+        // Optimization: Only play if we entered a NEW target
+        if (target) {
+            if (target !== this.lastHoveredTarget) {
+                this.playHover();
+                this.lastHoveredTarget = target;
+            }
+        } else {
+            this.lastHoveredTarget = null;
         }
     }
 
-    attachGlobalListeners() {
-        // Universal Hover - Optimized with MutationObserver and direct listeners
-        this.addHoverListeners(document);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Element
-                        this.addHoverListeners(node);
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+    initGlobalListeners() {
+        // Universal Hover - Optimized with Event Delegation
+        document.addEventListener('mouseover', this.handleMouseOver.bind(this), { passive: true });
 
         // Typing Sound Generators
-        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
-
         // Delegate for dynamic elements (like terminal)
         document.addEventListener('input', (e) => {
             if (e.target.matches('input, textarea')) {
@@ -755,7 +723,7 @@ const audioManager = new AudioManager();
 // Attach sounds after init
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        audioManager.attachGlobalListeners();
+        audioManager.initGlobalListeners();
     }, 1000);
 });
 
@@ -1351,7 +1319,7 @@ const linkBlocks = document.querySelectorAll('.link-block');
 linkBlocks.forEach(block => {
     block.addEventListener('mouseenter', function() {
         const id = this.dataset.id;
-        audioManager.playHover();
+        // audioManager.playHover(); // Handled by global delegation
         console.log(`%c>> ACCESS LINK_${id}`, 'color: #39FF14; font-family: monospace; font-size: 12px;');
     });
 
