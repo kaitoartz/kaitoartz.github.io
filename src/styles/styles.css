@@ -166,6 +166,58 @@ body.no-glitch .mem-matrix span {
         display: block !important;
         /* Ensure text remains visible, just no glitch */
         text-shadow: none !important;
+        /* Ensure text remains visible, just no glitch */
+        text-shadow: none !important;
+}
+
+/* --- MOBILE LOW PERF: INITIAL STATE (The Double-If) --- */
+body.mobile-low-perf #body-content {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* System is warming up: show but keep transparent to allow layout calculation */
+body.mobile-low-perf.preparing-system #body-content {
+    display: block !important; /* or your dashboard display type */
+    opacity: 0 !important;
+}
+
+/* When ready, we reveal the dashboard */
+body.mobile-low-perf.system-ready #body-content {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: opacity 1s ease-in;
+}
+
+/* Aggressive Performance Cuts for Mobile & Low-End */
+body.performance-mode-low *,
+body.mobile-low-perf * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation-duration: 0.01ms !important; /* Disable animations or make them instant */
+    animation-iteration-count: 1 !important;
+}
+
+/* Re-enable essential animations */
+body.performance-mode-low .enter-system-btn,
+body.mobile-low-perf .enter-system-btn,
+body.performance-mode-low .main-title,
+body.mobile-low-perf .main-title {
+    animation-duration: inherit !important;
+}
+
+/* Specific background replacements when backdrop-filter is disabled */
+body.performance-mode-low .glass-panel,
+body.mobile-low-perf .glass-panel,
+body.performance-mode-low .modal-content,
+body.mobile-low-perf .modal-content,
+body.performance-mode-low .intro-card,
+body.mobile-low-perf .intro-card {
+    background: rgba(10, 10, 15, 0.98) !important;
 }
 
 /* ========== START SCREEN ========== */
@@ -6808,16 +6860,13 @@ body.no-scroll {
     }
 }
 
-/* Fix: Ensure dashboard is visible in Low Performance Mode */
+/* Fix: Ensure dashboard is visible when ready in Low Performance Mode */
 .performance-mode-low .dashboard {
     opacity: 1 !important;
-    animation: none !important;
-    transition: none !important;
 }
 
-.performance-mode-low .intro-viewport,
-.performance-mode-low #hyper-intro-layer {
-    display: none !important;
+.performance-mode-low .intro-viewport {
+    display: block !important;
 }
 
 /* Force Console & Terminal Visibility in Low Performance */

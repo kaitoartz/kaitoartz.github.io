@@ -142,7 +142,16 @@ class PerformanceManager {
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
-        if (isMobile) score -= 25; // Increased penalty for mobile (was 20)
+        if (isMobile) {
+            score -= 30; // Increased penalty for mobile (was 25)
+            // Critical check for low-end mobile specific keywords
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                // Check if device memory is low or screen is small/dense
+                if ((memory && memory < 4) || (window.devicePixelRatio > 2 && window.screen.width < 400)) {
+                     score -= 20; // Massive penalty for high-DPI small screens (very GPU intensive)
+                }
+            }
+        }
 
         // CPU Scoring: Budget phones often have 8 cores but low IPC.
         // Reduce weight: +2.5 per core instead of +5
@@ -189,6 +198,17 @@ class PerformanceManager {
     applyPreset(preset) {
         this.currentPreset = preset;
         
+        // --- MOBILE OPTIMIZATION: DOUBLE IF LOGIC ---
+        const isLowPerf = preset === 'low' || (preset === 'auto' && this.hardware.tier === 'low');
+        const isMobile = this.hardware.isMobile;
+
+        if (isLowPerf || isMobile) {
+             document.body.classList.add('mobile-low-perf');
+             devLog('>> PERF: Mobile/Low-End mode active. Deferred body rendering engaged.');
+        } else {
+             document.body.classList.remove('mobile-low-perf');
+        }
+        
         const presets = {
             auto: this.hardware.tier,
             ultra: {
@@ -205,9 +225,9 @@ class PerformanceManager {
             high: {
                 matrixRain: true,
                 parallax: true,
-                cursorTrail: false, // Desactivado por defecto para mejor rendimiento
+                cursorTrail: false, 
                 scanlines: true,
-                glitch: false, // Desactivado por defecto
+                glitch: false, 
                 particles: false,
                 grid3d: true,
                 decorations: true,
@@ -238,11 +258,11 @@ class PerformanceManager {
         };
 
         // LÓGICA NUEVA: Inyectar clase al body para control total CSS
-        if (preset === 'low') {
+        if (isLowPerf) {
             document.body.classList.add('performance-mode-low');
-            document.body.classList.add('no-scanlines'); // Asegurar scanlines fuera
-            document.body.classList.add('no-glitch'); // Disable glitches
-            this.toggleParticles(false); // Forzar apagado JS
+            document.body.classList.add('no-scanlines'); 
+            document.body.classList.add('no-glitch'); 
+            this.toggleParticles(false); 
         } else {
             document.body.classList.remove('performance-mode-low');
             document.body.classList.remove('no-scanlines');
@@ -769,7 +789,7 @@ class HyperScrollIntro {
         this.config = {
             isLowSpec: isLowSpec, // Store this for runtime checks
             itemCount: isLowSpec ? 6 : 20, // Reduced further for extreme low mode
-            starCount: isLowSpec ? 10 : 150, // Reduced further
+            starCount: isLowSpec ? 0 : 150, // AGGRESSIVE: 0 stars for low spec
             zGap: 800,
             camSpeed: isLowSpec ? 2.0 : 2.5,
             loopSize: 0 // Calculated later
@@ -957,6 +977,39 @@ class HyperScrollIntro {
             btn.style.borderColor = "#fff";
             btn.style.color = "#fff";
         }
+
+        // --- MOBILE/LOW-END SYNC LOGIC ---
+        if (this.config.isLowSpec) {
+            devLog('>> PERF: Executing synchronous content preparation...');
+            
+            // A. Carga Sincrónica (Simulada mediante forzado de layout y visibilidad)
+            this.loadBodyContentSynchronously();
+
+            // B. Transición "Falseada": La aceleración ya ocurre en el loop() mediante targetSpeed = 150
+            // Pero podemos añadir un delay extra antes de disparar el fin real para dar tiempo al navegador
+            this.waitForContentReady().then(() => {
+                devLog('>> PERF: Content ready. Finalizing transition.');
+                // C. Acelerar cuando el contenido esté listo (disparado por el fading logic en loop)
+            });
+        }
+    }
+
+    loadBodyContentSynchronously() {
+        // En un SPA real, aquí cargaríamos componentes. Aquí forzamos al navegador a procesar el dashboard oculto.
+        const bodyContent = document.getElementById('body-content');
+        if (bodyContent) {
+            // "Despertar" al navegador: añadir clase pero mantenerlo invisible por CSS inicial
+            document.body.classList.add('preparing-system');
+            
+            // Forzar un reflow para asegurar que los elementos se calculen
+            void bodyContent.offsetHeight; 
+        }
+    }
+
+    waitForContentReady() {
+        // Simular tiempo de carga/preparación (heavy tasks)
+        const loadTime = this.config.isLowSpec ? 1500 : 500;
+        return new Promise(resolve => setTimeout(resolve, loadTime));
     }
 
     startLoop() {
@@ -1049,6 +1102,11 @@ class HyperScrollIntro {
                 if (Math.abs(item.currentAlpha - alpha) > 0.001) {
                     item.el.style.opacity = alpha;
                     item.currentAlpha = alpha;
+
+                    // AGGRESSIVE CUT: Toggle display for low spec to avoid layout/paint of transparent items
+                    if (isLowPerf) {
+                        item.el.style.display = alpha <= 0 ? 'none' : 'flex';
+                    }
                 }
 
                 if (alpha > 0) {
@@ -1107,6 +1165,10 @@ class HyperScrollIntro {
                 // Remove listeners to save resources
                 if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
                 if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+
+                // FINAL SYNC: Signal system is ready to reveal dashboard
+                document.body.classList.add('system-ready');
+                document.body.classList.remove('preparing-system');
 
                 // Allow scrolling again
                 document.body.classList.remove('no-scroll');
