@@ -813,6 +813,7 @@ class HyperScrollIntro {
         this.rafId = null;
         this.frameCount = 0; // Better than relying on rafId for throttling
         this.lenis = null;
+        this.perfMode = 0; // 0: Normal, 1: No Stars
         
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
@@ -1062,7 +1063,20 @@ class HyperScrollIntro {
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
-            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+            const fps = Math.round(1000 / delta) || 60;
+            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = fps;
+
+            // Adaptive Degrade Logic (Wait 2s at start before judging)
+            if (time > 2000) {
+                if (fps < 30 && this.perfMode < 1) {
+                    this.perfMode = 1;
+                    // Optimized: Use cached items array instead of DOM query
+                    this.items.forEach(item => {
+                        if (item.type === 'star') item.el.style.display = 'none';
+                    });
+                    console.warn('>> PERF: Adaptive degrade triggered. Stars disabled.');
+                }
+            }
 
             // Logic
             if (this.state.warping) {
