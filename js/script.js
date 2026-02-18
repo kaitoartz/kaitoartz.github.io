@@ -812,7 +812,10 @@ class HyperScrollIntro {
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
                     currentTrans: null,
-                    currentShadow: null
+                    lastVizZ: -9999,
+                    lastStretch: -1,
+                    lastFloat: -1,
+                    lastOffset: -1
                 });
             } else {
                 const card = document.createElement('div');
@@ -843,7 +846,11 @@ class HyperScrollIntro {
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
-                    currentTrans: null
+                    currentTrans: null,
+                    lastVizZ: -9999,
+                    lastStretch: -1,
+                    lastFloat: -1,
+                    lastOffset: -1
                 });
             }
             this.world.appendChild(el);
@@ -860,7 +867,11 @@ class HyperScrollIntro {
                 y: (Math.random() - 0.5) * 3000,
                 baseZ: -Math.random() * this.config.loopSize,
                 currentAlpha: -1,
-                currentTrans: null
+                currentTrans: null,
+                lastVizZ: -9999,
+                lastStretch: -1,
+                lastFloat: -1,
+                lastOffset: -1
             });
         }
     }
@@ -1025,35 +1036,57 @@ class HyperScrollIntro {
                 }
 
                 if (alpha > 0) {
-                    let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
-
+                    let stretch = 1;
                     if (item.type === 'star') {
-                        const stretch = Math.max(1, Math.min(1 + Math.abs(this.state.velocity) * 0.1, 20));
-                        trans += ` scale3d(1, 1, ${stretch})`;
-                    } else if (item.type === 'text') {
-                        trans += ` rotateZ(${item.rot}deg)`;
-                        // RGB Split - SKIP on low spec
-                        let shadow = 'none';
-                         if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
-                            const offset = this.state.velocity * 0.5;
-                            shadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                        }
-
-                        // Optimization: Cache text shadow
-                        if (item.currentShadow !== shadow) {
-                            item.el.style.textShadow = shadow;
-                            item.currentShadow = shadow;
-                        }
-                    } else {
-                        const t = time * 0.001;
-                        const float = Math.sin(t + item.x) * 10;
-                        trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        stretch = Math.max(1, Math.min(1 + Math.abs(this.state.velocity) * 0.1, 20));
                     }
 
-                    // Optimization: Update transform only if changed
-                    if (item.currentTrans !== trans) {
+                    let float = 0;
+                    if (item.type === 'card') {
+                        const t = time * 0.001;
+                        float = Math.sin(t + item.x) * 10;
+                    }
+
+                    // Optimization: Only update transform if values changed significantly
+                    let needsUpdate = false;
+                    if (item.currentTrans === null || Math.abs(item.lastVizZ - vizZ) > 0.1) {
+                        needsUpdate = true;
+                    } else if (item.type === 'star' && Math.abs(item.lastStretch - stretch) > 0.01) {
+                        needsUpdate = true;
+                    } else if (item.type === 'card' && Math.abs(item.lastFloat - float) > 0.1) {
+                        needsUpdate = true;
+                    }
+
+                    if (needsUpdate) {
+                        let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
+
+                        if (item.type === 'star') {
+                            trans += ` scale3d(1, 1, ${stretch})`;
+                            item.lastStretch = stretch;
+                        } else if (item.type === 'text') {
+                            trans += ` rotateZ(${item.rot}deg)`;
+                        } else {
+                            trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                            item.lastFloat = float;
+                        }
+
                         item.el.style.transform = trans;
                         item.currentTrans = trans;
+                        item.lastVizZ = vizZ;
+                    }
+
+                    // RGB Split Optimization: Update only if offset changed significantly
+                    if (item.type === 'text') {
+                        if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
+                            const offset = this.state.velocity * 0.5;
+                            if (Math.abs(item.lastOffset - offset) > 0.1 || item.lastOffset === 0) {
+                                item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
+                                item.lastOffset = offset;
+                            }
+                        } else if (item.lastOffset !== 0) {
+                            item.el.style.textShadow = 'none';
+                            item.lastOffset = 0;
+                        }
                     }
                 }
             });
