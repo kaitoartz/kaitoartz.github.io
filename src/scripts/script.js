@@ -189,10 +189,10 @@ class PerformanceManager {
 
     getPerformanceTier(score) {
         // Stricter thresholds for dynamic performance
-        if (score >= 85) return 'ultra'; // Was 80
-        if (score >= 65) return 'high';  // Was 60
-        if (score >= 45) return 'medium';// Was 40
-        return 'low'; // < 45 is low (covers most budget devices like A32)
+        if (score >= 85) return 'ultra'; 
+        if (score >= 70) return 'high';  // Was 65
+        if (score >= 55) return 'medium';// Was 45
+        return 'low'; // < 55 is low (more inclusive for devices like A32)
     }
 
     applyPreset(preset) {
@@ -946,6 +946,17 @@ class HyperScrollIntro {
             this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
+
+        // MOBILE/TABLET: Map touch events to mouse state for camera movement
+        this.handleTouch = (e) => {
+            if (!this.state.active || !e.touches.length) return;
+            const touch = e.touches[0];
+            // Normalize touch position like mouse movement
+            this.state.mouseX = (touch.clientX / this.winW - 0.5) * 2;
+            this.state.mouseY = (touch.clientY / this.winH - 0.5) * 2;
+        };
+        window.addEventListener('touchstart', this.handleTouch, { passive: true });
+        window.addEventListener('touchmove', this.handleTouch, { passive: true });
         
         this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
@@ -1061,9 +1072,10 @@ class HyperScrollIntro {
             }
 
             // Camera logic
-            // Skip tilt calculations on low spec to save layout thrashing
-            if (!isLowPerf) {
-                const shake = this.state.velocity * 0.2;
+            // Skip tilt calculations on low spec UNLESS it's a mobile device (for touch interaction)
+            const shouldTilt = !isLowPerf || performanceManager.hardware.isMobile;
+
+            if (shouldTilt) {
                 const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; 
                 const tiltY = this.state.mouseX * 5;
 
@@ -1071,7 +1083,7 @@ class HyperScrollIntro {
                     this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
                 }
             } else if (this.world) {
-                 // Minimal static tilt or none for performance
+                 // Minimal static tilt or none for desktop low performance
                  this.world.style.transform = `rotateX(0deg) rotateY(0deg)`;
             }
 
@@ -1126,8 +1138,13 @@ class HyperScrollIntro {
                         }
                     } else {
                         const t = time * 0.001;
-                        const float = Math.sin(t + item.x) * 10;
-                        trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        // AGGRESSIVE CUT: No rotateY floating for low spec, only static rotZ
+                        if (isLowPerf) {
+                            trans += ` rotateZ(${item.rot}deg)`;
+                        } else {
+                            const float = Math.sin(t + item.x) * 10;
+                            trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        }
                     }
 
                     // Optimization: Update transform only if changed
@@ -1164,6 +1181,10 @@ class HyperScrollIntro {
                 
                 // Remove listeners to save resources
                 if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
+                if (this.handleTouch) {
+                    window.removeEventListener('touchstart', this.handleTouch);
+                    window.removeEventListener('touchmove', this.handleTouch);
+                }
                 if (this.handleResize) window.removeEventListener('resize', this.handleResize);
 
                 // FINAL SYNC: Signal system is ready to reveal dashboard
