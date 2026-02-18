@@ -25,8 +25,8 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    update(time) {
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -1692,6 +1692,8 @@ class CursorManager {
         this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
+
+        this.animate = this.animate.bind(this);
     }
 
     init() {
@@ -1835,7 +1837,7 @@ class CursorManager {
             return;
         }
 
-        this.animationId = requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame(this.animate);
     }
 
     hexToRgb(hex) {
@@ -3129,6 +3131,8 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3160,7 +3164,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }
