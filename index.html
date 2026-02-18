@@ -124,6 +124,9 @@
                 <button id="enterSystemBtn" class="enter-system-btn">
                     [ ENTER_SYSTEM ]
                 </button>
+                <button id="skipIntroBtn" class="enter-system-btn" style="margin-left:10px;font-size:0.8rem;opacity:0.7;">
+                    [ SKIP_INTRO ]
+                </button>
             </div>
         </div>
 
@@ -501,6 +504,12 @@
             </div>
 
             <form id="contactForm" class="contact-form">
+                <!-- Honeypot anti-spam field (hidden from real users) -->
+                <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;">
+                    <label for="contactWebsite">Website</label>
+                    <input type="text" id="contactWebsite" name="_gotcha" tabindex="-1" autocomplete="off">
+                </div>
+
                 <div class="form-group">
                     <label for="contactName" data-i18n="contact.name">NAME_IDENTIFIER:</label>
                     <input type="text" id="contactName" name="name" required placeholder="John_Doe" data-i18n="placeholder.name">
@@ -526,6 +535,11 @@
                 </button>
                 
                 <div class="form-status" id="formStatus"></div>
+
+                <p class="form-privacy-notice" style="margin-top:10px;font-size:0.75rem;color:var(--text-dim);opacity:0.7;">
+                    Al enviar, tus datos se procesan vía <a href="https://formspree.io/legal/privacy-policy/" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Formspree</a>.
+                    By submitting, your data is processed via <a href="https://formspree.io/legal/privacy-policy/" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Formspree</a>.
+                </p>
             </form>
         </section>
 
