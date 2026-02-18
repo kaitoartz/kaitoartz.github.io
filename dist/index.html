@@ -58,8 +58,8 @@
       "description": "Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real."
     }
     </script>
-  <script type="module" crossorigin src="/assets/index-DHUjpitM.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BResucCV.css">
+  <script type="module" crossorigin src="/assets/index-BHRSyGpQ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DG03KenI.css">
 </head>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
@@ -85,6 +85,33 @@
         <div class="intro-hud">
             <div class="intro-hud-top">
                 <span>SYS.READY</span>
+                <div class="intro-hud-line"></div>
+                
+                <!-- CONTROL DOCK INTEGRATED IN HUD -->
+                <div class="control-dock" data-expanded="true">
+                    <div class="dock-deco-start">
+                        <div class="dock-lines">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
+                        <i class="fa-solid fa-sun theme-icon"></i>
+                    </button>
+                    <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
+                        <i class="fa-solid fa-volume-high audio-icon"></i>
+                    </button>
+                    <button class="dock-btn" id="langToggleBtn" title="Language / Idioma" aria-label="Toggle Language">
+                        <span class="lang-text">ES</span>
+                    </button>
+                    <div class="dock-separator"></div>
+                    <button class="dock-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <div class="dock-deco-end">
+                        <span class="dock-label-min">SYS</span>
+                    </div>
+                </div>
+
                 <div class="intro-hud-line"></div>
                 <span>FPS: <strong id="intro-fps">60</strong></span>
             </div>
@@ -797,34 +824,10 @@
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
     
-    <!-- CONTROL DOCK -->
-    <div class="control-dock collapsed" data-expanded="false">
-        <div class="dock-deco-start">
-            <div class="dock-lines">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-        <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
-            <i class="fa-solid fa-sun theme-icon"></i>
-        </button>
-
-        <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
-            <i class="fa-solid fa-volume-high audio-icon"></i>
-        </button>
-        
-        <button class="dock-btn" id="langToggleBtn" title="Language / Idioma" aria-label="Toggle Language">
-            <span class="lang-text">ES</span>
-        </button>
-        
-        <div class="dock-separator"></div>
-
-        <button class="dock-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
-            <i class="fa-solid fa-gear"></i>
-        </button>
-<div class="dock-deco-end">
-    <span class="dock-label-min">SYS</span>
-</div>
     </div>
+
     </div>
+
+    <!-- CONTROL DOCK PRESERVED FOR PERSISTENCE (Moved to HUD top initially via index.html) -->
 </body>
 </html>

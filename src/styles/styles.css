@@ -4155,25 +4155,41 @@ a, button, .link-block, .stat-box {
     display: flex;
     align-items: center;
     gap: 8px;
-        /* Tighter gap for tech feel */
-        padding: 8px 12px;
-        background: rgba(5, 5, 5, 0.95);
+    /* Tighter gap for tech feel */
+    padding: 8px 12px;
+    background: rgba(5, 5, 5, 0.95);
     border: 1px solid var(--toxic-green);
     /* Techwear Shape: Angular cut corners */
-        clip-path: polygon(10px 0,
-                100% 0,
-                100% calc(100% - 10px),
-                calc(100% - 10px) 100%,
-                0 100%,
-                0 10px);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
     backdrop-filter: blur(10px);
     z-index: 10010;
     /* Use drop-shadow for outer glow with clip-path, keep box-shadow for inset */
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-        filter: drop-shadow(0 0 5px var(--shadow-color)) drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        min-height: 50px;
-    }
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    filter: drop-shadow(0 0 5px var(--shadow-color)) drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    min-height: 50px;
+}
+
+/* Specific styling for when the dock is integrated into the Intro HUD */
+.intro-hud-top .control-dock {
+    position: relative;
+    top: 0;
+    right: 0;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    backdrop-filter: none;
+    filter: none;
+    min-height: auto;
+    padding: 4px 8px;
+    z-index: 5;
+    clip-path: none; /* Make it more linear to fit the HUD line */
+}
+
+.intro-hud-top .control-dock .dock-deco-start,
+.intro-hud-top .control-dock .dock-deco-end {
+    display: none; /* Simplify for HUD integration */
+}
     
     /* Tech decorative lines overlay */
     .control-dock::before {
@@ -4216,21 +4232,21 @@ a, button, .link-block, .stat-box {
 }
 
 /* Make dock buttons visible during hyper-intro phase */
-#hyper-intro-layer ~ .control-dock.collapsed .dock-btn:not(#burgerMenu),
-#hyper-intro-layer ~ .control-dock.collapsed .dock-separator,
-#hyper-intro-layer ~ .control-dock.collapsed .dock-deco-start,
-#hyper-intro-layer ~ .control-dock.collapsed .dock-deco-end {
+#hyper-intro-layer .control-dock.collapsed .dock-btn:not(#burgerMenu),
+#hyper-intro-layer .control-dock.collapsed .dock-separator,
+#hyper-intro-layer .control-dock.collapsed .dock-deco-start,
+#hyper-intro-layer .control-dock.collapsed .dock-deco-end {
     width: 36px;
     opacity: 1;
     margin: 0;
     padding: 0;
     pointer-events: auto;
     overflow: visible;
-        transform: scaleX(1);
+    transform: scaleX(1);
 }
 
-/* Ensure dock is expanded during hyper-intro */
-#hyper-intro-layer ~ .control-dock {
+/* Ensure dock is correctly layered during hyper-intro */
+#hyper-intro-layer .control-dock {
     padding: 8px 12px;
     gap: 8px;
     z-index: 10001;

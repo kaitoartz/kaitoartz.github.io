@@ -1191,6 +1191,12 @@ class HyperScrollIntro {
                 document.body.classList.add('system-ready');
                 document.body.classList.remove('preparing-system');
 
+                // PERSISTENCE FIX: Move dock back to body so it survives after hyper-intro-layer is hidden
+                const controlDock = document.querySelector('.control-dock');
+                if (controlDock) {
+                    document.body.appendChild(controlDock);
+                }
+
                 // Allow scrolling again
                 document.body.classList.remove('no-scroll');
                 window.scrollTo(0, 0); // Force scroll to top
