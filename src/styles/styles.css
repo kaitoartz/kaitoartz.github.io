@@ -3685,9 +3685,9 @@ body,
 /* ========== NO SCROLL UTILITY ========== */
 
 /* Hide controls during loading (when no-scroll is active) */
-.no-scroll .control-dock {
+/* .no-scroll .control-dock {
     display: none !important;
-}
+} */
 /* ========== CUSTOM CURSOR ========== */
 body {
     cursor: none;
@@ -4167,7 +4167,7 @@ a, button, .link-block, .stat-box {
                 0 100%,
                 0 10px);
     backdrop-filter: blur(10px);
-    z-index: 9999;
+    z-index: 10010;
     /* Use drop-shadow for outer glow with clip-path, keep box-shadow for inset */
         box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
         filter: drop-shadow(0 0 5px var(--shadow-color)) drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
