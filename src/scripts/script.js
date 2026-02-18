@@ -2928,11 +2928,7 @@ class AudioVisualizer {
         this.analyser.getByteFrequencyData(this.dataArray);
 
         // Skip rendering when there is no audio data (silence)
-        let hasAudio = false;
-        for (let i = 0; i < this.dataArray.length; i++) {
-            if (this.dataArray[i] > 0) { hasAudio = true; break; }
-        }
-        if (!hasAudio) return;
+        if (!this.dataArray.some(v => v > 0)) return;
         
         const ctx = this.ctx;
         const width = this.canvas.width;
@@ -3316,6 +3312,8 @@ class ParallaxManager {
 }
 
 // ========== CONTACT FORM MANAGER ==========
+const SUBMIT_COOLDOWN_MS = 30000;
+
 class ContactFormManager {
     constructor() {
         this.form = null;
@@ -3411,7 +3409,7 @@ class ContactFormManager {
 
         // Rate limiting: 30 seconds between submissions
         const now = Date.now();
-        if (now - this.lastSubmitTime < 30000) {
+        if (now - this.lastSubmitTime < SUBMIT_COOLDOWN_MS) {
             this.showStatus('RATE_LIMIT: WAIT BEFORE RETRANSMITTING', 'error');
             return;
         }
