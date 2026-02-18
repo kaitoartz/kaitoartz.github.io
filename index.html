@@ -6,6 +6,8 @@
     <title>KAITOARTZ // VR Developer & Tech Artist Portfolio</title>
     
     <!-- SEO Meta Tags -->
+    <!-- React Scan (Performance) -->
+    <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js"></script>
     <meta name="description" content="Portfolio de KAITOARTZ - Desarrollador VR/AR especializado en experiencias inmersivas, shaders procedurales y visualización en tiempo real. Unity, Unreal Engine, WebGL.">
     <meta name="keywords" content="VR Developer, AR Developer, Unity Developer, Virtual Reality, Augmented Reality, 3D Artist, Shader Programming, WebGL, Tech Art, Immersive Experiences, KAITOARTZ">
     <meta name="author" content="KAITOARTZ">
@@ -36,7 +38,7 @@
         href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/src/styles/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
 
 <!-- JSON-LD Structured Data for SEO -->
@@ -107,6 +109,8 @@
         <div class="intro-scroll-proxy"></div>
     </div>
 
+
+    <div id="body-content">
 
     <!-- SETTINGS PANEL -->
     <div class="settings-panel" id="settingsPanel">
@@ -791,7 +795,7 @@
     <!-- LENIS FOR SMOOTH SCROLL (Hyper Intro) -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
-    <script src="js/script.js" defer></script>
+    <script type="module" src="/src/scripts/script.js" defer></script>
     
     <!-- CONTROL DOCK -->
     <div class="control-dock collapsed" data-expanded="false">
@@ -820,6 +824,7 @@
 <div class="dock-deco-end">
     <span class="dock-label-min">SYS</span>
 </div>
+    </div>
     </div>
 </body>
 </html>

@@ -25,8 +25,8 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    update(time) {
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -128,17 +128,6 @@ class PerformanceManager {
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
         
-        // Battery API (if available)
-        let batteryLevel = 1;
-        let isCharging = true;
-        
-        if (navigator.getBattery) {
-            navigator.getBattery().then(battery => {
-                batteryLevel = battery.level;
-                isCharging = battery.charging;
-            });
-        }
-        
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
@@ -171,8 +160,6 @@ class PerformanceManager {
             cores,
             memory,
             connection: effectiveType,
-            batteryLevel,
-            isCharging,
             score,
             tier: this.getPerformanceTier(score)
         };
@@ -548,10 +535,8 @@ class AudioManager {
         this.bgMusic = null;
         this.mediaSource = null;
         this.analyserNode = null;
+        this.lastHoveredTarget = null;
         
-        // Performance optimization: Bind playHover once
-        this.boundPlayHover = this.playHover.bind(this);
-
         // Audio file paths
         this.audioFiles = {
             background: 'assets/audio/background.mp3'
@@ -702,45 +687,28 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
-    addHoverListeners(root) {
+    handleMouseOver(e) {
+        if (!this.enabled) return;
+
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
+        const target = e.target.closest(selector);
 
-        // Helper to attach listener safely
-        const attach = (el) => {
-            el.removeEventListener('mouseenter', this.boundPlayHover);
-            el.addEventListener('mouseenter', this.boundPlayHover);
-        };
-
-        // If the root element itself matches
-        if (root.matches && root.matches(selector)) {
-            attach(root);
-        }
-
-        // Find all matching children
-        if (root.querySelectorAll) {
-            root.querySelectorAll(selector).forEach(attach);
+        // Optimization: Only play if we entered a NEW target
+        if (target) {
+            if (target !== this.lastHoveredTarget) {
+                this.playHover();
+                this.lastHoveredTarget = target;
+            }
+        } else {
+            this.lastHoveredTarget = null;
         }
     }
 
-    attachGlobalListeners() {
-        // Universal Hover - Optimized with MutationObserver and direct listeners
-        this.addHoverListeners(document);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Element
-                        this.addHoverListeners(node);
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+    initGlobalListeners() {
+        // Universal Hover - Optimized with Event Delegation
+        document.addEventListener('mouseover', this.handleMouseOver.bind(this), { passive: true });
 
         // Typing Sound Generators
-        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
-
         // Delegate for dynamic elements (like terminal)
         document.addEventListener('input', (e) => {
             if (e.target.matches('input, textarea')) {
@@ -755,7 +723,7 @@ const audioManager = new AudioManager();
 // Attach sounds after init
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        audioManager.attachGlobalListeners();
+        audioManager.initGlobalListeners();
     }, 1000);
 });
 
@@ -797,6 +765,7 @@ class HyperScrollIntro {
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
+        this.lastFov = 0;
     }
 
     init() {
@@ -990,7 +959,7 @@ class HyperScrollIntro {
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
-            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.textContent = Math.round(1000 / delta) || 60;
 
             // Logic
             if (this.state.warping) {
@@ -1015,8 +984,8 @@ class HyperScrollIntro {
             // HUD Updates (Throttled to minimize layout thrashing)
             // Update only every 6th frame (~100ms at 60fps)
             if (this.frameCount % 6 === 0) {
-                if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
-                if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+                if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
+                if (feedbackCoord) feedbackCoord.textContent = this.state.scroll.toFixed(0);
             }
 
             // Camera logic
@@ -1037,7 +1006,10 @@ class HyperScrollIntro {
             // FOV Dynamic
             const baseFov = 1000;
             const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-            if (this.viewport) this.viewport.style.perspective = `${fov}px`;
+            if (this.viewport && Math.abs(this.lastFov - fov) > 0.1) {
+                this.viewport.style.perspective = `${fov}px`;
+                this.lastFov = fov;
+            }
 
             // Items Loop
             const cameraZ = this.state.scroll * this.config.camSpeed;
@@ -1390,7 +1362,7 @@ const linkBlocks = document.querySelectorAll('.link-block');
 linkBlocks.forEach(block => {
     block.addEventListener('mouseenter', function() {
         const id = this.dataset.id;
-        audioManager.playHover();
+        // audioManager.playHover(); // Handled by global delegation
         console.log(`%c>> ACCESS LINK_${id}`, 'color: #39FF14; font-family: monospace; font-size: 12px;');
     });
 
@@ -1753,6 +1725,8 @@ class CursorManager {
         this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
+
+        this.animate = this.animate.bind(this);
     }
 
     init() {
@@ -1896,7 +1870,7 @@ class CursorManager {
             return;
         }
 
-        this.animationId = requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame(this.animate);
     }
 
     hexToRgb(hex) {
@@ -3190,6 +3164,8 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3221,7 +3197,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }
