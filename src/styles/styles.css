@@ -4155,20 +4155,28 @@ a, button, .link-block, .stat-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    /* Tighter gap for tech feel */
     padding: 8px 12px;
     background: rgba(5, 5, 5, 0.95);
     border: 1px solid var(--toxic-green);
-    /* Techwear Shape: Angular cut corners */
     clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
     backdrop-filter: blur(10px);
     z-index: 10010;
-    /* Use drop-shadow for outer glow with clip-path, keep box-shadow for inset */
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
     filter: drop-shadow(0 0 5px var(--shadow-color)) drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     min-height: 50px;
 }
+
+/* Visibility management for duplicated docks */
+.main-dock {
+    display: none !important; /* Hidden until intro ends */
+}
+
+body.system-ready .main-dock {
+    display: flex !important;
+}
+
+/* .intro-dock visibility is managed by the HUD parent container */
 
 /* Specific styling for when the dock is integrated into the Intro HUD */
 .intro-hud-top .control-dock {
@@ -4182,8 +4190,13 @@ a, button, .link-block, .stat-box {
     filter: none;
     min-height: auto;
     padding: 4px 8px;
-    z-index: 5;
-    clip-path: none; /* Make it more linear to fit the HUD line */
+    z-index: 100; /* Increased to ensure priority */
+    clip-path: none;
+    pointer-events: auto; /* Explicitly allow clicks */
+}
+
+.intro-hud-top .control-dock .dock-btn {
+    pointer-events: auto;
 }
 
 .intro-hud-top .control-dock .dock-deco-start,
@@ -4207,32 +4220,37 @@ a, button, .link-block, .stat-box {
 .control-dock.collapsed {
     padding: 8px;
     gap: 0;
+    cursor: pointer;
     /* When collapsed, become a square/badge */
-        clip-path: polygon(5px 0,
-                100% 0,
-                100% calc(100% - 5px),
-                calc(100% - 5px) 100%,
-                0 100%,
-                0 5px);
-        background: rgba(0, 0, 0, 0.9);
+    clip-path: polygon(5px 0,
+            100% 0,
+            100% calc(100% - 5px),
+            calc(100% - 5px) 100%,
+            0 100%,
+            0 5px);
+    background: rgba(0, 0, 0, 0.9);
 }
 
 /* Hiding elements in collapsed state */
-.control-dock.collapsed .dock-btn:not(#burgerMenu),
-.control-dock.collapsed .dock-separator,
-.control-dock.collapsed .dock-deco-start,
-.control-dock.collapsed .dock-deco-end {
+.control-dock.collapsed .dock-btn:not(.settings-toggle-btn),
+.control-dock.collapsed .dock-separator {
     width: 0;
     opacity: 0;
     margin: 0;
     padding: 0;
     pointer-events: none;
     overflow: hidden;
-        transform: scaleX(0);
+    transform: scaleX(0);
+}
+
+.control-dock.collapsed .dock-deco-start,
+.control-dock.collapsed .dock-deco-end {
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 /* Make dock buttons visible during hyper-intro phase */
-#hyper-intro-layer .control-dock.collapsed .dock-btn:not(#burgerMenu),
+#hyper-intro-layer .control-dock.collapsed .dock-btn:not(.settings-toggle-btn),
 #hyper-intro-layer .control-dock.collapsed .dock-separator,
 #hyper-intro-layer .control-dock.collapsed .dock-deco-start,
 #hyper-intro-layer .control-dock.collapsed .dock-deco-end {
@@ -6606,6 +6624,7 @@ body.light-theme {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    pointer-events: auto; /* Enable clicks for HUD elements */
 }
 
 .intro-hud-bottom {
@@ -6614,6 +6633,22 @@ body.light-theme {
 
 .intro-hud strong {
     color: var(--intro-accent);
+}
+
+.hud-metric {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.hud-fps {
+    min-width: 65px;
+    text-align: right;
+}
+
+.hud-coord {
+    min-width: 110px;
+    text-align: left;
 }
 
 .intro-hud-line {
@@ -6869,9 +6904,10 @@ body.light-theme {
 
 /* --- SCROLL PROXY --- */
 .intro-scroll-proxy {
-    height: 10000vh;
-    position: absolute;
+    position: fixed;
+    inset: 0;
     width: 100%;
+    height: 100%;
     z-index: -1;
     pointer-events: none;
 }
@@ -6891,8 +6927,18 @@ body.light-theme {
 }
 
 /* Ensure body allows scroll after intro */
-body.no-scroll {
+body.no-scroll,
+html.no-scroll {
     overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+body.no-scroll::-webkit-scrollbar,
+html.no-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Brave */
 }
 /* ========== MOBILE REFINEMENTS ========== */
 @media (max-width: 480px) {
