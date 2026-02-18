@@ -916,8 +916,9 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        // Disable Lenis on mobile for performance and better native feel
-        if (typeof Lenis !== 'undefined' && !performanceManager.hardware.isMobile) {
+        // Disable Lenis on mobile/touch devices for performance and better native feel
+        const isTouchDevice = performanceManager.hardware.isMobile || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (typeof Lenis !== 'undefined' && !isTouchDevice) {
             // Usamos un wrapper específico si es posible, pero para el efecto global
             // el demo usa window. Solo controlamos que no afecte al dashboard después
             this.lenis = new Lenis({
@@ -968,6 +969,25 @@ class HyperScrollIntro {
         if (btn) {
             btn.addEventListener('click', () => this.warpAndEnter());
         }
+
+        // Recruiter Mode: Skip intro button for quick access to portfolio
+        const skipBtn = document.getElementById('skipIntroBtn');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => this.skipIntro());
+        }
+    }
+
+    skipIntro() {
+        if (this.state.warping || this.state.fading) return;
+        this.state.warping = true;
+
+        // Load body content synchronously if needed
+        if (typeof this.loadBodyContentSynchronously === 'function') {
+            this.loadBodyContentSynchronously();
+        }
+
+        // Skip directly to end without warp animation
+        this.endIntro();
     }
 
     async warpAndEnter() {
@@ -2906,6 +2926,9 @@ class AudioVisualizer {
         this.animationId = requestAnimationFrame(this.draw);
         
         this.analyser.getByteFrequencyData(this.dataArray);
+
+        // Skip rendering when there is no audio data (silence)
+        if (!this.dataArray.some(v => v > 0)) return;
         
         const ctx = this.ctx;
         const width = this.canvas.width;
@@ -3141,7 +3164,7 @@ class MatrixRain {
         } else if (performanceManager.hardware.isMobile) {
             scale = 1;
         } else {
-            scale = Math.min(window.devicePixelRatio, 2);
+            scale = Math.min(window.devicePixelRatio, 1.5);
         }
 
         this.logicalWidth = window.innerWidth;
@@ -3289,6 +3312,8 @@ class ParallaxManager {
 }
 
 // ========== CONTACT FORM MANAGER ==========
+const SUBMIT_COOLDOWN_MS = 30000;
+
 class ContactFormManager {
     constructor() {
         this.form = null;
@@ -3297,6 +3322,7 @@ class ContactFormManager {
         this.messageInput = null;
         this.submitBtn = null;
         this.statusDiv = null;
+        this.lastSubmitTime = 0;
     }
 
     init() {
@@ -3306,6 +3332,7 @@ class ContactFormManager {
         this.nameInput = document.getElementById('contactName');
         this.emailInput = document.getElementById('contactEmail');
         this.messageInput = document.getElementById('contactMessage');
+        this.honeypotInput = document.getElementById('contactWebsite');
         this.submitBtn = document.getElementById('submitBtn');
         this.statusDiv = document.getElementById('formStatus');
 
@@ -3373,10 +3400,26 @@ class ContactFormManager {
     async handleSubmit(e) {
         e.preventDefault();
 
+        // Anti-spam: honeypot check
+        if (this.honeypotInput && this.honeypotInput.value) {
+            this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
+            this.form.reset();
+            return;
+        }
+
+        // Rate limiting: 30 seconds between submissions
+        const now = Date.now();
+        if (now - this.lastSubmitTime < SUBMIT_COOLDOWN_MS) {
+            this.showStatus('RATE_LIMIT: WAIT BEFORE RETRANSMITTING', 'error');
+            return;
+        }
+
         if (!this.validateAll()) {
             this.showStatus('VALIDATION_ERROR: CHECK ALL FIELDS', 'error');
             return;
         }
+
+        this.lastSubmitTime = now;
 
         this.submitBtn.disabled = true;
         this.submitBtn.classList.add('transmitting');
