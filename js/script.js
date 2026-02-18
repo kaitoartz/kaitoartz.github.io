@@ -1831,6 +1831,8 @@ class CursorManager {
         const { r, g, b } = this.rgb;
         
         // Draw trail - Iterate ring buffer from oldest to newest
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
         for (let i = 0; i < this.maxTrail; i++) {
             const idx = (this.head + i) % this.maxTrail;
             const point = this.trail[idx];
@@ -1839,12 +1841,16 @@ class CursorManager {
                 point.life -= 0.05;
                 if (point.life > 0) {
                     const size = 3 * point.life;
-                    this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
+                    // Optimization: Use globalAlpha instead of allocating new color strings
+                    this.ctx.globalAlpha = point.life * 0.5;
                     this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
                 }
             }
         }
         
+        // Reset alpha for crosshair
+        this.ctx.globalAlpha = 1.0;
+
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;
