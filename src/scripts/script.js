@@ -1948,6 +1948,9 @@ class CursorManager {
         this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
+
+        // PERF: Bind animate to prevent closure creation in RAF loop
+        this.animate = this.animate.bind(this);
     }
 
     init() {
@@ -2051,6 +2054,9 @@ class CursorManager {
         // Use cached RGB instead of calling getComputedStyle every frame
         const { r, g, b } = this.rgb;
         
+        // PERF: Set base color once to avoid repeated string concatenation/parsing
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
         // Draw trail - Iterate ring buffer from oldest to newest
         for (let i = 0; i < this.maxTrail; i++) {
             const idx = (this.head + i) % this.maxTrail;
@@ -2060,12 +2066,16 @@ class CursorManager {
                 point.life -= 0.05;
                 if (point.life > 0) {
                     const size = 3 * point.life;
-                    this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
+                    // PERF: Modulate alpha instead of reconstructing rgba string
+                    this.ctx.globalAlpha = point.life * 0.5;
                     this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
                 }
             }
         }
         
+        // PERF: Reset globalAlpha for subsequent drawing operations
+        this.ctx.globalAlpha = 1.0;
+
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;
@@ -2091,7 +2101,7 @@ class CursorManager {
             return;
         }
 
-        this.animationId = requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame(this.animate);
     }
 
     hexToRgb(hex) {
