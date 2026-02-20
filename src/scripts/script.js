@@ -939,7 +939,8 @@ class HyperScrollIntro {
 
         if (!this.isVirtualMode) {
             // PHYSICAL MODE: USamos Lenis con scroll real
-            if (typeof Lenis !== 'undefined') {
+            // Optimization: Disable Lenis on mobile for better performance and native feel
+            if (typeof Lenis !== 'undefined' && !isMobileBrowser) {
                 this.lenis = new Lenis({
                     smooth: true,
                     lerp: 0.08,
