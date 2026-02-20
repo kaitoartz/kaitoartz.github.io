@@ -1156,8 +1156,15 @@ class HyperScrollIntro {
                             item.el.style.textShadow = 'none';
                         }
                     } else {
-                        // Card floats (Hyper ONLY)
+                        // Card Logic
                         if (this.isHyperEnabled) {
+                            // AUTO-ANIMATION: Trigger .is-active when card is in focus range
+                            const cardEl = item.el.querySelector('.intro-card');
+                            if (cardEl) {
+                                const isInFocus = vizZ > -400 && vizZ < 400;
+                                cardEl.classList.toggle('is-active', isInFocus);
+                            }
+
                             const t = time * 0.001;
                             const float = Math.sin(t + item.x) * 10;
                             trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;

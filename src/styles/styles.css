@@ -6737,6 +6737,70 @@ body.light-theme {
 .mobile-low-perf .intro-card {
     box-shadow: none !important;
     border: 1px solid var(--toxic-green) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    transition: none !important;
+}
+
+/* Disable hover effects for mobile/low-perf OR mobile views (forced) */
+.performance-mode-low .intro-card:hover,
+.mobile-low-perf .intro-card:hover {
+    box-shadow: none !important;
+    border-color: var(--toxic-green) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1 !important;
+}
+
+@media (max-width: 1024px) {
+    .intro-card,
+    .intro-card::before,
+    .intro-card::after {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .intro-card:hover {
+        box-shadow: none !important;
+        border-color: var(--toxic-green) !important;
+        background: rgba(10, 10, 10, 0.95) !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 1 !important;
+    }
+    
+    .intro-card::before,
+    .intro-card::after,
+    .intro-card:hover::before,
+    .intro-card:hover::after {
+        width: 10px !important;
+        height: 10px !important;
+        border-color: var(--toxic-green) !important;
+    }
+}
+
+.performance-mode-low .intro-card,
+.performance-mode-low .intro-card::before,
+.performance-mode-low .intro-card::after,
+.mobile-low-perf .intro-card,
+.mobile-low-perf .intro-card::before,
+.mobile-low-perf .intro-card::after {
+    transition: none !important;
+}
+
+.performance-mode-low .intro-card:hover::before,
+.performance-mode-low .intro-card:hover::after,
+.mobile-low-perf .intro-card:hover::before,
+.mobile-low-perf .intro-card:hover::after {
+    width: 10px !important;
+    height: 10px !important;
+    border-color: var(--toxic-green) !important;
+}
+
+.performance-mode-low .intro-star,
+.mobile-low-perf .intro-star {
+    border-radius: 0 !important; 
+    box-shadow: none !important;
 }
 
 /* --- CARDS & CONTENT --- */
@@ -6759,7 +6823,8 @@ body.light-theme {
 }
 
 @media (hover: hover) {
-    .intro-card:hover {
+    .intro-card:hover,
+    .intro-card.is-active {
         border-color: var(--intro-accent);
         box-shadow: 0 0 30px rgba(226, 255, 0, 0.2);
         background: rgba(20, 20, 20, 0.8);
@@ -6792,7 +6857,9 @@ body.light-theme {
 }
 
 .intro-card:hover::before,
-.intro-card:hover::after {
+.intro-card:hover::after,
+.intro-card.is-active::before,
+.intro-card.is-active::after {
     width: 100%;
     height: 100%;
     border-color: var(--intro-accent);
@@ -6867,23 +6934,7 @@ body.light-theme {
 }
 
 /* =========================================
-   PERFORMANCE OVERRIDES
-   ========================================= */
-.performance-mode-low .intro-card {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    box-shadow: none !important;
-    border-color: var(--intro-border) !important;
-    transform: translate(-50%, -50%) !important;
-    transition: transform 0.3s ease !important; /* Simplified transition */
-}
-
-.performance-mode-low .intro-card:hover {
-    box-shadow: none !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 1 !important;
-}
+/* Performance Overrides (Consolidated above) */
 
 .performance-mode-low .intro-big-text {
     text-shadow: none !important;
@@ -7047,32 +7098,6 @@ html.no-scroll::-webkit-scrollbar {
     visibility: visible !important;
 }
 
-/* Optimization: Simplify Hyper Scroll visuals in Low Performance Mode */
-.performance-mode-low .intro-card {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    box-shadow: none !important;
-    border-color: var(--intro-border) !important;
-    transform: translate(-50%, -50%) !important; /* Keep essential transform */
-    transition: none !important; /* Disable hover transitions */
-}
-
-.performance-mode-low .intro-card:hover {
-    box-shadow: none !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 1 !important;
-}
-
-.performance-mode-low .intro-big-text {
-    text-shadow: none !important;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1) !important;
-}
-
-.performance-mode-low .intro-star {
-    border-radius: 0 !important; /* Square stars are faster to render */
-    box-shadow: none !important;
-}
 
 /* =========================================
    LIGHT THEME COMPONENT FIXES
