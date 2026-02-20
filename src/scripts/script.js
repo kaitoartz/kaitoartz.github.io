@@ -780,23 +780,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ========== HYPER SCROLL INTRO ==========
+// ========== HYPER SCROLL INTRO ==========
 class HyperScrollIntro {
     constructor() {
-        // Dynamic configuration based on performance tier
-        const isLowSpec = typeof performanceManager !== 'undefined' && 
-                          (performanceManager.hardware.isMobile || performanceManager.hardware.tier === 'low' || performanceManager.hardware.tier === 'medium');
+        // Detect performance and device characteristics
+        const isMobile = performanceManager.detectHardware().isMobile;
+        const tier = performanceManager.hardware.tier;
+        const isLowPerf = tier === 'low' || tier === 'medium';
+        
+        // HYPER mode only for PC/High-end devices
+        this.isHyperEnabled = !isMobile || (tier === 'ultra' || tier === 'high');
 
         this.config = {
-            isLowSpec: isLowSpec, // Store this for runtime checks
-            itemCount: isLowSpec ? 6 : 20, // Reduced further for extreme low mode
-            starCount: isLowSpec ? 0 : 150, // AGGRESSIVE: 0 stars for low spec
+            isLowSpec: isLowPerf && isMobile,
+            itemCount: isLowPerf ? 12 : 20, 
+            starCount: isLowPerf ? 50 : 150,
             zGap: 800,
-            camSpeed: isLowSpec ? 2.0 : 2.5,
-            loopSize: 0 // Calculated later
+            camSpeed: 2.5,
+            loopSize: 0,
+            colors: ['#ff003c', '#00f3ff', '#ccff00', '#ffffff'] // User colors
         };
         this.config.loopSize = this.config.itemCount * this.config.zGap;
         
-        this.texts = ["KAITOARTZ", "NEW", "PORTFOLIO", "WEB", "TECHNICAL", "ARTIST", "PIXEL", "HYPER", "NEON", "VOID"];
+        // Use user's preferred texts with a brand touch
+        this.texts = ["KAITOARTZ", "IMPACT", "VELOCITY", "BRUTAL", "SYSTEM", "FUTURE", "DESIGN", "PIXEL", "HYPER", "NEON", "VOID"];
         
         this.state = {
             scroll: 0,
@@ -811,7 +818,7 @@ class HyperScrollIntro {
 
         this.items = [];
         this.rafId = null;
-        this.frameCount = 0; // Better than relying on rafId for throttling
+        this.frameCount = 0;
         this.lenis = null;
         this.perfMode = 0; // 0: Normal, 1: No Stars
         
@@ -827,26 +834,33 @@ class HyperScrollIntro {
         this.world = document.getElementById('intro-world');
         this.viewport = document.getElementById('intro-viewport');
         
-        // Bloquear scroll del body nativo
         document.body.classList.add('no-scroll');
+        document.documentElement.classList.add('no-scroll');
+        
+        // VIRTUAL MODE: Hide the scroll proxy to remove scrollbar
+        const proxy = layer.querySelector('.intro-scroll-proxy');
+        if (proxy && this.isVirtualMode) {
+            proxy.style.display = 'none';
+        }
 
         this.createWorld();
         this.initLenis();
         this.bindEvents();
+        
+        // HUD Setup
+        this.feedbackVel = document.getElementById('intro-vel-readout');
+        this.feedbackFPS = document.getElementById('intro-fps');
+        this.feedbackCoord = document.getElementById('intro-coord');
+
         this.startLoop();
         
-        console.log('%c>> HYPER INTRO: SYSTEM ONLINE', 'color: #E2FF00; font-family: monospace;');
-
-        // Auto-initialize Audio Manager (silent)
-        if (typeof audioManager !== 'undefined') {
-            // Wait for interaction
-        }
+        console.log(`%c>> HYPER INTRO: SYSTEM ONLINE (HYPER: ${this.isHyperEnabled})`, 'color: #E2FF00; font-family: monospace;');
     }
 
     createWorld() {
         if (!this.world) return;
         
-        // Create Items
+        // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-item';
@@ -883,10 +897,11 @@ class HyperScrollIntro {
                 `;
                 el.appendChild(card);
 
+                // Spiral / Chaos positioning (User logic)
                 const angle = (i / this.config.itemCount) * Math.PI * 6;
                 const radius = 400 + Math.random() * 200;
-                const x = Math.cos(angle) * (window.innerWidth * 0.3);
-                const y = Math.sin(angle) * (window.innerHeight * 0.3);
+                const x = Math.cos(angle) * (this.winW * 0.3);
+                const y = Math.sin(angle) * (this.winH * 0.3);
                 const rot = (Math.random() - 0.5) * 30;
 
                 this.items.push({
@@ -917,92 +932,120 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        // Disable Lenis on mobile/touch devices for performance and better native feel
-        const isTouchDevice = performanceManager.hardware.isMobile || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        if (typeof Lenis !== 'undefined' && !isTouchDevice) {
-            // Usamos un wrapper específico si es posible, pero para el efecto global
-            // el demo usa window. Solo controlamos que no afecte al dashboard después
-            this.lenis = new Lenis({
-                smooth: true,
-                lerp: 0.08,
-                direction: 'vertical',
-                gestureDirection: 'vertical',
-                smoothTouch: false, // Explicitly disable smooth touch to rely on native
-                touchMultiplier: 2,
-            });
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const tier = performanceManager.hardware.tier;
+        const isLowPerf = tier === 'low' || tier === 'medium';
+        
+        // VIRTUAL MODE: PC or High-performance devices
+        // PHYSICAL MODE: Only for Mobile or Low-performance browsers
+        this.isVirtualMode = !isMobileBrowser && (tier === 'ultra' || tier === 'high');
 
-            this.lenis.on('scroll', ({ scroll, velocity }) => {
-                if (!this.state.warping && this.state.active) {
-                    this.state.scroll = scroll;
-                    this.state.targetSpeed = velocity;
-                }
-            });
+        if (!this.isVirtualMode) {
+            // PHYSICAL MODE: USamos Lenis con scroll real
+            if (typeof Lenis !== 'undefined') {
+                this.lenis = new Lenis({
+                    smooth: true,
+                    lerp: 0.08,
+                    direction: 'vertical',
+                    gestureDirection: 'vertical',
+                    smoothTouch: true,
+                    touchMultiplier: 2,
+                });
+
+                this.lenis.on('scroll', ({ scroll, velocity }) => {
+                    if (!this.state.warping && this.state.active) {
+                        this.state.scroll = scroll;
+                        this.state.targetSpeed = velocity;
+                    }
+                });
+            } else {
+                // Mobile Fallback: Use manual scroll listener
+                window.addEventListener('scroll', () => {
+                    if (this.state.active && !this.state.warping) {
+                        const scrollPos = window.pageYOffset || document.documentElement.scrollTop;
+                        this.state.targetSpeed = (scrollPos - this.state.scroll) * 0.5;
+                        this.state.scroll = scrollPos;
+                    }
+                }, { passive: true });
+            }
+        } else {
+            // VIRTUAL MODE: No instantiation of Lenis or Scroll Listeners on window
+            console.log('>> HYPER INTRO: VIRTUAL SCROLL ACTIVE');
         }
     }
 
     bindEvents() {
         this.handleMouseMove = (e) => {
             if (!this.state.active) return;
-            // Performance: Use cached dimensions
             this.state.mouseX = (e.clientX / this.winW - 0.5) * 2;
             this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
 
-        // MOBILE/TABLET: Map touch events to mouse state for camera movement
         this.handleTouch = (e) => {
             if (!this.state.active || !e.touches.length) return;
             const touch = e.touches[0];
-            // Normalize touch position like mouse movement
             this.state.mouseX = (touch.clientX / this.winW - 0.5) * 2;
             this.state.mouseY = (touch.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('touchstart', this.handleTouch, { passive: true });
         window.addEventListener('touchmove', this.handleTouch, { passive: true });
+
+        // VIRTUAL SCROLL: Only for PC/High-end
+        if (this.isVirtualMode) {
+            this.handleWheel = (e) => {
+                if (!this.state.active || this.state.warping) return;
+                // Accumulate target speed based on wheel delta (Speed increased as requested)
+                this.state.targetSpeed += e.deltaY * 0.12; 
+                // Clamp target speed to prevent insane values
+                this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
+            };
+            window.addEventListener('wheel', this.handleWheel, { passive: false });
+        }
         
         this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
+            this.config.loopSize = this.config.itemCount * this.config.zGap;
         }, 200);
         window.addEventListener('resize', this.handleResize, { passive: true });
 
-        const btn = document.getElementById('enterSystemBtn');
-        if (btn) {
-            btn.addEventListener('click', () => this.warpAndEnter());
-        }
+        const enterBtn = document.getElementById('enterSystemBtn');
+        if (enterBtn) enterBtn.addEventListener('click', () => this.warpAndEnter());
 
-        // Recruiter Mode: Skip intro button for quick access to portfolio
         const skipBtn = document.getElementById('skipIntroBtn');
-        if (skipBtn) {
-            skipBtn.addEventListener('click', () => this.skipIntro());
-        }
+        if (skipBtn) skipBtn.addEventListener('click', () => this.skipIntro());
     }
 
     skipIntro() {
         if (this.state.warping || this.state.fading) return;
+        this.state.fading = true;
         this.state.warping = true;
 
-        // Load body content synchronously if needed
-        if (typeof this.loadBodyContentSynchronously === 'function') {
-            this.loadBodyContentSynchronously();
+        const layer = document.getElementById('hyper-intro-layer');
+        if (layer) {
+            // Ultra fast fade
+            layer.style.transition = "opacity 0.3s ease-out";
+            layer.style.opacity = 0;
+            
+            // Immediate brain reveal start (Body starts calculating layout now)
+            document.body.classList.add('system-ready');
+            document.body.classList.remove('preparing-system', 'no-scroll');
+            document.documentElement.classList.remove('no-scroll');
+            
+            // Final logic cleanup slightly later
+            setTimeout(() => this.endIntro(true), 50);
         }
-
-        // Skip directly to end without warp animation
-        this.endIntro();
     }
 
     async warpAndEnter() {
         if (this.state.warping) return;
         this.state.warping = true;
         
-        console.log('%c>> HYPER INTRO: WARP ENGAGED', 'color: #E2FF00; font-family: monospace;');
-        
-        // Init Audio
         await audioManager.init();
         audioManager.playBoot();
         audioManager.playBackgroundMusic();
         
-        // Update UI
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
             btn.innerText = "ACCESSING...";
@@ -1010,45 +1053,15 @@ class HyperScrollIntro {
             btn.style.color = "#fff";
         }
 
-        // --- MOBILE/LOW-END SYNC LOGIC ---
-        if (this.config.isLowSpec) {
-            devLog('>> PERF: Executing synchronous content preparation...');
-            
-            // A. Carga Sincrónica (Simulada mediante forzado de layout y visibilidad)
-            this.loadBodyContentSynchronously();
-
-            // B. Transición "Falseada": La aceleración ya ocurre en el loop() mediante targetSpeed = 150
-            // Pero podemos añadir un delay extra antes de disparar el fin real para dar tiempo al navegador
-            this.waitForContentReady().then(() => {
-                devLog('>> PERF: Content ready. Finalizing transition.');
-                // C. Acelerar cuando el contenido esté listo (disparado por el fading logic en loop)
-            });
-        }
-    }
-
-    loadBodyContentSynchronously() {
-        // En un SPA real, aquí cargaríamos componentes. Aquí forzamos al navegador a procesar el dashboard oculto.
+        // Sync content for smoother reveal
         const bodyContent = document.getElementById('body-content');
         if (bodyContent) {
-            // "Despertar" al navegador: añadir clase pero mantenerlo invisible por CSS inicial
             document.body.classList.add('preparing-system');
-            
-            // Forzar un reflow para asegurar que los elementos se calculen
             void bodyContent.offsetHeight; 
         }
     }
 
-    waitForContentReady() {
-        // Simular tiempo de carga/preparación (heavy tasks)
-        const loadTime = this.config.isLowSpec ? 1500 : 500;
-        return new Promise(resolve => setTimeout(resolve, loadTime));
-    }
-
     startLoop() {
-        const feedbackVel = document.getElementById('intro-vel-readout');
-        const feedbackFPS = document.getElementById('intro-fps');
-        const feedbackCoord = document.getElementById('intro-coord');
-        
         let lastTime = 0;
 
         const loop = (time) => {
@@ -1059,7 +1072,6 @@ class HyperScrollIntro {
             
             if (this.lenis) this.lenis.raf(time);
 
-            // FPS Calculation
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
@@ -1078,81 +1090,72 @@ class HyperScrollIntro {
                 }
             }
 
-            // Logic
+            // HUD Updates Throttled
+            if (this.frameCount % 10 === 0) {
+                if (this.feedbackFPS) this.feedbackFPS.innerText = Math.round(1000 / delta) || 60;
+                if (this.feedbackVel) this.feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+                if (this.feedbackCoord) {
+                    this.feedbackCoord.innerText = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
+                }
+            }
+
+            // Warp Logic
             if (this.state.warping) {
-                // Accelerate hard
-                this.state.targetSpeed = 150; // Warp speed
-                this.state.scroll += this.state.velocity * 0.5; // Manual advance
-                
-                // Trigger fade out after reaching high speed
+                this.state.targetSpeed = 150;
+                this.state.scroll += this.state.velocity * 0.5;
                 if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
                     this.state.fading = true;
-                    // Slightly longer delay for low spec to ensure frame stability
                     setTimeout(() => this.endIntro(), this.config.isLowSpec ? 500 : 1000);
                 }
             }
 
-            // Smooth Velocity Interp
-            this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.05;
-
-            // Check dynamic low performance mode (in case it changed)
-            const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
-
-            // HUD Updates (Throttled to minimize layout thrashing)
-            // Update only every 6th frame (~100ms at 60fps)
-            if (this.frameCount % 6 === 0) {
-                if (feedbackVel) feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
-                if (feedbackCoord) feedbackCoord.innerText = this.state.scroll.toFixed(0);
+            // Smooth Velocity (0.1 weight as requested by user)
+            this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.1;
+            
+            // Apply decay in Virtual Mode so it eventually stops
+            if (this.isVirtualMode) {
+                this.state.targetSpeed *= 0.95;
+                this.state.scroll += this.state.velocity * 0.5; // Infinite accumulation
             }
 
-            // Camera logic
-            // Skip tilt calculations on low spec UNLESS it's a mobile device (for touch interaction)
-            const shouldTilt = !isLowPerf || performanceManager.hardware.isMobile;
+            // --- RENDER LOGIC ---
 
-            if (shouldTilt) {
-                const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; 
-                const tiltY = this.state.mouseX * 5;
+            // 1. Camera Tilt & Shake (Modified from User Snippet)
+            if (this.world) {
+                const shake = this.state.velocity * 0.1; // Reduced shake for stability
+                const tiltX = this.isHyperEnabled ? (this.state.mouseY * 5 - this.state.velocity * 0.2) : 0;
+                const tiltY = this.isHyperEnabled ? (this.state.mouseX * 5) : 0;
 
-                if (this.world) {
-                    this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-                }
-            } else if (this.world) {
-                 // Minimal static tilt or none for desktop low performance
-                 this.world.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
             }
 
-            // FOV Dynamic
-            const baseFov = 1000;
-            const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-            if (this.viewport) this.viewport.style.perspective = `${fov}px`;
+            // 2. Dynamic Perspective (Warp)
+            if (this.viewport && this.isHyperEnabled) {
+                const baseFov = 1000;
+                const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
+                this.viewport.style.perspective = `${fov}px`;
+            }
 
-            // Items Loop
+            // 3. Item Loop (Optimized Infinite Scroll)
             const cameraZ = this.state.scroll * this.config.camSpeed;
+            const modC = this.config.loopSize;
 
             this.items.forEach(item => {
                 let relZ = item.baseZ + cameraZ;
-                const modC = this.config.loopSize;
-                
-                // Infinite Tunnel Math
                 let vizZ = ((relZ % modC) + modC) % modC;
                 if (vizZ > 500) vizZ -= modC;
 
-                // Opacity
+                // Opacity Calculation
                 let alpha = 1;
                 if (vizZ < -3000) alpha = 0;
                 else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
-                if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400); // Fade out close
+                if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400);
                 if (alpha < 0) alpha = 0;
                 
-                // Optimization: Update opacity only if changed significantly
                 if (Math.abs(item.currentAlpha - alpha) > 0.001) {
                     item.el.style.opacity = alpha;
                     item.currentAlpha = alpha;
-
-                    // AGGRESSIVE CUT: Toggle display for low spec to avoid layout/paint of transparent items
-                    if (isLowPerf) {
-                        item.el.style.display = alpha <= 0 ? 'none' : 'flex';
-                    }
+                    if (this.config.isLowSpec) item.el.style.display = alpha <= 0 ? 'none' : 'flex';
                 }
 
                 if (alpha > 0) {
@@ -1163,25 +1166,31 @@ class HyperScrollIntro {
                         trans += ` scale3d(1, 1, ${stretch})`;
                     } else if (item.type === 'text') {
                         trans += ` rotateZ(${item.rot}deg)`;
-                        // RGB Split - SKIP on low spec
-                         if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
-                            const offset = this.state.velocity * 0.5;
+                        // RGB Split effect (Hyper ONLY)
+                        if (this.isHyperEnabled && Math.abs(this.state.velocity) > 1) {
+                            const offset = this.state.velocity * 1.5;
                             item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
                         } else {
                             item.el.style.textShadow = 'none';
                         }
                     } else {
-                        const t = time * 0.001;
-                        // AGGRESSIVE CUT: No rotateY floating for low spec, only static rotZ
-                        if (isLowPerf) {
-                            trans += ` rotateZ(${item.rot}deg)`;
-                        } else {
+                        // Card Logic
+                        if (this.isHyperEnabled) {
+                            // AUTO-ANIMATION: Trigger .is-active when card is in focus range
+                            const cardEl = item.el.querySelector('.intro-card');
+                            if (cardEl) {
+                                const isInFocus = vizZ > -400 && vizZ < 400;
+                                cardEl.classList.toggle('is-active', isInFocus);
+                            }
+
+                            const t = time * 0.001;
                             const float = Math.sin(t + item.x) * 10;
                             trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                        } else {
+                            trans += ` rotateZ(${item.rot}deg)`;
                         }
                     }
 
-                    // Optimization: Update transform only if changed
                     if (item.currentTrans !== trans) {
                         item.el.style.transform = trans;
                         item.currentTrans = trans;
@@ -1193,67 +1202,51 @@ class HyperScrollIntro {
         requestAnimationFrame(loop);
     }
 
-    endIntro() {
+    endIntro(isFast = false) {
         const layer = document.getElementById('hyper-intro-layer');
         if (layer) {
-             // White out effect or Black out
-            // Performance: Simplify transition for low spec
-            if (this.config.isLowSpec) {
-                layer.style.transition = "opacity 0.5s ease-out";
+            if (!isFast) {
+                const isLowSpec = this.config.isLowSpec;
+                layer.style.transition = isLowSpec ? "opacity 0.5s ease-out" : "opacity 0.8s ease-out, filter 0.8s ease-out";
                 layer.style.opacity = 0;
-                 // No filter blur for low performance
-            } else {
-                layer.style.transition = "opacity 0.8s ease-out, filter 0.8s ease-out";
-                layer.style.opacity = 0;
-                layer.style.filter = "brightness(2) blur(10px)";
+                if (!isLowSpec) layer.style.filter = "brightness(2) blur(10px)";
             }
+            
+            const waitTime = isFast ? 250 : 800;
             
             setTimeout(() => {
                 layer.style.display = 'none';
                 this.state.active = false;
                 if (this.lenis) this.lenis.destroy();
                 
-                // Remove listeners to save resources
-                if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
-                if (this.handleTouch) {
-                    window.removeEventListener('touchstart', this.handleTouch);
-                    window.removeEventListener('touchmove', this.handleTouch);
-                }
-                if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+                this.cleanup();
 
-                // FINAL SYNC: Signal system is ready to reveal dashboard
                 document.body.classList.add('system-ready');
-                document.body.classList.remove('preparing-system');
+                document.body.classList.remove('preparing-system', 'no-scroll');
+                document.documentElement.classList.remove('no-scroll');
 
-                // PERSISTENCE FIX: Move dock back to body so it survives after hyper-intro-layer is hidden
-                const controlDock = document.querySelector('.control-dock');
-                if (controlDock) {
-                    document.body.appendChild(controlDock);
-                }
-
-                // Allow scrolling again
-                document.body.classList.remove('no-scroll');
-                window.scrollTo(0, 0); // Force scroll to top
-                document.documentElement.scrollTop = 0; // Double ensure for some browsers
+                window.scrollTo(0, 0);
                 
-                // Trigger Main Dashboard animations
                 const main = document.querySelector('main');
                 if(main) {
-                    main.style.animation = "fadeIn 1s ease forwards";
+                    main.style.animation = isFast ? "fadeIn 0.4s ease forwards" : "fadeIn 1s ease forwards";
                 }
 
-                // Optimization: Start background effects now that they are visible
-                if (typeof matrixRain !== 'undefined' &&
-                    typeof performanceManager !== 'undefined' &&
-                    performanceManager.effects.matrixRain) {
+                if (typeof matrixRain !== 'undefined' && performanceManager.effects.matrixRain) {
                      matrixRain.start(true);
                 }
-                
-                // Optional: Trigger legacy boot sequence visuals briefly or just logging
-                // For now, we assume direct access to dashboard
-                
-            }, 800);
+            }, waitTime);
         }
+    }
+
+    cleanup() {
+        if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
+        if (this.handleTouch) {
+            window.removeEventListener('touchstart', this.handleTouch);
+            window.removeEventListener('touchmove', this.handleTouch);
+        }
+        if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+        if (this.handleWheel) window.removeEventListener('wheel', this.handleWheel);
     }
 }
 
@@ -1657,28 +1650,170 @@ if ('PerformanceObserver' in window) {
 
 console.log('%c>> SYSTEM READY. AWAITING INPUT.', 'color: #39FF14; font-family: monospace;');
 
+// ========== DOCK MANAGER ==========
+class DockManager {
+    constructor() {
+        this.dock = null;
+        this.burger = null;
+        this.audioBtn = null;
+        this.langBtn = null;
+        this.isExpanded = false;
+    }
+
+    init() {
+        this.docks = document.querySelectorAll('.control-dock');
+
+        if (this.docks.length === 0) {
+            console.warn('>> DOCK ERROR: No .control-dock found');
+            return;
+        }
+
+        console.log(`>> DOCK SYSTEM: INITIALIZING ${this.docks.length} DOCKS...`);
+
+        this.docks.forEach(dock => {
+            // Toggle expansion on deco click
+            const deconStart = dock.querySelector('.dock-deco-start');
+            const decoEnd = dock.querySelector('.dock-deco-end');
+            [deconStart, decoEnd].forEach(el => {
+                if (el) {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleDock(dock);
+                    });
+                }
+            });
+
+            // Settings/Burger Button
+            const burger = dock.querySelector('.settings-toggle-btn');
+            if (burger) {
+                burger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // If it has id="burgerMenu", it's likely the one opening the actual panel
+                    // For now, toggle the dock it belongs to
+                    this.toggleDock(dock);
+                });
+            }
+
+            // Audio Button
+            const audioBtn = dock.querySelector('.audio-toggle-btn');
+            if (audioBtn) {
+                audioBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.handleAudio(audioBtn);
+                });
+            }
+
+            // Language Button
+            const langBtn = dock.querySelector('.lang-toggle-btn');
+            if (langBtn) {
+                langBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.handleLanguage(langBtn);
+                });
+            }
+
+            // Theme Button (Shared with ThemeManager but we add click here for sync)
+            const themeBtn = dock.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof themeManager !== 'undefined') {
+                        themeManager.handleToggle(e);
+                        this.updateAllThemes();
+                    }
+                });
+            }
+        });
+        
+        devLog('DockManager initialized ✓');
+    }
+
+    toggleDock(dock) {
+        const isCurrentlyExpanded = dock.classList.contains('collapsed') === false;
+        const newState = !isCurrentlyExpanded;
+        
+        dock.classList.toggle('collapsed', !newState);
+        dock.setAttribute('data-expanded', newState);
+        
+        if (typeof audioManager !== 'undefined') audioManager.playClick();
+        
+        const label = dock.querySelector('.dock-label-min');
+        if (label && typeof triggerGlitch === 'function') triggerGlitch(label);
+    }
+
+    handleAudio(btn) {
+        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
+            audioManager.stopBackgroundMusic();
+        } else {
+            audioManager.playBackgroundMusic(0.2);
+        }
+        this.updateAllAudioIcons();
+        if (typeof audioManager !== 'undefined') audioManager.playClick();
+    }
+
+    updateAllAudioIcons() {
+        const isPlaying = audioManager.bgMusic && !audioManager.bgMusic.paused;
+        document.querySelectorAll('.audio-toggle-btn i').forEach(icon => {
+            icon.className = isPlaying ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
+        });
+    }
+
+    handleLanguage(btn) {
+        const langText = btn.querySelector('.lang-text');
+        if (!langText) return;
+        
+        const currentLang = langText.textContent.trim();
+        const newLang = currentLang === 'ES' ? 'EN' : 'ES';
+        
+        // Update all docks
+        document.querySelectorAll('.lang-toggle-btn .lang-text').forEach(el => {
+            el.textContent = newLang;
+            if (typeof triggerGlitch === 'function') triggerGlitch(el);
+        });
+        
+        if (typeof i18nManager !== 'undefined') {
+            i18nManager.setLanguage(newLang.toLowerCase());
+        }
+        
+        if (typeof audioManager !== 'undefined') audioManager.playClick();
+    }
+
+    updateAllThemes() {
+        const isDark = document.body.classList.contains('theme-dark');
+        document.querySelectorAll('.theme-toggle-btn i').forEach(icon => {
+            icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
+        });
+    }
+}
+
+const dockManager = new DockManager();
+
 // ========== THEME TOGGLE SYSTEM ==========
 class ThemeManager {
     constructor() {
         this.theme = localStorage.getItem('theme') || 'dark';
         this.colorTheme = localStorage.getItem('colorTheme') || 'default';
         this.toggleButton = null;
+        this.toggleButtons = null;
         this.toggleLabel = null;
         this.overlay = null;
     }
 
     init() {
-        this.toggleButton = document.getElementById('themeToggle');
+        this.toggleButtons = document.querySelectorAll('.theme-toggle-btn');
         this.toggleLabel = document.getElementById('toggleLabel');
         
         // Apply saved theme
-        this.applyTheme(this.theme, false);
+        this.applyTheme(this.theme);
         this.setColorTheme(this.colorTheme, false);
         
-        // Add event listener only if button exists
-        if (this.toggleButton) {
-            this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
-        }
+        // Add event listeners to all buttons
+        this.toggleButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleToggle(e);
+            });
+        });
 
         // Initialize color buttons
         this.initColorButtons();
@@ -1815,10 +1950,11 @@ class ThemeManager {
 
 const themeManager = new ThemeManager();
 
-// Initialize theme after page load
+// Initialize theme and dock after page load
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         themeManager.init();
+        dockManager.init(); // Add this line
     }, 100);
 });
 
@@ -3489,109 +3625,106 @@ class ContactFormManager {
 // ========== BURGER MENU MANAGER ==========
 class BurgerMenuManager {
     constructor() {
-        this.burgerBtn = null;
         this.panel = null;
         this.closeBtn = null;
-        this.dock = null;
+        this.docks = [];
         this.isOpen = false;
-        this.isDockExpanded = false;
     }
 
     init() {
-        this.burgerBtn = document.getElementById('burgerMenu');
         this.panel = document.getElementById('settingsPanel');
         this.closeBtn = document.getElementById('settingsClose');
-        this.dock = document.querySelector('.control-dock');
+        this.docks = document.querySelectorAll('.control-dock');
 
-        if (!this.burgerBtn || !this.panel || !this.dock) return;
+        if (!this.panel || this.docks.length === 0) return;
 
-        this.burgerBtn.addEventListener('click', (e) => this.handleBurgerClick(e));
-        this.closeBtn.addEventListener('click', () => this.close());
-
-        // Toggle dock on hover (optional, for better UX)
-        this.dock.addEventListener('mouseenter', () => {
-            if (!this.isDockExpanded && !this.isOpen) {
-                this.expandDock();
+        this.docks.forEach(dock => {
+            const burgerBtn = dock.querySelector('.settings-toggle-btn');
+            if (burgerBtn) {
+                burgerBtn.addEventListener('click', (e) => this.handleBurgerClick(e, dock));
             }
+
+            // Deco click support for expansion
+            const decoStart = dock.querySelector('.dock-deco-start');
+            const decoEnd = dock.querySelector('.dock-deco-end');
+            [decoStart, decoEnd].forEach(el => {
+                if (el) el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleDock(dock);
+                });
+            });
+
+            // Toggle dock on click instead of hover
+            dock.addEventListener('click', (e) => {
+                // If clicking the dock background (not a button)
+                if (e.target.closest('.dock-btn')) return;
+                
+                this.toggleDock(dock);
+            });
         });
 
-        this.dock.addEventListener('mouseleave', () => {
-            if (this.isDockExpanded && !this.isOpen) {
-                this.collapseDock();
-            }
-        });
+        if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
 
-        // Close on ESC key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.close();
-            }
+            if (e.key === 'Escape' && this.isOpen) this.close();
         });
 
-        // Close on click outside
         document.addEventListener('click', (e) => {
-            if (this.isOpen && 
-                !this.panel.contains(e.target) && 
-                !this.burgerBtn.contains(e.target)) {
+            if (this.isOpen && !this.panel.contains(e.target) && !e.target.closest('.settings-toggle-btn')) {
                 this.close();
             }
         });
     }
 
-    handleBurgerClick(e) {
+    handleBurgerClick(e, dock) {
         e.stopPropagation();
+        const isCollapsed = dock.classList.contains('collapsed');
         
-        // Si el panel está cerrado, primero expandir el dock si está colapsado
-        if (!this.isOpen && !this.isDockExpanded) {
-            this.toggleDock();
+        if (!this.isOpen && isCollapsed) {
+            this.expandDock(dock);
         } else {
-            // Si el dock ya está expandido o el panel está abierto, toggle del panel
             this.toggle();
         }
     }
 
-    toggleDock() {
-        if (this.isDockExpanded) {
-            this.collapseDock();
+    toggleDock(dock) {
+        if (dock.classList.contains('collapsed')) {
+            this.expandDock(dock);
         } else {
-            this.expandDock();
+            this.collapseDock(dock);
         }
     }
 
-    expandDock() {
-        this.dock.classList.remove('collapsed');
-        this.dock.dataset.expanded = 'true';
-        this.isDockExpanded = true;
+    expandDock(dock) {
+        dock.classList.remove('collapsed');
+        dock.dataset.expanded = 'true';
         audioManager.playSound('click');
     }
 
-    collapseDock() {
+    collapseDock(dock) {
         if (!this.isOpen) {
-            this.dock.classList.add('collapsed');
-            this.dock.dataset.expanded = 'false';
-            this.isDockExpanded = false;
+            dock.classList.add('collapsed');
+            dock.dataset.expanded = 'false';
             audioManager.playSound('click');
         }
     }
 
     toggle() {
-        if (this.isOpen) {
-            this.close();
-        } else {
-            this.open();
-        }
+        if (this.isOpen) this.close();
+        else this.open();
     }
 
     open() {
-        this.expandDock(); // Asegurar que el dock esté expandido
+        this.docks.forEach(dock => this.expandDock(dock));
         this.panel.classList.add('active');
-        this.burgerBtn.classList.add('active');
-        this.burgerBtn.setAttribute('aria-expanded', 'true');
+        document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+        });
         this.isOpen = true;
         
-        // Ocultar el dock cuando se abre el panel
         setTimeout(() => {
-            this.dock.classList.add('hidden');
+            this.docks.forEach(dock => dock.classList.add('hidden'));
         }, 100);
         
         audioManager.playSound('click');
@@ -3599,13 +3732,12 @@ class BurgerMenuManager {
 
     close() {
         this.panel.classList.remove('active');
-        this.burgerBtn.classList.remove('active');
-        this.burgerBtn.setAttribute('aria-expanded', 'false');
+        document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        });
         this.isOpen = false;
-        
-        // Mostrar el dock cuando se cierra el panel
-        this.dock.classList.remove('hidden');
-        
+        this.docks.forEach(dock => dock.classList.remove('hidden'));
         audioManager.playSound('click');
     }
 }
@@ -3614,87 +3746,71 @@ class BurgerMenuManager {
 class LanguageManager {
     constructor() {
         this.currentLang = 'es';
-        this.langBtn = null;
     }
 
     init() {
-        // Botón del dock
-        this.langBtn = document.getElementById('langToggleBtn');
-        
-        if (this.langBtn) {
-            this.langBtn.addEventListener('click', () => {
+        // Dock buttons
+        document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const newLang = this.currentLang === 'es' ? 'en' : 'es';
                 this.switchLanguage(newLang);
             });
-        }
+        });
 
-        // Botones del settings panel (si existen)
-        const buttons = document.querySelectorAll('.lang-toggle');
-        buttons.forEach(btn => {
+        // Settings panel buttons
+        document.querySelectorAll('.lang-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
-                const lang = btn.dataset.lang;
-                this.switchLanguage(lang);
+                this.switchLanguage(btn.dataset.lang);
             });
         });
 
-        // Load saved language
         const saved = localStorage.getItem('language');
-        if (saved) {
-            this.switchLanguage(saved);
-        }
+        if (saved) this.switchLanguage(saved);
     }
 
     switchLanguage(lang) {
         this.currentLang = lang;
         localStorage.setItem('language', lang);
 
-        // Update dock button
-        if (this.langBtn) {
-            const langText = this.langBtn.querySelector('.lang-text');
-            if (langText) {
-                langText.textContent = lang.toUpperCase();
-            }
-        }
+        document.querySelectorAll('.lang-toggle-btn .lang-text').forEach(el => {
+            el.textContent = lang.toUpperCase();
+        });
 
-        // Update buttons in settings panel
         document.querySelectorAll('.lang-toggle').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
 
-        // Update translatable elements
         document.querySelectorAll('[data-en]').forEach(el => {
             el.textContent = el.dataset[lang] || el.dataset.en;
         });
 
         audioManager.playSound('click');
-        console.log('Language switched to:', lang);
     }
 }
 
 // ========== SETTINGS MANAGER ==========
 class SettingsManager {
     constructor() {
-        this.themeBtn = null;
-        this.audioBtn = null;
+        // No need for these properties anymore as we query all buttons directly
     }
 
     init() {
-        // Botones del dock
-        this.themeBtn = document.getElementById('themeToggleBtn');
-        this.audioBtn = document.getElementById('audioToggleBtn');
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleTheme();
+            });
+        });
 
-        // Theme button
-        if (this.themeBtn) {
-            this.themeBtn.addEventListener('click', () => this.toggleTheme());
-        }
+        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleAudio();
+            });
+        });
         
         this.updateThemeButton();
-
-        // Audio button
-        if (this.audioBtn) {
-            this.audioBtn.addEventListener('click', () => this.toggleAudio());
-        }
-        
         this.updateAudioButton();
     }
 
@@ -3706,20 +3822,15 @@ class SettingsManager {
 
     updateThemeButton() {
         const isDark = themeManager.theme === 'dark';
-        
-        // Actualizar botón del dock
-        if (this.themeBtn) {
-            const dockIcon = this.themeBtn.querySelector('.theme-icon') || this.themeBtn.querySelector('i');
-            if (dockIcon) {
-                if (dockIcon.tagName === 'I') {
-                    // Font Awesome icon
-                    dockIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-                } else {
-                    dockIcon.textContent = isDark ? '☀' : '🌙';
-                }
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            const icon = btn.querySelector('.theme-icon') || btn.querySelector('i');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
             }
-        }
-    }    toggleAudio() {
+        });
+    }
+
+    toggleAudio() {
         if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
             audioManager.stopBackgroundMusic();
             this.updateAudioButton(false);
@@ -3732,25 +3843,13 @@ class SettingsManager {
 
     updateAudioButton(isPlaying = null) {
         const playing = isPlaying !== null ? isPlaying : (audioManager.bgMusic && !audioManager.bgMusic.paused);
-        
-        // Actualizar botón del dock
-        if (this.audioBtn) {
-            const dockIcon = this.audioBtn.querySelector('.audio-icon') || this.audioBtn.querySelector('i');
-            if (dockIcon) {
-                if (dockIcon.tagName === 'I') {
-                    // Font Awesome icon - cambiar según el estado
-                    dockIcon.className = playing ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-                } else {
-                    dockIcon.textContent = playing ? '🔊' : '🔇';
-                }
+        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
+            const icon = btn.querySelector('.audio-icon') || btn.querySelector('i');
+            if (icon) {
+                icon.className = playing ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
             }
-            
-            if (playing) {
-                this.audioBtn.classList.add('active');
-            } else {
-                this.audioBtn.classList.remove('active');
-            }
-        }
+            btn.classList.toggle('active', playing);
+        });
     }
 }
 

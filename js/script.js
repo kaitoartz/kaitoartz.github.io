@@ -877,26 +877,40 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        // Disable Lenis on mobile for performance and better native feel
-        if (typeof Lenis !== 'undefined' && !performanceManager.hardware.isMobile) {
-            // Usamos un wrapper específico si es posible, pero para el efecto global
-            // el demo usa window. Solo controlamos que no afecte al dashboard después
-            this.lenis = new Lenis({
-                smooth: true,
-                lerp: 0.08,
-                direction: 'vertical',
-                gestureDirection: 'vertical',
-                smoothTouch: false, // Explicitly disable smooth touch to rely on native
-                touchMultiplier: 2,
-            });
+        // We use Virtual Scroll for the Intro to achieve true mathematical infinity
+        // without hitting browser pixel height limits (like the ~2400 limit reported)
+        
+        const handleWheel = (e) => {
+            if (!this.state.warping && this.state.active) {
+                // Accumulate scroll infinitely
+                // deltaY is usually around 100 for a wheel click
+                const delta = e.deltaY;
+                this.state.scroll += delta * 0.5; // Sensitivity adjustment
+                
+                // Track velocity for the HUD and warp effects
+                this.state.targetSpeed = delta * 0.2;
+                
+                // Clear velocity after a short delay (debounce feel)
+                if (this.velTimeout) clearTimeout(this.velTimeout);
+                this.velTimeout = setTimeout(() => {
+                    this.state.targetSpeed = 0;
+                }, 100);
+            }
+        };
 
-            this.lenis.on('scroll', ({ scroll, velocity }) => {
-                if (!this.state.warping && this.state.active) {
-                    this.state.scroll = scroll;
-                    this.state.targetSpeed = velocity;
-                }
-            });
-        }
+        window.addEventListener('wheel', handleWheel, { passive: true });
+        
+        // Also support touch for a similar feel (optional for PC but good practice)
+        let touchStartY = 0;
+        window.addEventListener('touchstart', (e) => touchStartY = e.touches[0].clientY, { passive: true });
+        window.addEventListener('touchmove', (e) => {
+            if (!this.state.warping && this.state.active) {
+                const delta = touchStartY - e.touches[0].clientY;
+                this.state.scroll += delta * 2.0; 
+                touchStartY = e.touches[0].clientY;
+                this.state.targetSpeed = delta * 0.5;
+            }
+        }, { passive: true });
     }
 
     bindEvents() {
@@ -982,10 +996,13 @@ class HyperScrollIntro {
             const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
 
             // HUD Updates (Throttled to minimize layout thrashing)
-            // Update only every 6th frame (~100ms at 60fps)
             if (this.frameCount % 6 === 0) {
                 if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
-                if (feedbackCoord) feedbackCoord.textContent = this.state.scroll.toFixed(0);
+                if (feedbackCoord) {
+                    // Show relative coordinate based on tunnel cycle
+                    const relativePos = (this.state.scroll * this.config.camSpeed % this.config.loopSize + this.config.loopSize) % this.config.loopSize;
+                    feedbackCoord.textContent = relativePos.toFixed(0).padStart(6, '0');
+                }
             }
 
             // Camera logic
@@ -1831,6 +1848,8 @@ class CursorManager {
         const { r, g, b } = this.rgb;
         
         // Draw trail - Iterate ring buffer from oldest to newest
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
         for (let i = 0; i < this.maxTrail; i++) {
             const idx = (this.head + i) % this.maxTrail;
             const point = this.trail[idx];
@@ -1839,12 +1858,16 @@ class CursorManager {
                 point.life -= 0.05;
                 if (point.life > 0) {
                     const size = 3 * point.life;
-                    this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${point.life * 0.5})`;
+                    // Optimization: Use globalAlpha instead of allocating new color strings
+                    this.ctx.globalAlpha = point.life * 0.5;
                     this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
                 }
             }
         }
         
+        // Reset alpha for crosshair
+        this.ctx.globalAlpha = 1.0;
+
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;

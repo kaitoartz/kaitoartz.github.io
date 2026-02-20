@@ -86,25 +86,18 @@
                 <span>SYS.READY</span>
                 <div class="intro-hud-line"></div>
                 
-                <!-- CONTROL DOCK INTEGRATED IN HUD -->
-                <div class="control-dock" data-expanded="true">
+                <!-- INTRO SPECIFIC DOCK (Integrated in HUD) -->
+                <div class="control-dock intro-dock collapsed" data-expanded="false">
                     <div class="dock-deco-start">
                         <div class="dock-lines">
                             <span></span><span></span><span></span>
                         </div>
                     </div>
-                    <button class="dock-btn" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Theme">
+                    <button class="dock-btn theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
                         <i class="fa-solid fa-sun theme-icon"></i>
                     </button>
-                    <button class="dock-btn" id="audioToggleBtn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
+                    <button class="dock-btn audio-toggle-btn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
                         <i class="fa-solid fa-volume-high audio-icon"></i>
-                    </button>
-                    <button class="dock-btn" id="langToggleBtn" title="Language / Idioma" aria-label="Toggle Language">
-                        <span class="lang-text">ES</span>
-                    </button>
-                    <div class="dock-separator"></div>
-                    <button class="dock-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
-                        <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="dock-deco-end">
                         <span class="dock-label-min">SYS</span>
@@ -112,14 +105,14 @@
                 </div>
 
                 <div class="intro-hud-line"></div>
-                <span>FPS: <strong id="intro-fps">60</strong></span>
+                <span class="hud-metric hud-fps">FPS: <strong id="intro-fps">60</strong></span>
             </div>
             <div class="center-nav"
                 style="position: fixed; left: 2rem; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; pointer-events: none;">
                 SCROLL VELOCITY // <strong id="intro-vel-readout">0.00</strong>
             </div>
             <div class="intro-hud-bottom">
-                <span>COORD: <strong id="intro-coord">000.000</strong></span>
+                <span class="hud-metric hud-coord">COORD: <strong id="intro-coord">000.000</strong></span>
                 <div class="intro-hud-line"></div>
                 <button id="enterSystemBtn" class="enter-system-btn">
                     [ ENTER_SYSTEM ]
@@ -141,6 +134,30 @@
 
 
     <div id="body-content">
+        <!-- MAIN SITE DOCK -->
+        <div class="control-dock main-dock collapsed" data-expanded="false">
+            <div class="dock-deco-start">
+                <div class="dock-lines">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <button class="dock-btn theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
+                <i class="fa-solid fa-sun theme-icon"></i>
+            </button>
+            <button class="dock-btn audio-toggle-btn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
+                <i class="fa-solid fa-volume-high audio-icon"></i>
+            </button>
+            <button class="dock-btn lang-toggle-btn" title="Language / Idioma" aria-label="Toggle Language">
+                <span class="lang-text">ES</span>
+            </button>
+            <div class="dock-separator"></div>
+            <button class="dock-btn settings-toggle-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <div class="dock-deco-end">
+                <span class="dock-label-min">SYS</span>
+            </div>
+        </div>
 
     <!-- SETTINGS PANEL -->
     <div class="settings-panel" id="settingsPanel">
