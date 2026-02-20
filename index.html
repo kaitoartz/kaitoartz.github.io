@@ -6,8 +6,6 @@
     <title>KAITOARTZ // VR Developer & Tech Artist Portfolio</title>
     
     <!-- SEO Meta Tags -->
-    <!-- React Scan (Performance) -->
-    <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js"></script>
     <meta name="description" content="Portfolio de KAITOARTZ - Desarrollador VR/AR especializado en experiencias inmersivas, shaders procedurales y visualización en tiempo real. Unity, Unreal Engine, WebGL.">
     <meta name="keywords" content="VR Developer, AR Developer, Unity Developer, Virtual Reality, Augmented Reality, 3D Artist, Shader Programming, WebGL, Tech Art, Immersive Experiences, KAITOARTZ">
     <meta name="author" content="KAITOARTZ">
@@ -62,12 +60,13 @@
 </head>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com;
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://localhost:* http://localhost:*;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
         font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data: https:;
-        connect-src 'self' https:;
+        img-src 'self' data: https: http://localhost:*;
+        connect-src 'self' https: ws://localhost:* wss://localhost:* http://localhost:*;
         object-src 'none';
+        frame-src 'self' https://player.vimeo.com https://www.youtube.com;
     ">
     
 <body>
@@ -840,7 +839,7 @@
                 </div>
     
                 <iframe id="vimeoPlayer" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
-                    allowfullscreen class="w-full aspect-video z-0"></iframe>
+                    class="w-full aspect-video z-0"></iframe>
             </div>
     
             <div class="modal-footer mt-4 flex justify-between items-center text-xs text-cyan-400 font-mono">

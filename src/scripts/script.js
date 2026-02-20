@@ -1,6 +1,8 @@
-// ========== CONFIGURATION ==========
 const DEV_MODE = false; // Set to true for development logging
 const devLog = (...args) => DEV_MODE && console.log(...args);
+
+// Local Asset Resolver (Fix for Live Server vs Vite)
+const ASSET_PATH = (window.location.port === '5500' || window.location.hostname === '127.0.0.1') ? 'public/assets/' : 'assets/';
 
 // ========== UTILITIES ==========
 const debounce = (func, wait) => {
@@ -574,27 +576,35 @@ class AudioManager {
 
         // Audio file paths
         this.audioFiles = {
-            background: 'assets/audio/background.mp3'
-            // hover: 'assets/audio/hover.mp3',
-            // click: 'assets/audio/click.mp3',
-            // boot: 'assets/audio/boot.mp3',
-            // glitch: 'assets/audio/glitch.mp3',
-            // success: 'assets/audio/success.mp3'
+            background: ASSET_PATH + 'audio/background.mp3'
         };
+        
+        // Safety for async race conditions
+        this.playPromise = null;
     }
 
     async init() {
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            this.enabled = true;
-            console.log('%c>> AUDIO SYSTEM: INITIALIZED', 'color: #39FF14; font-family: monospace;');
-            // No cargamos archivos con fetch (problema de CORS en file://)
-            // Los archivos se cargarán cuando se necesiten
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.enabled = true;
+                console.log('%c>> AUDIO SYSTEM: INITIALIZED ✓', 'color: #39FF14; font-family: monospace;');
+            } catch (e) {
+                console.error('>> AUDIO SYSTEM: Failed to initialize', e);
+                return;
+            }
+        }
+        
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+            console.log('%c>> AUDIO SYSTEM: RESUMED ✓', 'color: #39FF14; font-family: monospace;');
         }
     }
 
     playSound(soundName, volume = 1.0, loop = false) {
-        if (!this.enabled || !this.audioContext) return;
+        // Auto-init on first sound if possible (gesture required)
+        if (!this.audioContext) this.init();
+        if (!this.enabled) return;
         
         // Para file:// usamos Audio directo en lugar de AudioBuffer
         try {
@@ -639,9 +649,11 @@ class AudioManager {
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
 
-    playBackgroundMusic(volume = 0.3) {
-        if (!this.enabled || !this.audioContext) {
-            console.log('%c>> MUSIC: AudioContext not initialized', 'color: #FF6B6B; font-family: monospace;');
+    async playBackgroundMusic(volume = 0.3) {
+        if (!this.audioContext) await this.init();
+        
+        if (!this.enabled) {
+            console.log('%c>> MUSIC: System disabled', 'color: #FF6B6B; font-family: monospace;');
             return;
         }
         
@@ -684,19 +696,24 @@ class AudioManager {
         
         // Attempt to play
         console.log('%c>> MUSIC: Attempting to play...', 'color: #00FFFF; font-family: monospace;');
-        const playPromise = this.bgMusic.play();
+        this.playPromise = this.bgMusic.play();
         
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
+        if (this.playPromise !== undefined) {
+            this.playPromise.then(() => {
+                this.playPromise = null;
                 console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
             }).catch(error => {
+                this.playPromise = null;
                 console.log('%c>> MUSIC: Play blocked - ' + error.message, 'color: #FF6B6B; font-family: monospace;');
                 console.log('%c>> MUSIC: User interaction may be required', 'color: #FFAA00; font-family: monospace;');
             });
         }
     }
 
-    stopBackgroundMusic() {
+    async stopBackgroundMusic() {
+        if (this.playPromise) {
+            await this.playPromise;
+        }
         if (this.bgMusic) {
             this.bgMusic.pause();
             this.bgMusic.currentTime = 0;
@@ -811,6 +828,8 @@ class HyperScrollIntro {
             targetSpeed: 0,
             mouseX: 0,
             mouseY: 0,
+            targetMouseX: 0,
+            targetMouseY: 0,
             active: true,
             warping: false,
             fading: false
@@ -977,19 +996,28 @@ class HyperScrollIntro {
     bindEvents() {
         this.handleMouseMove = (e) => {
             if (!this.state.active) return;
-            this.state.mouseX = (e.clientX / this.winW - 0.5) * 2;
-            this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
+            this.state.targetMouseX = (e.clientX / this.winW - 0.5) * 2;
+            this.state.targetMouseY = (e.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
 
         this.handleTouch = (e) => {
             if (!this.state.active || !e.touches.length) return;
             const touch = e.touches[0];
-            this.state.mouseX = (touch.clientX / this.winW - 0.5) * 2;
-            this.state.mouseY = (touch.clientY / this.winH - 0.5) * 2;
+            this.state.targetMouseX = (touch.clientX / this.winW - 0.5) * 2;
+            this.state.targetMouseY = (touch.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('touchstart', this.handleTouch, { passive: true });
         window.addEventListener('touchmove', this.handleTouch, { passive: true });
+        
+        // Reset position on release for mobile/terminal feel
+        const resetPos = () => {
+            this.state.targetMouseX = 0;
+            this.state.targetMouseY = 0;
+        };
+        window.addEventListener('touchend', resetPos, { passive: true });
+        window.addEventListener('touchcancel', resetPos, { passive: true });
+        window.addEventListener('mouseleave', resetPos, { passive: true });
 
         // VIRTUAL SCROLL: Only for PC/High-end
         if (this.isVirtualMode) {
@@ -1076,26 +1104,25 @@ class HyperScrollIntro {
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
             const fps = Math.round(1000 / delta) || 60;
-            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.innerText = fps;
+            
+            // HUD Updates Throttled
+            if (this.frameCount % 10 === 0) {
+                if (this.feedbackFPS) this.feedbackFPS.innerText = fps;
+                if (this.feedbackVel) this.feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+                if (this.feedbackCoord) {
+                    this.feedbackCoord.innerText = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
+                }
+            }
 
             // Adaptive Degrade Logic (Wait 2s at start before judging)
-            if (time > 2000) {
-                if (fps < 30 && this.perfMode < 1) {
+            if (time > 2000 && this.perfMode < 1) {
+                if (fps < 30) {
                     this.perfMode = 1;
                     // Optimized: Use cached items array instead of DOM query
                     this.items.forEach(item => {
                         if (item.type === 'star') item.el.style.display = 'none';
                     });
                     console.warn('>> PERF: Adaptive degrade triggered. Stars disabled.');
-                }
-            }
-
-            // HUD Updates Throttled
-            if (this.frameCount % 10 === 0) {
-                if (this.feedbackFPS) this.feedbackFPS.innerText = Math.round(1000 / delta) || 60;
-                if (this.feedbackVel) this.feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
-                if (this.feedbackCoord) {
-                    this.feedbackCoord.innerText = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
                 }
             }
 
@@ -1112,6 +1139,10 @@ class HyperScrollIntro {
             // Smooth Velocity (0.1 weight as requested by user)
             this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.1;
             
+            // Smooth Camera Movement (Lerp)
+            this.state.mouseX += (this.state.targetMouseX - this.state.mouseX) * 0.08;
+            this.state.mouseY += (this.state.targetMouseY - this.state.mouseY) * 0.08;
+
             // Apply decay in Virtual Mode so it eventually stops
             if (this.isVirtualMode) {
                 this.state.targetSpeed *= 0.95;
@@ -1122,9 +1153,11 @@ class HyperScrollIntro {
 
             // 1. Camera Tilt & Shake (Modified from User Snippet)
             if (this.world) {
-                const shake = this.state.velocity * 0.1; // Reduced shake for stability
-                const tiltX = this.isHyperEnabled ? (this.state.mouseY * 5 - this.state.velocity * 0.2) : 0;
-                const tiltY = this.isHyperEnabled ? (this.state.mouseX * 5) : 0;
+                const shake = this.state.velocity * 0.1; 
+                // Enable tilt for mobile too (Relaxed isHyperEnabled check)
+                const tiltScale = this.isHyperEnabled ? 5 : 4; 
+                const tiltX = (this.state.mouseY * tiltScale - this.state.velocity * 0.2);
+                const tiltY = (this.state.mouseX * tiltScale);
 
                 this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
             }
@@ -3840,12 +3873,12 @@ class SettingsManager {
         });
     }
 
-    toggleAudio() {
+    async toggleAudio() {
         if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
             audioManager.stopBackgroundMusic();
             this.updateAudioButton(false);
         } else {
-            audioManager.playBackgroundMusic(0.3);
+            await audioManager.playBackgroundMusic(0.3);
             this.updateAudioButton(true);
         }
         audioManager.playSound('click');
@@ -3912,7 +3945,7 @@ const projectsData = [
         title: 'CREHA_BITACORA',
         category: 'unity',
         description: 'Juego educativo sobre corredores biologicos',
-        image: 'assets/projects/crehabitat.webp',
+        image: ASSET_PATH + 'projects/crehabitat.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/crehabitat'
     },
@@ -3921,7 +3954,7 @@ const projectsData = [
         title: 'CANDY_PARTY',
         category: 'unity',
         description: 'Juego de fiesta con temática de dulces.',
-        image: 'assets/projects/candyparty.webp',
+        image: ASSET_PATH + 'projects/candyparty.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/candy-party'
     },
@@ -3939,7 +3972,7 @@ const projectsData = [
         title: 'DETECTOR_CAMERA',
         category: 'web',
         description: 'Detector de postura con Mediapipe.',
-        image: 'assets/projects/mediapipe.webp',
+        image: ASSET_PATH + 'projects/mediapipe.webp',
         tech: ['HTML', 'CSS', 'JS', 'MEDIAPIPE'],
         link: 'https://desarrolladorvr.github.io/'
     },
@@ -3948,7 +3981,7 @@ const projectsData = [
         title: 'PORTAL_JUEGOS',
         category: 'web',
         description: 'Portal Web de Juegos Educativos.',
-        image: 'assets/projects/IstGames.webp',
+        image: ASSET_PATH + 'projects/IstGames.webp',
         tech: ['HTML', 'CSS', 'JS'],
         link: 'https://istgames.netlify.app/'
     },
