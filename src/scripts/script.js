@@ -1039,32 +1039,7 @@ class HyperScrollIntro {
         window.addEventListener('resize', this.handleResize, { passive: true });
 
         const enterBtn = document.getElementById('enterSystemBtn');
-        if (enterBtn) enterBtn.addEventListener('click', () => this.warpAndEnter());
-
-        const skipBtn = document.getElementById('skipIntroBtn');
-        if (skipBtn) skipBtn.addEventListener('click', () => this.skipIntro());
-    }
-
-    skipIntro() {
-        if (this.state.warping || this.state.fading) return;
-        this.state.fading = true;
-        this.state.warping = true;
-
-        const layer = document.getElementById('hyper-intro-layer');
-        if (layer) {
-            // Ultra fast fade
-            layer.style.transition = "opacity 0.3s ease-out";
-            layer.style.opacity = 0;
-            
-            // Immediate brain reveal start (Body starts calculating layout now)
-            document.body.classList.add('system-ready');
-            document.body.classList.remove('preparing-system', 'no-scroll');
-            document.documentElement.classList.remove('no-scroll');
-            
-            // Final logic cleanup slightly later
-            setTimeout(() => this.endIntro(true), 50);
-        }
-    }
+        if (enterBtn) enterBtn.addEventListener('click', () => this.warpAndEnter());    }
 
     async warpAndEnter() {
         if (this.state.warping) return;
@@ -1714,16 +1689,30 @@ class DockManager {
                         this.toggleDock(dock);
                     });
                 }
-            });
-
-            // Settings/Burger Button
+            });            // Settings/Burger Button (toggles dock expand/collapse)
             const burger = dock.querySelector('.settings-toggle-btn');
             if (burger) {
                 burger.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // If it has id="burgerMenu", it's likely the one opening the actual panel
-                    // For now, toggle the dock it belongs to
-                    this.toggleDock(dock);
+                    // burgerMenu (#burgerMenu) toggles the dock open/close
+                    if (burger.id === 'burgerMenu') {
+                        if (typeof burgerMenuManager !== 'undefined') {
+                            burgerMenuManager.toggleDock(dock);
+                        }
+                    } else {
+                        this.toggleDock(dock);
+                    }
+                });
+            }
+
+            // Config / Settings Panel Open Button
+            const configBtn = dock.querySelector('.config-open-btn');
+            if (configBtn) {
+                configBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof burgerMenuManager !== 'undefined') {
+                        burgerMenuManager.toggle();
+                    }
                 });
             }
 
@@ -1772,22 +1761,22 @@ class DockManager {
         
         const label = dock.querySelector('.dock-label-min');
         if (label && typeof triggerGlitch === 'function') triggerGlitch(label);
-    }
-
-    handleAudio(btn) {
+    }    handleAudio(btn) {
         if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
             audioManager.stopBackgroundMusic();
         } else {
             audioManager.playBackgroundMusic(0.2);
         }
         this.updateAllAudioIcons();
-        if (typeof audioManager !== 'undefined') audioManager.playClick();
+        // Note: playClick is intentionally skipped here to avoid audio feedback during mute/unmute
     }
 
     updateAllAudioIcons() {
         const isPlaying = audioManager.bgMusic && !audioManager.bgMusic.paused;
-        document.querySelectorAll('.audio-toggle-btn i').forEach(icon => {
-            icon.className = isPlaying ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
+        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
+            const icon = btn.querySelector('.audio-icon') || btn.querySelector('i');
+            if (icon) icon.className = isPlaying ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
+            btn.classList.toggle('active', isPlaying);
         });
     }
 
@@ -3679,29 +3668,13 @@ class BurgerMenuManager {
         this.closeBtn = document.getElementById('settingsClose');
         this.docks = document.querySelectorAll('.control-dock');
 
-        if (!this.panel || this.docks.length === 0) return;
+        if (!this.panel || this.docks.length === 0) return;        this.docks.forEach(dock => {
+            // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
+            // to avoid double-firing. BurgerMenuManager.toggleDock() is called from DockManager.
 
-        this.docks.forEach(dock => {
-            const burgerBtn = dock.querySelector('.settings-toggle-btn');
-            if (burgerBtn) {
-                burgerBtn.addEventListener('click', (e) => this.handleBurgerClick(e, dock));
-            }
-
-            // Deco click support for expansion
-            const decoStart = dock.querySelector('.dock-deco-start');
-            const decoEnd = dock.querySelector('.dock-deco-end');
-            [decoStart, decoEnd].forEach(el => {
-                if (el) el.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.toggleDock(dock);
-                });
-            });
-
-            // Toggle dock on click instead of hover
+            // Toggle dock on click on dock background (not a button)
             dock.addEventListener('click', (e) => {
-                // If clicking the dock background (not a button)
                 if (e.target.closest('.dock-btn')) return;
-                
                 this.toggleDock(dock);
             });
         });
@@ -3710,10 +3683,8 @@ class BurgerMenuManager {
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen) this.close();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (this.isOpen && !this.panel.contains(e.target) && !e.target.closest('.settings-toggle-btn')) {
+        });        document.addEventListener('click', (e) => {
+            if (this.isOpen && !this.panel.contains(e.target) && !e.target.closest('.settings-toggle-btn') && !e.target.closest('.config-open-btn')) {
                 this.close();
             }
         });
@@ -3728,12 +3699,12 @@ class BurgerMenuManager {
         } else {
             this.toggle();
         }
-    }
-
-    toggleDock(dock) {
+    }    toggleDock(dock) {
         if (dock.classList.contains('collapsed')) {
             this.expandDock(dock);
         } else {
+            // If settings panel is open, close it first
+            if (this.isOpen) this.close();
             this.collapseDock(dock);
         }
     }
@@ -3755,12 +3726,14 @@ class BurgerMenuManager {
     toggle() {
         if (this.isOpen) this.close();
         else this.open();
-    }
-
-    open() {
+    }    open() {
         this.docks.forEach(dock => this.expandDock(dock));
         this.panel.classList.add('active');
         document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+        });
+        document.querySelectorAll('.config-open-btn').forEach(btn => {
             btn.classList.add('active');
             btn.setAttribute('aria-expanded', 'true');
         });
@@ -3776,6 +3749,10 @@ class BurgerMenuManager {
     close() {
         this.panel.classList.remove('active');
         document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        });
+        document.querySelectorAll('.config-open-btn').forEach(btn => {
             btn.classList.remove('active');
             btn.setAttribute('aria-expanded', 'false');
         });
@@ -3836,9 +3813,7 @@ class LanguageManager {
 class SettingsManager {
     constructor() {
         // No need for these properties anymore as we query all buttons directly
-    }
-
-    init() {
+    }    init() {
         document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -3846,12 +3821,8 @@ class SettingsManager {
             });
         });
 
-        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleAudio();
-            });
-        });
+        // Audio buttons are handled exclusively by DockManager to prevent double-fire.
+        // SettingsManager only updates the button UI state.
         
         this.updateThemeButton();
         this.updateAudioButton();
