@@ -198,6 +198,16 @@ class PerformanceManager {
     }
 
     applyPreset(preset) {
+        // --- MOBILE OPTIMIZATION: STRICT ENFORCEMENT ---
+        // If device is mobile and truly low-perf, disable high-end presets even if user clicks them.
+        if (this.hardware.isMobile && (this.hardware.tier === 'low' || this.hardware.score < 50)) {
+            if (preset !== 'low') {
+                console.warn('>> PERF: Blocked high-end preset on low-end mobile. Forcing LOW.');
+                preset = 'low';
+                // Show notification to user? Maybe too intrusive.
+            }
+        }
+
         this.currentPreset = preset;
         
         // --- MOBILE OPTIMIZATION: DOUBLE IF LOGIC ---
@@ -503,15 +513,31 @@ class PerformanceManager {
 
     init() {
         this.loadPreferences();
-        
-        // If no saved preferences, apply auto preset
-        if (!localStorage.getItem('performancePreset')) {
+
+        // STRICT ENFORCEMENT: If device is actually Low Tier (especially mobile), force 'low' preset
+        // irrespective of what might have been saved in localStorage previously, to ensure usability.
+        if (this.hardware.tier === 'low' || (this.hardware.isMobile && this.hardware.score < 50)) {
+            console.warn('>> PERF: Low-end device detected. Forcing LOW preset.');
+            this.currentPreset = 'low';
+            this.applyPreset('low');
+            // We do NOT save this forced preset to localStorage to avoid locking them forever if they upgrade device, 
+            // but for this session it is enforced. 
+            // Actually, for "obligatorily has to use", we just apply it.
+        } else if (!localStorage.getItem('performancePreset')) {
+             // If no saved preferences, apply auto preset
             this.applyPreset('auto');
         } else {
-            // Apply saved effects
-            Object.keys(this.effects).forEach(effect => {
-                this.toggleEffect(effect, this.effects[effect], false);
-            });
+             // Apply saved effects (but we already loaded them in loadPreferences, just need to apply)
+            // If the saved preset was 'custom', we need to apply individual effects.
+            // If it was a named preset, apply that.
+            if (this.currentPreset !== 'custom') {
+                 this.applyPreset(this.currentPreset);
+            } else {
+                 // Apply saved effects for custom
+                Object.keys(this.effects).forEach(effect => {
+                    this.toggleEffect(effect, this.effects[effect], false);
+                });
+            }
         }
         
         // Setup UI event listeners
@@ -680,6 +706,15 @@ class AudioManager {
                 this.mediaSource.connect(this.analyserNode);
                 this.analyserNode.connect(this.audioContext.destination);
                 console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
+
+                // Ensure visualizer is initialized with this analyser if visualizer exists and DOM is ready
+                try {
+                    if (typeof audioVisualizer !== 'undefined' && audioVisualizer && typeof audioVisualizer.init === 'function') {
+                        audioVisualizer.init(this);
+                    }
+                } catch (e) {
+                    console.warn('>> AUDIO: audioVisualizer.init() failed:', e);
+                }
             } catch (error) {
                 console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
             }
