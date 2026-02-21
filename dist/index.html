@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>KAITOARTZ // VR Developer & Tech Artist Portfolio</title>
-    
+
     <!-- SEO Meta Tags -->
     <meta name="description" content="Portfolio de KAITOARTZ - Desarrollador VR/AR especializado en experiencias inmersivas, shaders procedurales y visualización en tiempo real. Unity, Unreal Engine, WebGL.">
     <meta name="keywords" content="VR Developer, AR Developer, Unity Developer, Virtual Reality, Augmented Reality, 3D Artist, Shader Programming, WebGL, Tech Art, Immersive Experiences, KAITOARTZ">
     <meta name="author" content="KAITOARTZ">
     <meta name="robots" content="index, follow">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://kaitoartz.github.io/">
@@ -18,25 +18,25 @@
     <meta property="og:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
     <meta property="og:image" content="assets/projects/crehabitat.webp">
     <meta property="og:site_name" content="KAITOARTZ Portfolio">
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://kaitoartz.github.io/">
     <meta name="twitter:title" content="KAITOARTZ - VR Developer & Tech Artist">
     <meta name="twitter:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
     <meta name="twitter:image" content="assets/projects/crehabitat.webp">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta name="theme-color" content="#111111">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <!-- JSON-LD Structured Data for SEO -->
 <script type="application/ld+json">
@@ -56,7 +56,7 @@
       "description": "Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real."
     }
     </script>
-  <script type="module" crossorigin src="/assets/index-DLI2tKOH.js"></script>
+  <script type="module" crossorigin src="/assets/index-B9SklYUJ.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-kKWe7HyV.css">
 </head>
     <meta http-equiv="Content-Security-Policy" content="
@@ -69,9 +69,9 @@
         object-src 'none';
         frame-src 'self' https://player.vimeo.com https://www.youtube.com;
     ">
-    
+
 <body>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- OVERLAYS (Hyper Intro) -->
@@ -85,7 +85,7 @@
             <div class="intro-hud-top">
                 <span>SYS.READY</span>
                 <div class="intro-hud-line"></div>
-                
+
                 <!-- INTRO SPECIFIC DOCK (Integrated in HUD) -->
                 <div class="control-dock intro-dock collapsed" data-expanded="false">
                     <div class="dock-deco-start">
@@ -127,7 +127,7 @@
         <div class="intro-viewport" id="intro-viewport">
             <div class="intro-world" id="intro-world"></div>
         </div>
-        
+
         <!-- SCROLL PROXY (for Lenis) -->
         <div class="intro-scroll-proxy"></div>
     </div>
@@ -170,7 +170,7 @@
         <div class="settings-content">
             <!-- THEME SECTION -->
             <div class="setting-section-title">SYSTEM // VISUALS</div>
-            
+
             <div class="setting-item">
                 <label>COLOR THEME</label>
                 <div class="setting-buttons theme-buttons">
@@ -184,12 +184,12 @@
                         title="Pure White"></button>
                 </div>
             </div>
-            
+
             <div class="setting-separator"></div>
 
             <!-- PERFORMANCE SECTION -->
             <div class="setting-section-title">PERFORMANCE // EFFECTS</div>
-            
+
             <div class="setting-item">
                 <label>QUALITY PRESET</label>
                 <div class="setting-buttons preset-buttons">
@@ -201,36 +201,36 @@
                 </div>
                 <div class="hardware-info" id="hardwareInfo"></div>
             </div>
-            
+
             <div class="setting-section-title">VISUAL EFFECT CONTROL</div>
-            
+
             <!-- EFFECTS GRID SYSTEM -->
             <div class="effects-grid-container">
                 <button class="effect-tile effect-toggle" data-effect="matrixRain" data-state="on">
                     <i class="fa-solid fa-code"></i>
                     <span>MATRIX</span>
                 </button>
-                
+
                 <button class="effect-tile effect-toggle" data-effect="parallax" data-state="on">
                     <i class="fa-solid fa-layer-group"></i>
                     <span>PARALLAX</span>
                 </button>
-                
+
                 <button class="effect-tile effect-toggle" data-effect="cursorTrail" data-state="on">
                     <i class="fa-solid fa-arrow-pointer"></i>
                     <span>CURSOR</span>
                 </button>
-                
+
                 <button class="effect-tile effect-toggle" data-effect="scanlines" data-state="on">
                     <i class="fa-solid fa-tv"></i>
                     <span>SCANLINES</span>
                 </button>
-                
+
                 <button class="effect-tile effect-toggle" data-effect="glitch" data-state="on">
                     <i class="fa-solid fa-bolt"></i>
                     <span>GLITCH</span>
                 </button>
-                
+
                 <button class="effect-tile effect-toggle" data-effect="particles" data-state="on">
                     <i class="fa-solid fa-wind"></i>
                     <span>PARTICLES</span>
@@ -272,7 +272,7 @@
 
     <!-- MAIN DASHBOARD -->
     <main class="dashboard" id="main-content">
-        
+
         <!-- HEADER BLOCK -->
         <section class="grid-item header-block">
             <div class="corner top-left">+</div>
@@ -281,11 +281,11 @@
             <div class="corner bottom-right">+</div>
             <div class="tech-ruler top"></div>
             <div class="tech-ruler bottom"></div>
-            
+
             <!-- Hex Indicators -->
             <div class="hex-indicator" style="top: 20px; left: 20px;"></div>
             <div class="hex-indicator" style="bottom: 20px; left: 20px;"></div>
-            
+
             <div class="status-bar">
                 <span class="status-indicator"></span>
                 <span>ONLINE</span>
@@ -294,13 +294,13 @@
                 <span class="separator">|</span>
                 <span id="systemTime">00:00:00</span>
             </div>
-            
+
             <h1 class="main-title glitch" data-text="KAITOARTZ">KAITOARTZ</h1>
             <p class="main-subtitle" data-i18n="header.subtitle">VR DEVELOPER // TECH ARTIST // EGRESADO EN ARTES Y TECNOLOGÍAS DE
                 LA COMUNICACIÓN</p>
-            
+
             <div class="serial-number">S/N: KA-2026-BARCELONA-OP</div>
-            
+
             <div class="stats-row">
                 <div class="stat-box">
                     <span class="stat-value" data-count="48">10+</span>
@@ -338,18 +338,18 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
-            
+
             <!-- Diagonal Bars -->
             <div class="diagonal-bar" style="top: 10px; right: 10px;"></div>
             <div class="diagonal-bar" style="bottom: 10px; right: 30px;"></div>
-            
+
             <div class="block-label"><span data-i18n="info.label">SYSTEM_INFO</span> // <span class="label-code">v2.0.226</span>
             </div>
             <p class="info-text" data-i18n="info.text">
                 Desarrollador y artista técnico especializado en realidad virtual (VR) y experiencias inmersivas interactivas,
                 con más de 3 años de experiencia profesional en el uso de Unity para proyectos de carácter educativo y
                 de investigación. </p>
-            
+
             <div class="barcode">
                 <div class="bar"></div>
                 <div class="bar"></div>
@@ -370,7 +370,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <i class="fa-solid fa-gamepad link-icon"></i>
             <div class="link-title" data-i18n="link.portfolio">PORTFOLIO</div>
             <div class="link-subtitle">ITCH.IO</div>
@@ -384,7 +384,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <i class="fa-brands fa-github link-icon"></i>
             <div class="link-title" data-i18n="link.code">SOURCE_CODE</div>
             <div class="link-subtitle">GITHUB</div>
@@ -396,7 +396,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <i class="fa-solid fa-vr-cardboard link-icon"></i>
             <div class="link-title" data-i18n="link.vr">VR_PROJECTS</div>
             <div class="link-subtitle">SHOWCASE</div>
@@ -413,7 +413,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-        
+
             <i class="fa-solid fa-trophy link-icon" style="color: #FFD700;"></i>
             <div class="link-title">AWARDS</div>
             <div class="link-subtitle">RECOGNITION</div>
@@ -426,12 +426,12 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-        
+
             <div class="block-label glitch" data-text="ACTIVE_PROJECTS"><span data-i18n="projects.label">ACTIVE_PROJECTS</span>
                 //
                 <span class="label-code">ARCHIVE_07</span>
             </div>
-        
+
             <div class="project-filters" id="projectFilters">
                 <button class="filter-btn active" data-filter="all" data-i18n="filters.all">ALL</button>
                 <button class="filter-btn" data-filter="vr">VR</button>
@@ -440,7 +440,7 @@
                 <button class="filter-btn" data-filter="3d">3D</button>
                 <button class="filter-btn" data-filter="unreal">UNREAL</button>
             </div>
-        
+
             <div class="projects-grid" id="projectsGrid">
                 <!-- Projects will be added dynamically -->
             </div>
@@ -453,11 +453,11 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
-            
+
             <div class="block-label glitch" data-text="SKILLS_MATRIX"><span data-i18n="skills.label">SKILLS_MATRIX</span> // <span
                     class="label-code">v2.0.0</span></div>
-            
-            <div id="skillsGrid" class="skills-grid"> 
+
+            <div id="skillsGrid" class="skills-grid">
                 <!-- Dynamic Content generated by SkillsManager -->
             </div>
             <div class="skills-legend">
@@ -476,7 +476,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <div class="block-label">AUDIO_SPECTRUM // <span class="label-code">FFT_512</span></div>
             <canvas id="audioVisualizer" width="400" height="120" aria-label="Audio frequency spectrum visualizer" role="img"></canvas>
             <div class="visualizer-status">
@@ -491,7 +491,7 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
-            
+
             <div class="block-label glitch" data-text="EXPERIENCE_LOG"><span data-i18n="timeline.label">EXPERIENCE_LOG</span> //
                 <span class="label-code">TIMELINE</span>
             </div>
@@ -509,10 +509,10 @@
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
             <div class="scan-line"></div>
-            
+
             <div class="block-label glitch" data-text="CONTACT_FORM"><span data-i18n="contact.label">CONTACT_FORM</span> // <span
                     class="label-code">SECURE_CHANNEL</span></div>
-            
+
             <div class="contact-info-mini" style="margin-bottom: 15px; font-size: 0.9em; color: var(--text-dim);">
                 <div style="margin-bottom: 5px;"><i class="fa-solid fa-phone"
                         style="color: var(--accent-color); margin-right: 8px;"></i> +569 46817299</div>
@@ -532,25 +532,25 @@
                     <input type="text" id="contactName" name="name" required placeholder="John_Doe" data-i18n="placeholder.name">
                     <div class="form-error" id="nameError"></div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="contactEmail" data-i18n="contact.email">EMAIL_ADDRESS:</label>
                     <input type="email" id="contactEmail" name="email" required placeholder="user@domain.ext" data-i18n="placeholder.email">
                     <div class="form-error" id="emailError"></div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="contactMessage" data-i18n="contact.message">MESSAGE_PAYLOAD:</label>
                     <textarea id="contactMessage" name="message" required rows="4" placeholder="Enter transmission..."
                         data-i18n="placeholder.message"></textarea>
                     <div class="form-error" id="messageError"></div>
                 </div>
-                
+
                 <button type="submit" class="form-submit" id="submitBtn">
                     <span class="submit-icon">▶</span>
                     <span class="submit-text" data-i18n="contact.submit">TRANSMIT_DATA</span>
                 </button>
-                
+
                 <div class="form-status" id="formStatus"></div>
 
                 <p class="form-privacy-notice" style="margin-top:10px;font-size:0.75rem;color:var(--text-dim);opacity:0.7;">
@@ -566,11 +566,11 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <!-- Console Hex Decorations -->
             <div class="hex-small" style="top: 15px; right: 15px;"></div>
             <div class="hex-small" style="bottom: 15px; left: 15px;"></div>
-            
+
             <div class="block-label">SYSTEM_CONSOLE</div>
             <div class="console-feed" id="consoleFeed"></div>
         </section>
@@ -583,7 +583,7 @@
             <div class="corner top-right">+</div>
             <div class="corner bottom-left">+</div>
             <div class="corner bottom-right">+</div>
-            
+
             <div class="footer-content">
                 <span>© 2026 KAITOARTZ</span>
                 <span class="separator">|</span>
@@ -611,7 +611,7 @@
     <div class="tech-background">
         <!-- Grid 3D Background -->
         <div class="grid-3d"></div>
-        
+
         <!-- Floating Geometric Elements -->
         <div class="geo-elements">
             <div class="geo-circle geo-1"></div>
@@ -621,7 +621,7 @@
             <div class="geo-triangle triangle-1"></div>
             <div class="geo-triangle triangle-2"></div>
         </div>
-        
+
         <!-- Barcode Elements -->
         <div class="barcode-decorative barcode-1">
             <div class="barcode-bars">
@@ -632,7 +632,7 @@
             </div>
             <div class="barcode-number">KA-0226-MX07-001</div>
         </div>
-        
+
         <div class="barcode-decorative barcode-2">
             <div class="barcode-bars vertical">
                 <span></span><span></span><span class="wide"></span>
@@ -641,31 +641,31 @@
             </div>
             <div class="barcode-number">NODE_07_SYS</div>
         </div>
-        
+
         <!-- Technical Text Overlays -->
         <div class="tech-overlay overlay-1">
             <div class="tech-label">LATITUDE: 33.5102° S</div>
             <div class="tech-label">LONGITUDE: 70.7523° W</div>
             <div class="tech-label">ALT: 520M</div>
         </div>
-        
+
         <div class="tech-overlay overlay-2">
             <div class="tech-label">TIMESTAMP: <span id="techTimestamp">00:00:00</span></div>
             <div class="tech-label">SESSION: ACTIVE</div>
             <div class="tech-label">UPTIME: <span id="uptimeCounter">00:00</span></div>
         </div>
-        
+
         <div class="tech-overlay overlay-3">
             <div class="tech-label">0x4B4149544F</div>
             <div class="tech-label">0x415254535F</div>
             <div class="tech-label">0x303732360A</div>
         </div>
-        
+
         <!-- Measurement Lines -->
         <div class="measurement-line line-1"></div>
         <div class="measurement-line line-2"></div>
         <div class="measurement-line line-3"></div>
-        
+
         <!-- Corner Brackets -->
         <div class="corner-bracket bracket-tl"></div>
         <div class="corner-bracket bracket-tr"></div>
@@ -679,17 +679,17 @@
         <!-- Expected file: warning_label.png -->
         <!-- <img src="assets/decals/warning_label.png" class="tech-sticker sticker-header-warning" alt="Warning Label"
             width="200" height="100" loading="lazy"> -->
-    
+
         <!-- SIDEBAR STICKER: "Removable" or Arrow near social links -->
         <!-- Expected file: arrow_ui.png -->
         <!-- <img src="assets/decals/arrow_ui.png" class="tech-sticker sticker-sidebar-arrow" alt="Direction Arrow"
             width="100" height="100" loading="lazy"> -->
-    
+
         <!-- INFO STICKER: "Datacorp" or "Specs" style sticker near intro text -->
         <!-- Expected file: data_badge.png -->
         <!-- <img src="assets/decals/data_badge.png" class="tech-sticker sticker-info-badge" alt="Data Badge"
             width="150" height="150" loading="lazy"> -->
-    
+
         <!-- FOOTER STICKER: "Hacked" or "Void" sticker -->
         <div class="tech-hacked-label sticker-footer-hacked" role="img" aria-label="Hacked Label">
             <div class="hacked-outline"></div>
@@ -700,7 +700,7 @@
         <!-- Expected file: sticker_neon.png (The yellow/green ones) -->
         <!-- <img src="assets/decals/sticker_neon.png" class="tech-sticker sticker-neon-floating" alt="Neon Badge"
             width="120" height="120" loading="lazy"> -->
-    
+
         <!-- Expected file: sticker_alert.png (The red ones) -->
         <!-- <img src="assets/decals/sticker_alert.png" class="tech-sticker sticker-alert-side" alt="Alert Label"
             width="100" height="100" loading="lazy"> -->
@@ -711,14 +711,14 @@
     <div class="procedural-tech-layer">
         <!-- WIDGET GROUP: TOP RIGHT (System Status) -->
         <div class="tech-widget-cluster top-right-cluster">
-    
+
             <!-- 1. BATTERY (Relocated) -->
             <div class="tech-battery-widget">
                 <div class="bat-level"></div>
                 <div class="bat-icon"><i class="fa-solid fa-bolt"></i></div>
                 <div class="bat-text">PWR_LVL</div>
             </div>
-    
+
             <!-- 2. CPU CORE MONITOR -->
             <div class="tech-cpu-monitor">
                 <div class="cpu-label">CORE_LOAD</div>
@@ -750,7 +750,7 @@
                     <span></span><span></span><span></span>
                 </div>
             </div>
-    
+
             <!-- 5. VERTICAL DECO BARCODE -->
             <div class="tech-vert-barcode"></div>
         </div>
@@ -821,14 +821,14 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-    
+
             <div class="video-container relative">
                 <!-- CRT Overlay Effects -->
                 <div class="crt-overlay pointer-events-none absolute inset-0 z-20">
                     <div class="scanline"></div>
                     <div class="noise"></div>
                 </div>
-    
+
                 <!-- System Initializing Overlay -->
                 <div id="videoLoading" class="video-loader">
                     <div class="video-loader-content">
@@ -838,11 +838,11 @@
                         </div>
                     </div>
                 </div>
-    
+
                 <iframe id="vimeoPlayer" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
                     class="w-full aspect-video z-0"></iframe>
             </div>
-    
+
             <div class="modal-footer mt-4 flex justify-between items-center text-xs text-cyan-400 font-mono">
                 <span>// CONNECTION_SECURE</span>
                 <span>VR_MODULE_V1.0</span>
@@ -852,8 +852,8 @@
 
     <!-- LENIS FOR SMOOTH SCROLL (Hyper Intro) -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
+
     </div>
 
     </div>
