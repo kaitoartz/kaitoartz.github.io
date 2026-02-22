@@ -996,7 +996,8 @@ class HyperScrollIntro {
 
         if (!this.isVirtualMode) {
             // PHYSICAL MODE: USamos Lenis con scroll real
-            if (typeof Lenis !== 'undefined') {
+            // OPTIMIZATION: Disable Lenis on mobile for better performance (Native Scroll)
+            if (typeof Lenis !== 'undefined' && !isMobileBrowser) {
                 this.lenis = new Lenis({
                     smooth: true,
                     lerp: 0.08,
@@ -1014,13 +1015,31 @@ class HyperScrollIntro {
                 });
             } else {
                 // Mobile Fallback: Use manual scroll listener
-                window.addEventListener('scroll', () => {
+                // 1. Enable native scrolling by removing lock
+                document.body.classList.remove('no-scroll');
+                document.documentElement.classList.remove('no-scroll');
+
+                // 2. Setup proxy for scroll height
+                const proxy = document.querySelector('.intro-scroll-proxy');
+                if (proxy) {
+                    // Move proxy to body to ensure it stretches the window
+                    document.body.appendChild(proxy);
+                    proxy.style.position = 'relative';
+                    proxy.style.top = '0';
+                    proxy.style.width = '1px';
+                    proxy.style.height = (this.config.loopSize + window.innerHeight) + 'px';
+                    proxy.style.display = 'block';
+                    proxy.style.zIndex = '-9999';
+                }
+
+                this.handleScroll = () => {
                     if (this.state.active && !this.state.warping) {
                         const scrollPos = window.pageYOffset || document.documentElement.scrollTop;
                         this.state.targetSpeed = (scrollPos - this.state.scroll) * 0.5;
                         this.state.scroll = scrollPos;
                     }
-                }, { passive: true });
+                };
+                window.addEventListener('scroll', this.handleScroll, { passive: true });
             }
         } else {
             // VIRTUAL MODE: No instantiation of Lenis or Scroll Listeners on window
@@ -1290,6 +1309,17 @@ class HyperScrollIntro {
         }
         if (this.handleResize) window.removeEventListener('resize', this.handleResize);
         if (this.handleWheel) window.removeEventListener('wheel', this.handleWheel);
+        if (this.handleScroll) window.removeEventListener('scroll', this.handleScroll);
+
+        // Restore proxy to layer if it was moved to body (Mobile Fallback cleanup)
+        const layer = document.getElementById('hyper-intro-layer');
+        const proxy = document.querySelector('.intro-scroll-proxy');
+        if (proxy && layer && proxy.parentNode === document.body) {
+            layer.appendChild(proxy);
+            proxy.style.position = '';
+            proxy.style.height = '';
+            proxy.style.zIndex = '';
+        }
     }
 }
 
