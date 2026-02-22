@@ -3374,9 +3374,13 @@ class MatrixRain {
     resize() {
         // Optimize resolution for mobile/low-end
         const preset = performanceManager.currentPreset;
+        const tier = performanceManager.hardware.tier;
+        // Determine effective low mode (explicit low OR auto+low tier)
+        const isLow = preset === 'low' || (preset === 'auto' && tier === 'low');
+
         let scale = 1;
 
-        if (preset === 'low') {
+        if (isLow) {
             scale = 0.5; // Reduce resolution by half for low performance mode
         } else if (performanceManager.hardware.isMobile) {
             scale = 1;
