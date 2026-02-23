@@ -56,8 +56,8 @@
       "description": "Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real."
     }
     </script>
-  <script type="module" crossorigin src="/assets/index-B9SklYUJ.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-kKWe7HyV.css">
+  <script type="module" crossorigin src="/assets/index-1b63uS5n.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-3LzmUByC.css">
 </head>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
@@ -96,7 +96,7 @@
                     <button class="dock-btn theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
                         <i class="fa-solid fa-sun theme-icon"></i>
                     </button>
-                    <button class="dock-btn audio-toggle-btn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
+                    <button class="dock-btn audio-toggle-btn active" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
                         <i class="fa-solid fa-volume-high audio-icon"></i>
                     </button>
                     <div class="dock-deco-end">
@@ -113,12 +113,8 @@
             </div>
             <div class="intro-hud-bottom">
                 <span class="hud-metric hud-coord">COORD: <strong id="intro-coord">000.000</strong></span>
-                <div class="intro-hud-line"></div>
-                <button id="enterSystemBtn" class="enter-system-btn">
+                <div class="intro-hud-line"></div>                <button id="enterSystemBtn" class="enter-system-btn">
                     [ ENTER_SYSTEM ]
-                </button>
-                <button id="skipIntroBtn" class="enter-system-btn" style="margin-left:10px;font-size:0.8rem;opacity:0.7;">
-                    [ SKIP_INTRO ]
                 </button>
             </div>
         </div>
@@ -146,13 +142,15 @@
             </button>
             <button class="dock-btn audio-toggle-btn" title="Toggle Audio [CTRL+M]" aria-label="Toggle Audio">
                 <i class="fa-solid fa-volume-high audio-icon"></i>
-            </button>
-            <button class="dock-btn lang-toggle-btn" title="Language / Idioma" aria-label="Toggle Language">
+            </button>            <button class="dock-btn lang-toggle-btn" title="Language / Idioma" aria-label="Toggle Language">
                 <span class="lang-text">ES</span>
             </button>
             <div class="dock-separator"></div>
-            <button class="dock-btn settings-toggle-btn" id="burgerMenu" title="Settings" aria-label="Open Settings">
+            <button class="dock-btn config-open-btn" id="configOpenBtn" title="Open Settings Panel" aria-label="Open Settings Panel" aria-expanded="false">
                 <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="dock-btn settings-toggle-btn" id="burgerMenu" title="Toggle Dock" aria-label="Toggle Dock">
+                <i class="fa-solid fa-sliders"></i>
             </button>
             <div class="dock-deco-end">
                 <span class="dock-label-min">SYS</span>
