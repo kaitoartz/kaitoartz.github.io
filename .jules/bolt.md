@@ -21,3 +21,7 @@
 ## 2025-02-23 - Dirty Checking in RAF Loops
 **Learning:** Updating DOM properties like `style.opacity` or `style.transform` every frame, even with the same value, triggers browser work (style recalc). In scenes with many objects (like the Intro sequence), this adds up.
 **Action:** Cache the last applied value (e.g., `item.currentAlpha`) and strictly compare it with the new value before writing to the DOM. Use `Math.abs(diff) > epsilon` for floats to avoid noise.
+
+## 2025-02-23 - Disable Lenis on Mobile
+**Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
+**Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
