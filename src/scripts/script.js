@@ -27,8 +27,9 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    update(time) {
+        // PERF: Use RAF time instead of calling performance.now()
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -931,7 +932,8 @@ class HyperScrollIntro {
                     x: 0, y: 0, rot: 0,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
-                    currentTrans: null
+                    currentTrans: null,
+                    currentTextShadow: null
                 });
             } else {
                 const card = document.createElement('div');
@@ -1102,6 +1104,13 @@ class HyperScrollIntro {
     startLoop() {
         let lastTime = 0;
 
+        // Cache values for DOM dirty checking
+        let lastFps = '';
+        let lastVel = '';
+        let lastCoord = '';
+        let lastWorldTransform = '';
+        let lastPerspective = '';
+
         const loop = (time) => {
             if (!this.state.active) return;
             
@@ -1117,10 +1126,22 @@ class HyperScrollIntro {
             
             // HUD Updates Throttled
             if (this.frameCount % 10 === 0) {
-                if (this.feedbackFPS) this.feedbackFPS.innerText = fps;
-                if (this.feedbackVel) this.feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+                // Use textContent instead of innerText to prevent expensive reflows
+                if (this.feedbackFPS && fps !== lastFps) {
+                    this.feedbackFPS.textContent = fps;
+                    lastFps = fps;
+                }
+                const currentVel = Math.abs(this.state.velocity).toFixed(2);
+                if (this.feedbackVel && currentVel !== lastVel) {
+                    this.feedbackVel.textContent = currentVel;
+                    lastVel = currentVel;
+                }
                 if (this.feedbackCoord) {
-                    this.feedbackCoord.innerText = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
+                    const currentCoord = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
+                    if (currentCoord !== lastCoord) {
+                        this.feedbackCoord.textContent = currentCoord;
+                        lastCoord = currentCoord;
+                    }
                 }
             }
 
@@ -1169,14 +1190,22 @@ class HyperScrollIntro {
                 const tiltX = (this.state.mouseY * tiltScale - this.state.velocity * 0.2);
                 const tiltY = (this.state.mouseX * tiltScale);
 
-                this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                const newTransform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                if (newTransform !== lastWorldTransform) {
+                    this.world.style.transform = newTransform;
+                    lastWorldTransform = newTransform;
+                }
             }
 
             // 2. Dynamic Perspective (Warp)
             if (this.viewport && this.isHyperEnabled) {
                 const baseFov = 1000;
                 const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-                this.viewport.style.perspective = `${fov}px`;
+                const newPerspective = `${fov}px`;
+                if (newPerspective !== lastPerspective) {
+                    this.viewport.style.perspective = newPerspective;
+                    lastPerspective = newPerspective;
+                }
             }
 
             // 3. Item Loop (Optimized Infinite Scroll)
@@ -1210,11 +1239,14 @@ class HyperScrollIntro {
                     } else if (item.type === 'text') {
                         trans += ` rotateZ(${item.rot}deg)`;
                         // RGB Split effect (Hyper ONLY)
+                        let newTextShadow = 'none';
                         if (this.isHyperEnabled && Math.abs(this.state.velocity) > 1) {
                             const offset = this.state.velocity * 1.5;
-                            item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                        } else {
-                            item.el.style.textShadow = 'none';
+                            newTextShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
+                        }
+                        if (item.currentTextShadow !== newTextShadow) {
+                            item.el.style.textShadow = newTextShadow;
+                            item.currentTextShadow = newTextShadow;
                         }
                     } else {
                         // Card Logic
