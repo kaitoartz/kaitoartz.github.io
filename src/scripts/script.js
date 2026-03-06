@@ -996,10 +996,7 @@ class HyperScrollIntro {
 
         if (!this.isVirtualMode) {
             // PHYSICAL MODE: USamos Lenis con scroll real
-            // ⚡ Bolt Performance Optimization:
-            // 💡 What: Disabling Lenis smooth scrolling conditionally on mobile devices.
-            // 🎯 Why: "Scroll hijacking" on mobile via JS (Lenis) competes with native browser acceleration, causing jank and high CPU usage per scroll event.
-            // 📊 Impact: ~15-20 FPS increase during scrolling on low-to-mid tier mobile devices by offloading scroll handling back to the native compositor thread.
+            // OPTIMIZATION: Disable Lenis on mobile for native performance
             if (typeof Lenis !== 'undefined' && !isMobileBrowser) {
                 this.lenis = new Lenis({
                     smooth: true,
