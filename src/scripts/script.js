@@ -774,44 +774,20 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
-    addHoverListeners(root) {
-        const selector = 'a, button, input, textarea, .project-card, .filter-btn';
-
-        // Helper to attach listener safely
-        const attach = (el) => {
-            el.removeEventListener('mouseenter', this.boundPlayHover);
-            el.addEventListener('mouseenter', this.boundPlayHover);
-        };
-
-        // If the root element itself matches
-        if (root.matches && root.matches(selector)) {
-            attach(root);
-        }
-
-        // Find all matching children
-        if (root.querySelectorAll) {
-            root.querySelectorAll(selector).forEach(attach);
-        }
-    }
-
     attachGlobalListeners() {
-        // Universal Hover - Optimized with MutationObserver and direct listeners
-        this.addHoverListeners(document);
+        // Universal Hover - Optimized with global event delegation (replaces MutationObserver)
+        const selector = 'a, button, input, textarea, .project-card, .filter-btn';
+        this.lastHoveredTarget = null;
 
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Element
-                        this.addHoverListeners(node);
-                    }
-                });
-            });
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest(selector);
+            if (target && target !== this.lastHoveredTarget) {
+                this.lastHoveredTarget = target;
+                this.playHover();
+            } else if (!target) {
+                this.lastHoveredTarget = null;
+            }
         });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-
-        // Typing Sound Generators
-        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
 
         // Delegate for dynamic elements (like terminal)
         document.addEventListener('input', (e) => {
