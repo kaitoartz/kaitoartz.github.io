@@ -7242,3 +7242,8 @@ body.light-theme .modal-title {
 body.light-theme .modal-close {
     color: #555;
 }
+
+@media (hover: none) {
+    .project-overlay { opacity: 1; background: rgba(0, 0, 0, 0.4); }
+    .project-card .view-project-btn { transform: translateY(0); }
+}

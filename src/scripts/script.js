@@ -2899,7 +2899,7 @@ class AwardsManager {
                 color: '#FFD700'
             },
             {
-                title: 'CREHA BITAT',
+                title: 'CREHABITAT',
                 event: 'SOCIAL IMPACT JAM 2024',
                 rank: '2ND PLACE',
                 description: 'Recognition for social impact and educational value in video games.',
@@ -3258,7 +3258,7 @@ class TimelineManager {
                 date: { es: 'MAY 2024 - MAY 2024', en: 'MAY 2024 - MAY 2024' },
                 title: { es: 'Desarrollador de Videojuegos', en: 'Game Developer' },
                 company: { es: 'KUWALA', en: 'KUWALA' },
-                description: { es: 'Desarrollo de "Creha Bitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.', en: 'Development of "Creha Bitat", 2nd Place winner at Social Impact Game Jam 2024.' }
+                description: { es: 'Desarrollo de "Crehabitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.', en: 'Development of "Crehabitat", 2nd Place winner at Social Impact Game Jam 2024.' }
             },
             {
                 date: { es: 'ABR 2022 - ABR 2024', en: 'APR 2022 - APR 2024' },
@@ -4010,10 +4010,15 @@ class ProjectLightboxManager {
             if (e.target === this.lightbox) this.close();
         });
 
-        // Add click handlers to project images
+        // Add click handlers to project images and overlays
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('project-image')) {
                 this.open(e.target.src);
+            } else if (e.target.classList.contains('project-overlay')) {
+                const img = e.target.previousElementSibling;
+                if (img && img.classList.contains('project-image')) {
+                    this.open(img.src);
+                }
             }
         });
     }
@@ -4036,7 +4041,7 @@ class ProjectLightboxManager {
 const projectsData = [
     {
         id: '01',
-        title: 'CREHA_BITACORA',
+        title: 'CREHABITAT',
         category: 'unity',
         description: { es: 'Juego educativo sobre corredores biológicos.', en: 'Educational game about biological corridors.' },
         image: ASSET_PATH + 'projects/crehabitat.webp',
@@ -4072,7 +4077,7 @@ const projectsData = [
     },
     {
         id: '04',
-        title: 'PORTAL_JUEGOS',
+        title: 'PORTAL_GAMES',
         category: 'web',
         description: { es: 'Portal Web de Juegos Educativos.', en: 'Educational Games Web Portal.' },
         image: ASSET_PATH + 'projects/IstGames.webp',
@@ -4081,39 +4086,12 @@ const projectsData = [
     },
     {
         id: '05',
-        title: 'METAVERSE_AVATAR',
-        category: '3d',
-        description: { es: 'Sistema de avatar de alta fidelidad con captura facial.', en: 'High-fidelity avatar system with facial tracking.' },
-        image: 'https://placehold.co/600x400/111/39FF14?text=METAVERSE',
-        tech: ['BLENDER', 'UNITY', 'LIP_SYNC'],
-        link: '#'
-    },
-    {
-        id: '06',
-        title: 'WEBGL_PORTFOLIO',
-        category: 'web',
-        description: { es: 'Portafolio inmersivo en 3D usando WebGL.', en: 'Immersive 3D portfolio using WebGL.' },
-        image: 'https://placehold.co/600x400/111/39FF14?text=WEBGL',
-        tech: ['THREE.JS', 'REACT', 'WEBGL'],
-        link: '#'
-    },
-    {
-        id: '07',
         title: 'DARALI_DEVEL',
         category: 'unreal',
         description: { es: 'Proyecto de desarrollo de juego de terror.', en: 'Horror game development project.' },
         image: 'https://img.itch.zone/aW1hZ2UvMzEzNzgyMi8xOTA2NjM0OC5qcGc=/original/%2Bw3lwe.jpg',
         tech: ['UNREAL_ENGINE', 'C++', 'HORROR'],
         link: 'https://corejeux.itch.io/darali-devel'
-    },
-    {
-        id: '08',
-        title: 'UNITY_OPTIMIZER',
-        category: '3d',
-        description: { es: 'Suite colaborativa para gestión y optimización de assets.', en: 'Open Source suite for asset management. Reduces import times by 40%. Rated 4.8/5.' },
-        image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
-        tech: ['TOOLING', 'C#', 'EDITOR_SCRIPTING'],
-        link: 'https://github.com/kaitoartz'
     }
 ];
 
@@ -4167,7 +4145,7 @@ class ProjectManager {
                          decoding="async"
                          onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
-                        <button class="view-project-btn" onclick="audioManager.playClick(); window.open('${proj.link}', '_blank')">VIEW_DATA</button>
+                        <a href="${proj.link !== '#' ? proj.link : 'javascript:void(0)'}" target="${proj.link !== '#' ? '_blank' : '_self'}" class="view-project-btn" style="text-decoration: none; display: inline-block;">VIEW_DATA</a>
                     </div>
                 </div>
                 <div class="project-info">
@@ -4183,6 +4161,16 @@ class ProjectManager {
                 </div>
             </div>
         `).join('');
+
+        // Attach click handlers properly instead of inline 'onclick'
+        this.container.querySelectorAll('.view-project-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Avoid triggering lightbox immediately
+                if(typeof audioManager !== 'undefined') {
+                    audioManager.playClick();
+                }
+            });
+        });
     }
 
     setFilter(filter) {
