@@ -960,6 +960,8 @@ class HyperScrollIntro {
 
                 this.items.push({
                     el, type: 'card',
+                    cardEl: card,
+                    isCardActive: false,
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
@@ -1118,10 +1120,10 @@ class HyperScrollIntro {
             
             // HUD Updates Throttled
             if (this.frameCount % 10 === 0) {
-                if (this.feedbackFPS) this.feedbackFPS.innerText = fps;
-                if (this.feedbackVel) this.feedbackVel.innerText = Math.abs(this.state.velocity).toFixed(2);
+                if (this.feedbackFPS) this.feedbackFPS.textContent = fps;
+                if (this.feedbackVel) this.feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
                 if (this.feedbackCoord) {
-                    this.feedbackCoord.innerText = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
+                    this.feedbackCoord.textContent = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
                 }
             }
 
@@ -1221,10 +1223,13 @@ class HyperScrollIntro {
                         // Card Logic
                         if (this.isHyperEnabled) {
                             // AUTO-ANIMATION: Trigger .is-active when card is in focus range
-                            const cardEl = item.el.querySelector('.intro-card');
+                            const cardEl = item.cardEl;
                             if (cardEl) {
                                 const isInFocus = vizZ > -400 && vizZ < 400;
-                                cardEl.classList.toggle('is-active', isInFocus);
+                                if (isInFocus !== item.isCardActive) {
+                                    cardEl.classList.toggle('is-active', isInFocus);
+                                    item.isCardActive = isInFocus;
+                                }
                             }
 
                             const t = time * 0.001;

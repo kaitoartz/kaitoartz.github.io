@@ -25,3 +25,6 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+## 2024-05-20 - Expensive DOM Query in rAF Loop
+**Learning:** Found a severe performance bottleneck where `querySelector('.intro-card')` was executed per item every frame (~1200+ calls/sec) inside `HyperScrollIntro.startLoop()`. This is a classic anti-pattern for canvas/animation loops.
+**Action:** Always cache DOM elements like `cardEl` during initialization (`createWorld`) instead of querying them inside `requestAnimationFrame`. Use state tracking flags (e.g., `isCardActive`) to avoid redundantly setting identical DOM classes every frame.
