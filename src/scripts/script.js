@@ -3219,89 +3219,94 @@ class TimelineManager {
     constructor() {
         this.experiences = [
             {
-                date: 'OCT 2025 - PRESENT',
-                title: 'Desarrollador Unity',
-                company: 'IST (Instituto de Seguridad del Trabajo)',
-                description: 'Desarrollo de proyectos de Realidad Virtual y creación de Experiencias Inmersivas.'
+                date: { es: 'OCT 2025 - PRESENTE', en: 'OCT 2025 - PRESENT' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'IST (Instituto de Seguridad del Trabajo)', en: 'IST (Work Safety Institute)' },
+                description: { es: 'Desarrollo de proyectos de Realidad Virtual y creación de Experiencias Inmersivas.', en: 'Development of Virtual Reality projects and creation of Immersive Experiences.' }
             },
             {
-                date: 'AGO 2025 - AGO 2025',
-                title: 'Diseñador de Videojuegos',
-                company: 'SANDA (SANDA GAME JAM)',
-                description: 'Desarrollo de NOVA. 1er Lugar Mejor Atmósfera/Narrativa. Menciones honoríficas en UI y Equipo Inclusivo.'
+                date: { es: 'AGO 2025 - AGO 2025', en: 'AUG 2025 - AUG 2025' },
+                title: { es: 'Diseñador de Videojuegos', en: 'Game Designer' },
+                company: { es: 'SANDA (SANDA GAME JAM)', en: 'SANDA (SANDA GAME JAM)' },
+                description: { es: 'Desarrollo de NOVA. 1er Lugar Mejor Atmósfera/Narrativa. Menciones honoríficas en UI y Equipo Inclusivo.', en: 'Development of NOVA. 1st Place Best Atmosphere/Narrative. Honorable mentions in UI and Inclusive Team.' }
             },
             {
-                date: 'AGO 2025 - AGO 2025',
-                title: 'Programador Informático',
-                company: 'WOMEN GAME JAM CHILE',
-                description: 'Desarrollo de "Be The Hero" en 48 horas. Exploración de dilemas éticos y trabajo colaborativo.'
+                date: { es: 'AGO 2025 - AGO 2025', en: 'AUG 2025 - AUG 2025' },
+                title: { es: 'Programador Informático', en: 'Software Programmer' },
+                company: { es: 'WOMEN GAME JAM CHILE', en: 'WOMEN GAME JAM CHILE' },
+                description: { es: 'Desarrollo de "Be The Hero" en 48 horas. Exploración de dilemas éticos y trabajo colaborativo.', en: 'Development of "Be The Hero" in 48 hours. Exploration of ethical dilemmas and collaborative work.' }
             },
             {
-                date: 'FEB 2025 - JUN 2025',
-                title: 'Unity VR Dev & Animation',
-                company: 'STAFFY LTDA.',
-                description: 'Frameworks VR para MetaQuest 3. Optimización técnica, modelado 3D (Blender) y liderazgo de proyectos.'
+                date: { es: 'FEB 2025 - JUN 2025', en: 'FEB 2025 - JUN 2025' },
+                title: { es: 'Unity VR Dev & Animación', en: 'Unity VR Dev & Animation' },
+                company: { es: 'STAFFY LTDA.', en: 'STAFFY LTDA.' },
+                description: { es: 'Frameworks VR para MetaQuest 3. Optimización técnica, modelado 3D (Blender) y liderazgo de proyectos.', en: 'VR Frameworks for MetaQuest 3. Technical optimization, 3D modeling (Blender) and project leadership.' }
             },
             {
-                date: 'MAR 2021 - DIC 2025',
-                title: 'Licenciatura en Artes y Tecnologías',
-                company: 'UNIACC',
-                description: 'Comunicador Digital: Diseño y Desarrollo de Videojuegos. Formación en arte, tecnologías y gestión de proyectos.'
+                date: { es: 'MAR 2021 - DIC 2025', en: 'MAR 2021 - DEC 2025' },
+                title: { es: 'Licenciatura en Artes y Tecnologías', en: 'Bachelor in Arts and Technologies' },
+                company: { es: 'UNIACC', en: 'UNIACC' },
+                description: { es: 'Comunicador Digital: Diseño y Desarrollo de Videojuegos. Formación en arte, tecnologías y gestión de proyectos.', en: 'Digital Communicator: Game Design and Development. Training in art, technologies, and project management.' }
             },
             {
-                date: 'JUL 2024 - OCT 2024',
-                title: 'Unity Developer',
-                company: 'DREAMS OF HEAVEN',
-                description: 'Desarrollo multiplataforma, C#, herramientas de editor y plugins personalizados para optimización de flujos.'
+                date: { es: 'JUL 2024 - OCT 2024', en: 'JUL 2024 - OCT 2024' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'DREAMS OF HEAVEN', en: 'DREAMS OF HEAVEN' },
+                description: { es: 'Desarrollo multiplataforma, C#, herramientas de editor y plugins personalizados para optimización de flujos.', en: 'Cross-platform development, C#, editor tools and custom plugins for workflow optimization.' }
             },
             {
-                date: 'MAY 2024 - MAY 2024',
-                title: 'Desarrollador de Videojuegos',
-                company: 'KUWALA',
-                description: 'Desarrollo de "Creha Bitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.'
+                date: { es: 'MAY 2024 - MAY 2024', en: 'MAY 2024 - MAY 2024' },
+                title: { es: 'Desarrollador de Videojuegos', en: 'Game Developer' },
+                company: { es: 'KUWALA', en: 'KUWALA' },
+                description: { es: 'Desarrollo de "Creha Bitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.', en: 'Development of "Creha Bitat", 2nd Place winner at Social Impact Game Jam 2024.' }
             },
             {
-                date: 'ABR 2022 - ABR 2024',
-                title: 'Técnico Informático',
-                company: 'DUST2.GG',
-                description: 'Distribución de componentes gaming y soluciones tecnológicas. Soporte y hardware.'
+                date: { es: 'ABR 2022 - ABR 2024', en: 'APR 2022 - APR 2024' },
+                title: { es: 'Técnico Informático', en: 'IT Technician' },
+                company: { es: 'DUST2.GG', en: 'DUST2.GG' },
+                description: { es: 'Distribución de componentes gaming y soluciones tecnológicas. Soporte y hardware.', en: 'Distribution of gaming components and technological solutions. Hardware and support.' }
             },
             {
-                date: 'ENE 2021 - NOV 2021',
-                title: 'Barista',
-                company: 'TAVELLI',
-                description: 'Gestión de comandas y atención al cliente. Coordinación multidisciplinaria.'
+                date: { es: 'ENE 2021 - NOV 2021', en: 'JAN 2021 - NOV 2021' },
+                title: { es: 'Barista', en: 'Barista' },
+                company: { es: 'TAVELLI', en: 'TAVELLI' },
+                description: { es: 'Gestión de comandas y atención al cliente. Coordinación multidisciplinaria.', en: 'Order management and customer service. Multidisciplinary coordination.' }
             },
              {
-                date: 'SEP 2020 - SEP 2020',
-                title: 'Desarrollador Unity',
-                company: 'FFSTUDIOS SPA',
-                description: 'Desarrollo de "Shape Kisser", 2º Lugar en Game Jam Online 2020. Mecánicas de puzzle inclusivas.'
+                date: { es: 'SEP 2020 - SEP 2020', en: 'SEP 2020 - SEP 2020' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'FFSTUDIOS SPA', en: 'FFSTUDIOS SPA' },
+                description: { es: 'Desarrollo de "Shape Kisser", 2º Lugar en Game Jam Online 2020. Mecánicas de puzzle inclusivas.', en: 'Development of "Shape Kisser", 2nd Place at Game Jam Online 2020. Inclusive puzzle mechanics.' }
             },
             {
-                date: 'DIC 2021 - DIC 2022',
-                title: 'Informática y Comunicaciones',
-                company: 'DESAFÍO LATAM',
-                description: 'Associate\'s degree. Fundamentos de desarrollo web y flujos de trabajo.'
+                date: { es: 'DIC 2021 - DIC 2022', en: 'DEC 2021 - DEC 2022' },
+                title: { es: 'Informática y Comunicaciones', en: 'IT and Communications' },
+                company: { es: 'DESAFÍO LATAM', en: 'DESAFÍO LATAM' },
+                description: { es: 'Associate\'s degree. Fundamentos de desarrollo web y flujos de trabajo.', en: 'Associate\'s degree. Web development fundamentals and workflows.' }
             }
         ];
     }
 
     init() {
         this.render();
+        document.addEventListener('languageChanged', () => this.render());
     }
 
     render() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
         
+        const lang = typeof languageManager !== 'undefined' ? languageManager.currentLang : 'es';
+
         container.innerHTML = this.experiences.map(exp => `
             <div class="timeline-item" style="opacity: 0; transform: translateX(-20px);">
                 <div class="timeline-dot"></div>
-                <div class="timeline-date">${exp.date}</div>
-                <div class="timeline-title">${exp.title}</div>
-                <div class="timeline-company">${exp.company}</div>
-                <div class="timeline-description">${exp.description}</div>
+                <div class="timeline-date">${exp.date[lang] || exp.date.es}</div>
+                <div class="timeline-content">
+                    <h3 class="timeline-title">${exp.title[lang] || exp.title.es}</h3>
+                    <div class="timeline-company">${exp.company[lang] || exp.company.es}</div>
+                    <p class="timeline-desc">${exp.description[lang] || exp.description.es}</p>
+                </div>
             </div>
         `).join('');
 
@@ -3803,6 +3808,57 @@ class BurgerMenuManager {
 }
 
 // ========== LANGUAGE MANAGER ==========
+const translations = {
+    es: {
+        "header.subtitle": "VR DEVELOPER // TECH ARTIST // EGRESADO EN ARTES Y TECNOLOGÍAS DE LA COMUNICACIÓN",
+        "stats.projects": "PROYECTOS",
+        "stats.colabs": "COLAB",
+        "stats.hours": "HORAS_XR",
+        "info.label": "INFO_SISTEMA",
+        "info.text": "Desarrollador y artista técnico especializado en realidad virtual (VR) y experiencias inmersivas interactivas, con más de 3 años de experiencia profesional en el uso de Unity para proyectos de carácter educativo y de investigación.",
+        "link.portfolio": "PORTAFOLIO",
+        "link.code": "CÓDIGO_FUENTE",
+        "link.vr": "PROYECTOS_VR",
+        "projects.label": "PROYECTOS_ACTIVOS",
+        "filters.all": "TODOS",
+        "skills.label": "MATRIZ_HABILIDADES",
+        "timeline.label": "REGISTRO_EXP",
+        "contact.label": "FORM_CONTACTO",
+        "contact.name": "ID_NOMBRE:",
+        "placeholder.name": "Juan_Perez",
+        "contact.email": "DIRECCION_EMAIL:",
+        "placeholder.email": "usuario@dominio.ext",
+        "contact.message": "CARGA_MENSAJE:",
+        "placeholder.message": "Ingresa transmisión...",
+        "contact.submit": "TRANSMITIR_DATOS",
+        "footer.sync": "SINC:"
+    },
+    en: {
+        "header.subtitle": "VR DEVELOPER // TECH ARTIST // GRADUATE IN COMMUNICATION ARTS AND TECHNOLOGIES",
+        "stats.projects": "PROJECTS",
+        "stats.colabs": "COLABS",
+        "stats.hours": "XR_HOURS",
+        "info.label": "SYSTEM_INFO",
+        "info.text": "Developer and technical artist specialized in virtual reality (VR) and interactive immersive experiences, with over 3 years of professional experience using Unity for educational and research projects.",
+        "link.portfolio": "PORTFOLIO",
+        "link.code": "SOURCE_CODE",
+        "link.vr": "VR_PROJECTS",
+        "projects.label": "ACTIVE_PROJECTS",
+        "filters.all": "ALL",
+        "skills.label": "SKILLS_MATRIX",
+        "timeline.label": "EXPERIENCE_LOG",
+        "contact.label": "CONTACT_FORM",
+        "contact.name": "NAME_IDENTIFIER:",
+        "placeholder.name": "John_Doe",
+        "contact.email": "EMAIL_ADDRESS:",
+        "placeholder.email": "user@domain.ext",
+        "contact.message": "MESSAGE_PAYLOAD:",
+        "placeholder.message": "Enter transmission...",
+        "contact.submit": "TRANSMIT_DATA",
+        "footer.sync": "SYNC:"
+    }
+};
+
 class LanguageManager {
     constructor() {
         this.currentLang = 'es';
@@ -3826,7 +3882,12 @@ class LanguageManager {
         });
 
         const saved = localStorage.getItem('language');
-        if (saved) this.switchLanguage(saved);
+        if (saved) {
+            this.switchLanguage(saved);
+        } else {
+            // Run initially for default language
+            this.updateInterface();
+        }
     }
 
     switchLanguage(lang) {
@@ -3841,11 +3902,33 @@ class LanguageManager {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
 
-        document.querySelectorAll('[data-en]').forEach(el => {
-            el.textContent = el.dataset[lang] || el.dataset.en;
+        this.updateInterface();
+
+        if(typeof audioManager !== 'undefined') {
+            audioManager.playSound('click');
+        }
+    }
+
+    updateInterface() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(!translations[this.currentLang] || !translations[this.currentLang][key]) return;
+
+            const translation = translations[this.currentLang][key];
+
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.setAttribute('placeholder', translation);
+            } else {
+                el.innerHTML = translation;
+            }
         });
 
-        audioManager.playSound('click');
+        document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
+    }
+    
+    // Helper to get translated string for JS dynamic content
+    get(key) {
+        return translations[this.currentLang] ? (translations[this.currentLang][key] || key) : key;
     }
 }
 
@@ -3955,7 +4038,7 @@ const projectsData = [
         id: '01',
         title: 'CREHA_BITACORA',
         category: 'unity',
-        description: 'Juego educativo sobre corredores biologicos',
+        description: { es: 'Juego educativo sobre corredores biológicos.', en: 'Educational game about biological corridors.' },
         image: ASSET_PATH + 'projects/crehabitat.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/crehabitat'
@@ -3964,7 +4047,7 @@ const projectsData = [
         id: '02',
         title: 'CANDY_PARTY',
         category: 'unity',
-        description: 'Juego de fiesta con temática de dulces.',
+        description: { es: 'Juego de fiesta multijugador asimétrico.', en: 'Asymmetrical multiplayer party game.' },
         image: ASSET_PATH + 'projects/candyparty.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/candy-party'
@@ -3973,7 +4056,7 @@ const projectsData = [
         id: '03',
         title: 'SHAPE_KISSER',
         category: 'unity',
-        description: 'Juego de puzzle con temática de formas geométricas.',
+        description: { es: 'Juego de puzzle con temática de formas geométricas.', en: 'Puzzle game with geometric shapes theme.' },
         image: 'https://img.itch.zone/aW1nLzQyMzU1MDUucG5n/347x500/SM7ekS.png',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/shapekisser'
@@ -3982,7 +4065,7 @@ const projectsData = [
         id: '04',
         title: 'DETECTOR_CAMERA',
         category: 'web',
-        description: 'Detector de postura con Mediapipe.',
+        description: { es: 'Detector de postura con Mediapipe en tiempo real.', en: 'Real-time posture detector using Mediapipe.' },
         image: ASSET_PATH + 'projects/mediapipe.webp',
         tech: ['HTML', 'CSS', 'JS', 'MEDIAPIPE'],
         link: 'https://desarrolladorvr.github.io/'
@@ -3991,7 +4074,7 @@ const projectsData = [
         id: '04',
         title: 'PORTAL_JUEGOS',
         category: 'web',
-        description: 'Portal Web de Juegos Educativos.',
+        description: { es: 'Portal Web de Juegos Educativos.', en: 'Educational Games Web Portal.' },
         image: ASSET_PATH + 'projects/IstGames.webp',
         tech: ['HTML', 'CSS', 'JS'],
         link: 'https://istgames.netlify.app/'
@@ -4000,7 +4083,7 @@ const projectsData = [
         id: '05',
         title: 'METAVERSE_AVATAR',
         category: '3d',
-        description: 'High-fidelity avatar system with facial tracking.',
+        description: { es: 'Sistema de avatar de alta fidelidad con captura facial.', en: 'High-fidelity avatar system with facial tracking.' },
         image: 'https://placehold.co/600x400/111/39FF14?text=METAVERSE',
         tech: ['BLENDER', 'UNITY', 'LIP_SYNC'],
         link: '#'
@@ -4009,7 +4092,7 @@ const projectsData = [
         id: '06',
         title: 'WEBGL_PORTFOLIO',
         category: 'web',
-        description: 'Immersive 3D portfolio using Three.js.',
+        description: { es: 'Portafolio inmersivo en 3D usando WebGL.', en: 'Immersive 3D portfolio using WebGL.' },
         image: 'https://placehold.co/600x400/111/39FF14?text=WEBGL',
         tech: ['THREE.JS', 'REACT', 'WEBGL'],
         link: '#'
@@ -4018,7 +4101,7 @@ const projectsData = [
         id: '07',
         title: 'DARALI_DEVEL',
         category: 'unreal',
-        description: 'Horror game development project.',
+        description: { es: 'Proyecto de desarrollo de juego de terror.', en: 'Horror game development project.' },
         image: 'https://img.itch.zone/aW1hZ2UvMzEzNzgyMi8xOTA2NjM0OC5qcGc=/original/%2Bw3lwe.jpg',
         tech: ['UNREAL_ENGINE', 'C++', 'HORROR'],
         link: 'https://corejeux.itch.io/darali-devel'
@@ -4027,7 +4110,7 @@ const projectsData = [
         id: '08',
         title: 'UNITY_OPTIMIZER',
         category: '3d',
-        description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
+        description: { es: 'Suite colaborativa para gestión y optimización de assets.', en: 'Open Source suite for asset management. Reduces import times by 40%. Rated 4.8/5.' },
         image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
         tech: ['TOOLING', 'C#', 'EDITOR_SCRIPTING'],
         link: 'https://github.com/kaitoartz'
@@ -4047,6 +4130,15 @@ class ProjectManager {
         // Render all projects initially
         this.renderProjects(projectsData);
 
+        // Re-render when language changes
+        document.addEventListener('languageChanged', () => {
+            if (this.activeFilter === 'all') {
+                this.renderProjects(projectsData);
+            } else {
+                this.renderProjects(projectsData.filter(p => p.category === this.activeFilter));
+            }
+        });
+
         // Setup Filters
         this.filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -4057,12 +4149,14 @@ class ProjectManager {
                 this.filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                audioManager.playClick();
+                if(typeof audioManager !== 'undefined') audioManager.playClick();
             });
         });
     }
 
     renderProjects(projects) {
+        const lang = typeof languageManager !== 'undefined' ? languageManager.currentLang : 'es';
+
         this.container.innerHTML = projects.map((proj, index) => `
             <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
                 <div class="project-image-container">
@@ -4082,7 +4176,7 @@ class ProjectManager {
                         <span class="project-category">${proj.category.toUpperCase()}</span>
                     </div>
                     <h3 class="project-title">${proj.title}</h3>
-                    <p class="project-desc">${proj.description}</p>
+                    <p class="project-desc">${typeof proj.description === 'string' ? proj.description : (proj.description[lang] || proj.description.es)}</p>
                     <div class="project-tech">
                         ${proj.tech.map(t => `<span>${t}</span>`).join('')}
                     </div>
