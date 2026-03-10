@@ -1,8 +1,8 @@
 const DEV_MODE = false; // Set to true for development logging
 const devLog = (...args) => DEV_MODE && console.log(...args);
 
-// Local Asset Resolver (Fix for Live Server vs Vite)
-const ASSET_PATH = (window.location.port === '5500' || window.location.hostname === '127.0.0.1') ? 'public/assets/' : 'assets/';
+// Local Asset Resolver (Fix for Live Server, Github Pages, and Vite)
+const ASSET_PATH = (window.location.port === '5500' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('github.io') || window.location.hostname.includes('vercel.app')) ? 'public/assets/' : 'assets/';
 
 // ========== UTILITIES ==========
 const debounce = (func, wait) => {
