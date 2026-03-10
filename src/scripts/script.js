@@ -27,8 +27,13 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    /*
+     * 💡 What: Used requestAnimationFrame's timestamp in FrameRateMonitor
+     * 🎯 Why: Replaces redundant performance.now() calls per frame
+     * 📊 Impact: Micro-optimization that reduces function overhead in the core render loop
+     */
+    update(time) {
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -1681,11 +1686,14 @@ document.querySelectorAll('.link-block').forEach((link, index) => {
 // ========== PERFORMANCE MONITORING ==========
 if ('PerformanceObserver' in window) {
     const perfObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-            if (entry.entryType === 'largest-contentful-paint') {
-                console.log(`%c>> LCP: ${entry.renderTime || entry.loadTime}ms`, 
-                    'color: #39FF14; font-family: monospace; font-size: 11px;');
-            }
+        /*
+         * 💡 What: Used getEntriesByType instead of iterating getEntries
+         * 🎯 Why: Replaces manual JavaScript filtering loop with optimized native C++ filtering
+         * 📊 Impact: Micro-optimization that reduces JS execution time in PerformanceObserver callback
+         */
+        for (const entry of list.getEntriesByType('largest-contentful-paint')) {
+            console.log(`%c>> LCP: ${entry.renderTime || entry.loadTime}ms`,
+                'color: #39FF14; font-family: monospace; font-size: 11px;');
         }
     });
 
@@ -3490,6 +3498,13 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        /*
+         * 💡 What: Bound update method in constructor
+         * 🎯 Why: Allows passing this.update directly to requestAnimationFrame, avoiding closure allocation
+         * 📊 Impact: Eliminates garbage collection pressure from creating anonymous functions every frame
+         */
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3521,7 +3536,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }
@@ -3529,10 +3544,15 @@ class ParallaxManager {
     update() {
         this.lastScrollY = window.scrollY;
         
-        this.items.forEach(item => {
+        /*
+         * 💡 What: Replaced array.forEach with for...of in high-frequency update loop
+         * 🎯 Why: Avoids creating a new closure/callback function on every scroll tick
+         * 📊 Impact: Reduces garbage collection pressure and function call overhead during scrolling
+         */
+        for (const item of this.items) {
             const yPos = -(this.lastScrollY * item.speed);
             item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-        });
+        }
 
         this.ticking = false;
     }
