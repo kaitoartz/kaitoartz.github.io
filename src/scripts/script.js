@@ -4195,7 +4195,7 @@ class VideoManager {
     constructor() {
         this.modal = null;
         this.iframe = null;
-        this.videoId = '1157471071'; 
+        this.videoId = '1169926700'; 
         this.videoHash = 'c3e7f59c16';
     }
 
