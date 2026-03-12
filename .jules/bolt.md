@@ -25,3 +25,7 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+
+## 2025-03-12 - Event Delegation Target Tracking
+**Learning:** When using event delegation to handle interactions (like `mouseover` for hover sounds) and tracking the last interacted element (`this.lastHoveredTarget`), the state tracking variable must be updated unconditionally for every valid target, not just when the action is triggered. Updating it conditionally causes missed updates when navigating between nested child and parent elements.
+**Action:** Always update the reference `this.lastHoveredTarget = target;` directly inside the valid target branch, outside the condition that checks for `!target.contains(this.lastHoveredTarget)`.
