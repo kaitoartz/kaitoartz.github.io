@@ -695,10 +695,10 @@ class AudioManager {
 
         // Optimization: Only play if we entered a NEW target
         if (target) {
-            if (target !== this.lastHoveredTarget) {
+            if (target !== this.lastHoveredTarget && !target.contains(this.lastHoveredTarget)) {
                 this.playHover();
-                this.lastHoveredTarget = target;
             }
+            this.lastHoveredTarget = target;
         } else {
             this.lastHoveredTarget = null;
         }
