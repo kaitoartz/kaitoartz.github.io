@@ -25,3 +25,6 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+## 2024-03-14 - Optimize ParallaxManager requestAnimationFrame loop
+**Learning:** In `ParallaxManager`, the `requestAnimationFrame` loop used an arrow function `() => this.update()` which creates a new closure every frame, leading to GC overhead. Replacing it with a bound method `this.update = this.update.bind(this)` and replacing `forEach` with a traditional `for` loop reduces execution time and garbage collection pressure in high-frequency scroll listeners.
+**Action:** When implementing `requestAnimationFrame` loops in classes, always bind the callback in the constructor and pass the reference directly. Use `for` loops over array methods like `forEach` inside the loop.
