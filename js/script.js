@@ -694,11 +694,14 @@ class AudioManager {
         const target = e.target.closest(selector);
 
         // Optimization: Only play if we entered a NEW target
+        // and we haven't moved to a child of the current target
         if (target) {
-            if (target !== this.lastHoveredTarget) {
+            if (target !== this.lastHoveredTarget && (!this.lastHoveredTarget || !target.contains(this.lastHoveredTarget))) {
                 this.playHover();
-                this.lastHoveredTarget = target;
             }
+            // Always update lastHoveredTarget to the closest matching parent/element
+            // to correctly track nested elements
+            this.lastHoveredTarget = target;
         } else {
             this.lastHoveredTarget = null;
         }

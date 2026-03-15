@@ -597,9 +597,6 @@ class AudioManager {
         this.mediaSource = null;
         this.analyserNode = null;
         
-        // Performance optimization: Bind playHover once
-        this.boundPlayHover = this.playHover.bind(this);
-
         // Audio file paths
         this.audioFiles = {
             background: ASSET_PATH + 'audio/background.mp3'
@@ -607,6 +604,7 @@ class AudioManager {
         
         // Safety for async race conditions
         this.playPromise = null;
+        this.lastHoveredTarget = null;
     }
 
     async init() {
@@ -774,45 +772,31 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
-    addHoverListeners(root) {
+    handleMouseOver(e) {
+        if (!this.enabled) return;
+
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
+        const target = e.target.closest(selector);
 
-        // Helper to attach listener safely
-        const attach = (el) => {
-            el.removeEventListener('mouseenter', this.boundPlayHover);
-            el.addEventListener('mouseenter', this.boundPlayHover);
-        };
-
-        // If the root element itself matches
-        if (root.matches && root.matches(selector)) {
-            attach(root);
-        }
-
-        // Find all matching children
-        if (root.querySelectorAll) {
-            root.querySelectorAll(selector).forEach(attach);
+        // Optimization: Only play if we entered a NEW target
+        // and we haven't moved to a child of the current target
+        if (target) {
+            if (target !== this.lastHoveredTarget && (!this.lastHoveredTarget || !target.contains(this.lastHoveredTarget))) {
+                this.playHover();
+            }
+            // Always update lastHoveredTarget to the closest matching parent/element
+            // to correctly track nested elements
+            this.lastHoveredTarget = target;
+        } else {
+            this.lastHoveredTarget = null;
         }
     }
 
     attachGlobalListeners() {
-        // Universal Hover - Optimized with MutationObserver and direct listeners
-        this.addHoverListeners(document);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Element
-                        this.addHoverListeners(node);
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+        // Universal Hover - Optimized with Event Delegation
+        document.addEventListener('mouseover', this.handleMouseOver.bind(this), { passive: true });
 
         // Typing Sound Generators
-        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
-
         // Delegate for dynamic elements (like terminal)
         document.addEventListener('input', (e) => {
             if (e.target.matches('input, textarea')) {

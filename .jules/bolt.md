@@ -25,3 +25,11 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+
+## 2025-02-23 - Event Delegation Over MutationObserver
+**Learning:** Attaching event listeners (like `mouseenter`) dynamically via `MutationObserver` creates overhead, as the observer triggers on multiple DOM changes and executes heavy query/attachment logic.
+**Action:** Replace `MutationObserver`-based listener attachments with a single, passive `mouseover` listener attached to the `document` (event delegation). Use `e.target.closest(selector)` to identify targets.
+
+## 2025-02-23 - Nested Elements in Event Delegation
+**Learning:** When using `mouseover` delegation, moving the mouse from a child element back to a parent element that matches the same selector can cause `target !== this.lastHoveredTarget` to evaluate as true, incorrectly re-triggering hover sounds.
+**Action:** In addition to `target !== this.lastHoveredTarget`, add a check `!target.contains(this.lastHoveredTarget)` to prevent re-triggering when navigating within nested matched elements. Ensure `this.lastHoveredTarget = target` is always updated to properly track the path.
