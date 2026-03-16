@@ -540,11 +540,6 @@ class AudioManager {
         // Audio file paths
         this.audioFiles = {
             background: 'assets/audio/background.mp3'
-            // hover: 'assets/audio/hover.mp3',
-            // click: 'assets/audio/click.mp3',
-            // boot: 'assets/audio/boot.mp3',
-            // glitch: 'assets/audio/glitch.mp3',
-            // success: 'assets/audio/success.mp3'
         };
     }
 
@@ -694,11 +689,13 @@ class AudioManager {
         const target = e.target.closest(selector);
 
         // Optimization: Only play if we entered a NEW target
+        // Prevent duplicate sound from nested matches
         if (target) {
-            if (target !== this.lastHoveredTarget) {
+            if (target !== this.lastHoveredTarget && (!this.lastHoveredTarget || !target.contains(this.lastHoveredTarget))) {
                 this.playHover();
-                this.lastHoveredTarget = target;
             }
+            // Update last hovered target outside the play condition
+            this.lastHoveredTarget = target;
         } else {
             this.lastHoveredTarget = null;
         }
