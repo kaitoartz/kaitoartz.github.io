@@ -25,3 +25,7 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+
+## 2025-02-23 - MutationObserver vs Event Delegation
+**Learning:** Attaching individual event listeners globally via `MutationObserver` traversing DOM additions forces the browser to manage countless callbacks, which significantly taxes memory and CPU.
+**Action:** Use a single event listener attached to `document` combined with `e.target.closest(selector)` for robust event delegation. Furthermore, when creating `mouseover` handlers that apply to elements with inner nesting, track `lastHoveredTarget` properly. If the mouse enters a child, only trigger if `!target.contains(lastHoveredTarget)`.

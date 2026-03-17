@@ -693,12 +693,12 @@ class AudioManager {
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
         const target = e.target.closest(selector);
 
-        // Optimization: Only play if we entered a NEW target
+        // Optimization: Only play if we entered a NEW target that isn't a child of the current one
         if (target) {
-            if (target !== this.lastHoveredTarget) {
+            if (target !== this.lastHoveredTarget && (!this.lastHoveredTarget || !target.contains(this.lastHoveredTarget))) {
                 this.playHover();
-                this.lastHoveredTarget = target;
             }
+            this.lastHoveredTarget = target;
         } else {
             this.lastHoveredTarget = null;
         }
