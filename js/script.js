@@ -107,18 +107,12 @@ class PerformanceManager {
             visualizer: true
         };
         this.currentPreset = 'auto'; // auto, ultra, high, medium, low
-        this.hardware = {
-            cores: navigator.hardwareConcurrency || 4,
-            memory: navigator.deviceMemory || 4,
-            gpu: 'unknown',
-            tier: 'high' // ultra, high, medium, low
-        };
         this.matrixRainInstance = null;
         this.parallaxInstance = null;
         this.cursorInstance = null;
         this.terminalInstance = null;
         // Fix: Store the result of detectHardware in this.hardware
-        this.hardware = { ...this.hardware, ...this.detectHardware() };
+        this.hardware = this.detectHardware();
     }
 
     detectHardware() {
@@ -159,6 +153,7 @@ class PerformanceManager {
             isMobile,
             cores,
             memory,
+            gpu: 'unknown',
             connection: effectiveType,
             score,
             tier: this.getPerformanceTier(score)
