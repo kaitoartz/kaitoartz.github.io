@@ -605,6 +605,11 @@ class AudioManager {
             background: ASSET_PATH + 'audio/background.mp3'
         };
         
+        this.radioStations = [];
+        this.currentStation = 0;
+        this.isLoadingRadio = false;
+        this.failedAttempts = 0;
+        
         // Safety for async race conditions
         this.playPromise = null;
     }
@@ -675,6 +680,58 @@ class AudioManager {
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
 
+    async loadRadioStations() {
+        if (this.radioStations.length > 0 || this.isLoadingRadio) return;
+        this.isLoadingRadio = true;
+        try {
+            console.log('%c>> RADIO: Fetching station list...', 'color: #00FFFF; font-family: monospace;');
+            // Request synthwave and cyberpunk stations
+            const response = await fetch("https://de1.api.radio-browser.info/json/stations/search?tagList=synthwave&limit=30");
+            const data = await response.json();
+            this.radioStations = data.filter(s => s.url_resolved && !s.url_resolved.endsWith('.m3u'));
+            if (this.radioStations.length === 0) {
+                this.radioStations = [{name: 'Fallback Synth', url_resolved: 'http://stream.simulatorradio.com/simulator-radio'}];
+            }
+        } catch(e) {
+            console.error('>> RADIO: Fetch error', e);
+            this.radioStations = [{name: 'Fallback Radio', url_resolved: 'http://stream.simulatorradio.com/simulator-radio'}];
+        }
+        this.isLoadingRadio = false;
+    }
+
+    async prevStation() {
+        if(this.radioStations.length === 0) await this.loadRadioStations();
+        if(this.radioStations.length === 0) return;
+        this.currentStation = (this.currentStation - 1 + this.radioStations.length) % this.radioStations.length;
+        this.playSound('click', 0.5);
+        if (this.bgMusic && !this.bgMusic.paused) {
+             this.playBackgroundMusic(this.bgMusic.volume);
+        } else {
+             this.updateRadioUI();
+        }
+    }
+
+    async nextStation() {
+        if(this.radioStations.length === 0) await this.loadRadioStations();
+        if(this.radioStations.length === 0) return;
+        this.currentStation = (this.currentStation + 1) % this.radioStations.length;
+        this.playSound('click', 0.5);
+        if (this.bgMusic && !this.bgMusic.paused) {
+             this.playBackgroundMusic(this.bgMusic.volume);
+        } else {
+             this.updateRadioUI();
+        }
+    }
+    
+    updateRadioUI() {
+        const station = this.radioStations[this.currentStation];
+        document.querySelectorAll('.radio-station-name').forEach(el => {
+            el.textContent = station ? station.name.substring(0,25) + (station.name.length>25?'...':'') : "Offline";
+            el.title = station ? station.name : "Offline";
+            if (typeof triggerGlitch === 'function') triggerGlitch(el);
+        });
+    }
+
     async playBackgroundMusic(volume = 0.3) {
         if (!this.audioContext) await this.init();
         
@@ -683,42 +740,48 @@ class AudioManager {
             return;
         }
         
-        // Stop existing music if any
-        if (this.bgMusic) {
-            this.bgMusic.pause();
-            this.bgMusic = null;
-        }
+        if (this.radioStations.length === 0) await this.loadRadioStations();
+        const station = this.radioStations[this.currentStation];
+        const streamUrl = station ? station.url_resolved : this.audioFiles.background;
         
         console.log('%c>> MUSIC: Creating audio element...', 'color: #00FFFF; font-family: monospace;');
         
-        this.bgMusic = new Audio(this.audioFiles.background);
+        if (!this.bgMusic) {
+            this.bgMusic = new Audio();
+            this.bgMusic.crossOrigin = "anonymous";
+            
+            // Setup analyser for visualizer (only once)
+            if (!this.mediaSource && this.audioContext) {
+                try {
+                    this.mediaSource = this.audioContext.createMediaElementSource(this.bgMusic);
+                    this.analyserNode = this.audioContext.createAnalyser();
+                    this.analyserNode.fftSize = 512;
+                    
+                    this.mediaSource.connect(this.analyserNode);
+                    this.analyserNode.connect(this.audioContext.destination);
+                    console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
+
+                    // Ensure visualizer is initialized with this analyser if visualizer exists and DOM is ready
+                    try {
+                        if (typeof audioVisualizer !== 'undefined' && audioVisualizer && typeof audioVisualizer.init === 'function') {
+                            audioVisualizer.init(this);
+                        }
+                    } catch (e) {
+                        console.warn('>> AUDIO: audioVisualizer.init() failed:', e);
+                    }
+                } catch (error) {
+                    console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
+                }
+            }
+        } else {
+            this.bgMusic.pause();
+        }
+        
+        this.bgMusic.src = streamUrl;
         this.bgMusic.volume = volume;
         this.bgMusic.loop = true;
         this.bgMusic.preload = 'auto';
-        
-        // Setup analyser for visualizer (only once)
-        if (!this.mediaSource && this.audioContext) {
-            try {
-                this.mediaSource = this.audioContext.createMediaElementSource(this.bgMusic);
-                this.analyserNode = this.audioContext.createAnalyser();
-                this.analyserNode.fftSize = 512;
-                
-                this.mediaSource.connect(this.analyserNode);
-                this.analyserNode.connect(this.audioContext.destination);
-                console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
-
-                // Ensure visualizer is initialized with this analyser if visualizer exists and DOM is ready
-                try {
-                    if (typeof audioVisualizer !== 'undefined' && audioVisualizer && typeof audioVisualizer.init === 'function') {
-                        audioVisualizer.init(this);
-                    }
-                } catch (e) {
-                    console.warn('>> AUDIO: audioVisualizer.init() failed:', e);
-                }
-            } catch (error) {
-                console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-            }
-        }
+        this.updateRadioUI();
         
         // Add event listeners for debugging
         this.bgMusic.addEventListener('loadeddata', () => {
@@ -736,11 +799,19 @@ class AudioManager {
         if (this.playPromise !== undefined) {
             this.playPromise.then(() => {
                 this.playPromise = null;
+                this.failedAttempts = 0; // reset
                 console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
             }).catch(error => {
                 this.playPromise = null;
+                this.failedAttempts++;
                 console.log('%c>> MUSIC: Play blocked - ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-                console.log('%c>> MUSIC: User interaction may be required', 'color: #FFAA00; font-family: monospace;');
+                console.log('%c>> MUSIC: Trying next station or fallback', 'color: #FFAA00; font-family: monospace;');
+                // Wait briefly and try next to avoid infinite immediate loops on full failure lists
+                if (this.failedAttempts < 5) {
+                    setTimeout(() => this.nextStation(), 500);
+                } else {
+                    console.error('>> MUSIC: Aborting radio playback after multiple failures.');
+                }
             });
         }
     }
@@ -1752,12 +1823,28 @@ class DockManager {
                 });
             }
 
-            // Audio Button
+            // Audio Button (Radio Toggle)
             const audioBtn = dock.querySelector('.audio-toggle-btn');
             if (audioBtn) {
                 audioBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.handleAudio(audioBtn);
+                });
+            }
+
+            // Radio Prev/Next
+            const prevBtn = dock.querySelector('.prev-station-btn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof audioManager !== 'undefined') audioManager.prevStation();
+                });
+            }
+            const nextBtn = dock.querySelector('.next-station-btn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof audioManager !== 'undefined') audioManager.nextStation();
                 });
             }
 
