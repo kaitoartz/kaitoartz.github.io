@@ -695,10 +695,11 @@ class AudioManager {
 
         // Optimization: Only play if we entered a NEW target
         if (target) {
-            if (target !== this.lastHoveredTarget) {
+            // Emulate mouseenter: only trigger if the previous target wasn't inside this element
+            if (!e.relatedTarget || !target.contains(e.relatedTarget)) {
                 this.playHover();
-                this.lastHoveredTarget = target;
             }
+            this.lastHoveredTarget = target;
         } else {
             this.lastHoveredTarget = null;
         }
