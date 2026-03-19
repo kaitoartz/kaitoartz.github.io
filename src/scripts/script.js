@@ -592,8 +592,7 @@ class AudioManager {
         this.mediaSource = null;
         this.analyserNode = null;
         
-        // Performance optimization: Bind playHover once
-        this.boundPlayHover = this.playHover.bind(this);
+
 
         // Audio file paths
         this.audioFiles = {
@@ -840,41 +839,26 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
-    addHoverListeners(root) {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced MutationObserver and individual 'mouseenter' event listeners with a single global 'mouseover' delegation using a stateless relatedTarget check.
+     * 🎯 Why: MutationObservers watching the entire body for node additions are expensive. Attaching hundreds of individual event listeners wastes memory and slows down DOM insertion.
+     * 📊 Impact: O(1) event listeners instead of O(N). Eliminates constant DOM polling/mutation overhead, reducing idle CPU usage and garbage collection.
+     */
+    handleMouseOver(e) {
+        if (!this.enabled) return;
+
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
+        const target = e.target.closest(selector);
 
-        // Helper to attach listener safely
-        const attach = (el) => {
-            el.removeEventListener('mouseenter', this.boundPlayHover);
-            el.addEventListener('mouseenter', this.boundPlayHover);
-        };
-
-        // If the root element itself matches
-        if (root.matches && root.matches(selector)) {
-            attach(root);
-        }
-
-        // Find all matching children
-        if (root.querySelectorAll) {
-            root.querySelectorAll(selector).forEach(attach);
+        if (target && (!e.relatedTarget || !target.contains(e.relatedTarget))) {
+            this.playHover();
         }
     }
 
     attachGlobalListeners() {
-        // Universal Hover - Optimized with MutationObserver and direct listeners
-        this.addHoverListeners(document);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // Element
-                        this.addHoverListeners(node);
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+        // Universal Hover - Optimized with Event Delegation
+        document.addEventListener('mouseover', this.handleMouseOver.bind(this), { passive: true });
 
         // Typing Sound Generators
         const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');

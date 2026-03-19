@@ -530,7 +530,7 @@ class AudioManager {
         this.bgMusic = null;
         this.mediaSource = null;
         this.analyserNode = null;
-        this.lastHoveredTarget = null;
+
         
         // Audio file paths
         this.audioFiles = {
@@ -682,20 +682,20 @@ class AudioManager {
         this.playSound('click', 0.3); // Reusing click as typing sound for now, usually short
     }
 
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced stateful 'lastHoveredTarget' tracking with a stateless relatedTarget check.
+     * 🎯 Why: Keeping state introduces potential bugs if elements are unmounted and requires unnecessary assignment operations. The DOM event API provides relatedTarget to correctly emulate mouseenter natively.
+     * 📊 Impact: Micro-optimization that removes object references from the manager, slightly reducing memory footprint and GC pressure during heavy mouse movement.
+     */
     handleMouseOver(e) {
         if (!this.enabled) return;
 
         const selector = 'a, button, input, textarea, .project-card, .filter-btn';
         const target = e.target.closest(selector);
 
-        // Optimization: Only play if we entered a NEW target
-        if (target) {
-            if (target !== this.lastHoveredTarget) {
-                this.playHover();
-                this.lastHoveredTarget = target;
-            }
-        } else {
-            this.lastHoveredTarget = null;
+        if (target && (!e.relatedTarget || !target.contains(e.relatedTarget))) {
+            this.playHover();
         }
     }
 
