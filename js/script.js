@@ -799,7 +799,7 @@ class HyperScrollIntro {
             if (isHeading) {
                 const txt = document.createElement('div');
                 txt.className = 'intro-big-text';
-                txt.innerText = this.texts[i % this.texts.length];
+                txt.textContent = this.texts[i % this.texts.length];
                 el.appendChild(txt);
                 this.items.push({
                     el, type: 'text',
@@ -943,7 +943,7 @@ class HyperScrollIntro {
         // Update UI
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
-            btn.innerText = "ACCESSING...";
+            btn.textContent = "ACCESSING...";
             btn.style.borderColor = "#fff";
             btn.style.color = "#fff";
         }
@@ -3881,11 +3881,11 @@ class VideoManager {
         
         // Reset Loader State
         if (loader) loader.style.display = 'flex';
-        if (statusText) statusText.innerText = "INITIALIZING...";
+        if (statusText) statusText.textContent = "INITIALIZING...";
 
         // Check Connection
         if (!navigator.onLine) {
-             if (statusText) statusText.innerText = "OFFLINE // DATA_UNAVAILABLE";
+             if (statusText) statusText.textContent = "OFFLINE // DATA_UNAVAILABLE";
              // Optional: Don't load iframe if offline to save resources/errors
              return;
         }
@@ -3896,7 +3896,7 @@ class VideoManager {
         // Timeout for slow connection feedback
         this.loadTimeout = setTimeout(() => {
             if (loader && loader.style.display !== 'none') {
-                if (statusText) statusText.innerText = "WARN: SLOW CONNECTION...";
+                if (statusText) statusText.textContent = "WARN: SLOW CONNECTION...";
             }
         }, 5000);
 
