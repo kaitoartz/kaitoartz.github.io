@@ -1166,6 +1166,12 @@ class HyperScrollIntro {
             // Use deterministic frame count instead of erratic time check
             const fps = Math.round(1000 / delta) || 60;
             
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced innerText with textContent in the RAF loop.
+             * 🎯 Why: innerText triggers synchronous layout calculations (reflow) because it considers CSS styling (hidden text, text-transform). textContent directly modifies the text node, avoiding reflows in this hot path.
+             * 📊 Impact: Prevents layout thrashing during the high-frequency HUD updates in the requestAnimationFrame loop.
+             */
             // HUD Updates Throttled
             /**
              * ⚡ Bolt Performance Optimization
