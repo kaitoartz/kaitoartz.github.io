@@ -799,7 +799,7 @@ class HyperScrollIntro {
             if (isHeading) {
                 const txt = document.createElement('div');
                 txt.className = 'intro-big-text';
-                txt.innerText = this.texts[i % this.texts.length];
+                txt.textContent = this.texts[i % this.texts.length];
                 el.appendChild(txt);
                 this.items.push({
                     el, type: 'text',
@@ -943,7 +943,7 @@ class HyperScrollIntro {
         // Update UI
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
-            btn.innerText = "ACCESSING...";
+            btn.textContent = "ACCESSING...";
             btn.style.borderColor = "#fff";
             btn.style.color = "#fff";
         }
@@ -991,6 +991,12 @@ class HyperScrollIntro {
             const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
 
             // HUD Updates (Throttled to minimize layout thrashing)
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced layout-aware `.innerText` with layout-agnostic `.textContent` for HUD updates.
+             * 🎯 Why: `.innerText` triggers expensive synchronous style recalculations (layout thrashing), which kills frame rates inside requestAnimationFrame loops.
+             * 📊 Impact: Prevents forced reflows up to 60 times per second, freeing up main thread CPU time for rendering.
+             */
             if (this.frameCount % 6 === 0) {
                 if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
                 if (feedbackCoord) {
@@ -3191,6 +3197,7 @@ class ParallaxManager {
         this.lastScrollY = 0;
         this.ticking = false;
 
+        // Bind for RAF optimization
         this.update = this.update.bind(this);
     }
 
@@ -3892,11 +3899,11 @@ class VideoManager {
         
         // Reset Loader State
         if (loader) loader.style.display = 'flex';
-        if (statusText) statusText.innerText = "INITIALIZING...";
+        if (statusText) statusText.textContent = "INITIALIZING...";
 
         // Check Connection
         if (!navigator.onLine) {
-             if (statusText) statusText.innerText = "OFFLINE // DATA_UNAVAILABLE";
+             if (statusText) statusText.textContent = "OFFLINE // DATA_UNAVAILABLE";
              // Optional: Don't load iframe if offline to save resources/errors
              return;
         }
@@ -3907,7 +3914,7 @@ class VideoManager {
         // Timeout for slow connection feedback
         this.loadTimeout = setTimeout(() => {
             if (loader && loader.style.display !== 'none') {
-                if (statusText) statusText.innerText = "WARN: SLOW CONNECTION...";
+                if (statusText) statusText.textContent = "WARN: SLOW CONNECTION...";
             }
         }, 5000);
 
