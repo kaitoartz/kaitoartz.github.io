@@ -3189,6 +3189,7 @@ class ParallaxManager {
         this.lastScrollY = 0;
         this.ticking = false;
 
+        // Bind for RAF optimization
         this.update = this.update.bind(this);
     }
 

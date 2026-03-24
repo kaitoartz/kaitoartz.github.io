@@ -27,8 +27,8 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    update(time) {
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -3562,6 +3562,9 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        // Bind for RAF optimization
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3593,7 +3596,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }
