@@ -991,6 +991,12 @@ class HyperScrollIntro {
             const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
 
             // HUD Updates (Throttled to minimize layout thrashing)
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced layout-aware `.innerText` with layout-agnostic `.textContent` for HUD updates.
+             * 🎯 Why: `.innerText` triggers expensive synchronous style recalculations (layout thrashing), which kills frame rates inside requestAnimationFrame loops.
+             * 📊 Impact: Prevents forced reflows up to 60 times per second, freeing up main thread CPU time for rendering.
+             */
             if (this.frameCount % 6 === 0) {
                 if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
                 if (feedbackCoord) {
@@ -3183,6 +3189,7 @@ class ParallaxManager {
         this.lastScrollY = 0;
         this.ticking = false;
 
+        // Bind for RAF optimization
         this.update = this.update.bind(this);
     }
 

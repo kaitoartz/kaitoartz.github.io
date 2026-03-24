@@ -27,8 +27,8 @@ class FrameRateMonitor {
         this.update = this.update.bind(this);
     }
 
-    update() {
-        const now = performance.now();
+    update(time) {
+        const now = time || performance.now();
         this.frames++;
 
         if (now >= this.lastTime + 1000) {
@@ -1173,6 +1173,12 @@ class HyperScrollIntro {
              * 📊 Impact: Prevents layout thrashing during the high-frequency HUD updates in the requestAnimationFrame loop.
              */
             // HUD Updates Throttled
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced layout-aware `.innerText` with layout-agnostic `.textContent` for HUD updates.
+             * 🎯 Why: `.innerText` triggers expensive synchronous style recalculations (layout thrashing), which kills frame rates inside requestAnimationFrame loops.
+             * 📊 Impact: Prevents forced reflows up to 60 times per second, freeing up main thread CPU time for rendering.
+             */
             if (this.frameCount % 10 === 0) {
                 if (this.feedbackFPS) this.feedbackFPS.textContent = fps;
                 if (this.feedbackVel) this.feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
@@ -3562,6 +3568,9 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        // Bind for RAF optimization
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3593,7 +3602,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }

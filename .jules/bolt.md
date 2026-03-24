@@ -30,6 +30,6 @@
 **Learning:** Using a `MutationObserver` on `document.body` to attach individual `mouseenter` event listeners to hundreds of dynamically generated elements creates a massive memory footprint and severe CPU overhead during DOM updates.
 **Action:** Replace `MutationObserver` and individual listeners with O(1) event delegation. Use a single `mouseover` listener on `document` and a stateless `!e.relatedTarget || !target.contains(e.relatedTarget)` check to emulate `mouseenter` efficiently.
 
-## 2024-05-19 - innerText vs textContent
-**Learning:** `innerText` triggers synchronous layout calculations (reflow) because it considers CSS styling. Updating HUD elements or DOM nodes in a `requestAnimationFrame` loop using `innerText` causes layout thrashing.
-**Action:** Always use `textContent` instead of `innerText` for modifying text nodes, especially in hot paths like animation loops, to avoid expensive and unnecessary style recalculations.
+## 2025-02-17 - Eliminate Layout Thrashing in `requestAnimationFrame`
+**Learning:** Using `.innerText` to update high-frequency text elements (like HUD stats or FPS counters) inside a `requestAnimationFrame` loop forces the browser to perform synchronous style recalculations and layout thrashing. This is because `.innerText` is layout-aware (it respects CSS styling like `display: none` and text transformations).
+**Action:** Always use `.textContent` for updating text nodes in animation loops, as it modifies the text directly without triggering expensive reflows.
