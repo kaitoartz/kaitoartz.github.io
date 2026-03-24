@@ -30,6 +30,9 @@
 **Learning:** Using a `MutationObserver` on `document.body` to attach individual `mouseenter` event listeners to hundreds of dynamically generated elements creates a massive memory footprint and severe CPU overhead during DOM updates.
 **Action:** Replace `MutationObserver` and individual listeners with O(1) event delegation. Use a single `mouseover` listener on `document` and a stateless `!e.relatedTarget || !target.contains(e.relatedTarget)` check to emulate `mouseenter` efficiently.
 
+## 2025-02-23 - Array Iteration Methods in RAF
+**Learning:** Array iteration methods like `.forEach()` and `.some()` require a callback function. When used inside a 60fps `requestAnimationFrame` loop, this forces the JS engine to allocate a new closure (function object) every single frame, leading to high garbage collection (GC) pressure and micro-stutters.
+**Action:** Always replace `.forEach()`, `.some()`, and similar methods with standard `for` loops inside `requestAnimationFrame` loops or high-frequency event handlers.
 ## 2025-02-17 - Eliminate Layout Thrashing in `requestAnimationFrame`
 **Learning:** Using `.innerText` to update high-frequency text elements (like HUD stats or FPS counters) inside a `requestAnimationFrame` loop forces the browser to perform synchronous style recalculations and layout thrashing. This is because `.innerText` is layout-aware (it respects CSS styling like `display: none` and text transformations).
 **Action:** Always use `.textContent` for updating text nodes in animation loops, as it modifies the text directly without triggering expensive reflows.
