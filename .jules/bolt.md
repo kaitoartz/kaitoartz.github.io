@@ -29,3 +29,7 @@
 ## 2025-02-23 - MutationObserver Performance Drain on Global Event Listeners
 **Learning:** Using a `MutationObserver` on `document.body` to attach individual `mouseenter` event listeners to hundreds of dynamically generated elements creates a massive memory footprint and severe CPU overhead during DOM updates.
 **Action:** Replace `MutationObserver` and individual listeners with O(1) event delegation. Use a single `mouseover` listener on `document` and a stateless `!e.relatedTarget || !target.contains(e.relatedTarget)` check to emulate `mouseenter` efficiently.
+
+## 2025-02-23 - Array Iteration Methods in RAF
+**Learning:** Array iteration methods like `.forEach()` and `.some()` require a callback function. When used inside a 60fps `requestAnimationFrame` loop, this forces the JS engine to allocate a new closure (function object) every single frame, leading to high garbage collection (GC) pressure and micro-stutters.
+**Action:** Always replace `.forEach()`, `.some()`, and similar methods with standard `for` loops inside `requestAnimationFrame` loops or high-frequency event handlers.

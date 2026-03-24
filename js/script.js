@@ -1026,7 +1026,8 @@ class HyperScrollIntro {
             // Items Loop
             const cameraZ = this.state.scroll * this.config.camSpeed;
 
-            this.items.forEach(item => {
+            for (let i = 0; i < this.items.length; i++) {
+                const item = this.items[i];
                 let relZ = item.baseZ + cameraZ;
                 const modC = this.config.loopSize;
                 
@@ -1101,7 +1102,7 @@ class HyperScrollIntro {
                         }
                     }
                 }
-            });
+            }
         };
         
         requestAnimationFrame(loop);
@@ -1881,7 +1882,14 @@ class CursorManager {
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
         // Optimization: Stop loop if idle (no trails and static cursor)
-        const hasActiveTrails = this.trail.some(p => p.life > 0);
+        let hasActiveTrails = false;
+        for (let i = 0; i < this.trail.length; i++) {
+            if (this.trail[i].life > 0) {
+                hasActiveTrails = true;
+                break;
+            }
+        }
+
         if (!hasActiveTrails) {
             this.looping = false;
             this.animationId = null;
@@ -3204,7 +3212,9 @@ class ParallaxManager {
         
         // Apply initial state
         if (!performanceManager.effects.parallax) {
-            this.items.forEach(item => item.el.style.display = 'none');
+            for (let i = 0; i < this.items.length; i++) {
+                this.items[i].el.style.display = 'none';
+            }
         }
         
         devLog('Parallax initialized with', this.items.length, 'layers');
@@ -3223,10 +3233,11 @@ class ParallaxManager {
     update() {
         this.lastScrollY = window.scrollY;
         
-        this.items.forEach(item => {
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
             const yPos = -(this.lastScrollY * item.speed);
             item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-        });
+        }
 
         this.ticking = false;
     }

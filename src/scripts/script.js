@@ -1180,9 +1180,9 @@ class HyperScrollIntro {
                 if (fps < 30) {
                     this.perfMode = 1;
                     // Optimized: Use cached items array instead of DOM query
-                    this.items.forEach(item => {
-                        if (item.type === 'star') item.el.style.display = 'none';
-                    });
+                    for (let i = 0; i < this.items.length; i++) {
+                        if (this.items[i].type === 'star') this.items[i].el.style.display = 'none';
+                    }
                     console.warn('>> PERF: Adaptive degrade triggered. Stars disabled.');
                 }
             }
@@ -1234,7 +1234,8 @@ class HyperScrollIntro {
             const cameraZ = this.state.scroll * this.config.camSpeed;
             const modC = this.config.loopSize;
 
-            this.items.forEach(item => {
+            for (let i = 0; i < this.items.length; i++) {
+                const item = this.items[i];
                 let relZ = item.baseZ + cameraZ;
                 let vizZ = ((relZ % modC) + modC) % modC;
                 if (vizZ > 500) vizZ -= modC;
@@ -1290,7 +1291,7 @@ class HyperScrollIntro {
                         item.currentTrans = trans;
                     }
                 }
-            });
+            }
         };
         
         requestAnimationFrame(loop);
@@ -2243,7 +2244,14 @@ class CursorManager {
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
         // Optimization: Stop loop if idle (no trails and static cursor)
-        const hasActiveTrails = this.trail.some(p => p.life > 0);
+        let hasActiveTrails = false;
+        for (let i = 0; i < this.trail.length; i++) {
+            if (this.trail[i].life > 0) {
+                hasActiveTrails = true;
+                break;
+            }
+        }
+
         if (!hasActiveTrails) {
             this.looping = false;
             this.animationId = null;
@@ -3212,7 +3220,14 @@ class AudioVisualizer {
         this.analyser.getByteFrequencyData(this.dataArray);
 
         // Skip rendering when there is no audio data (silence)
-        if (!this.dataArray.some(v => v > 0)) return;
+        let hasAudio = false;
+        for (let i = 0; i < this.bufferLength; i++) {
+            if (this.dataArray[i] > 0) {
+                hasAudio = true;
+                break;
+            }
+        }
+        if (!hasAudio) return;
         
         const ctx = this.ctx;
         const width = this.canvas.width;
@@ -3556,6 +3571,8 @@ class ParallaxManager {
         this.layers = [];
         this.lastScrollY = 0;
         this.ticking = false;
+
+        this.update = this.update.bind(this);
     }
 
     init() {
@@ -3576,7 +3593,9 @@ class ParallaxManager {
         
         // Apply initial state
         if (!performanceManager.effects.parallax) {
-            this.items.forEach(item => item.el.style.display = 'none');
+            for (let i = 0; i < this.items.length; i++) {
+                this.items[i].el.style.display = 'none';
+            }
         }
         
         devLog('Parallax initialized with', this.items.length, 'layers');
@@ -3587,7 +3606,7 @@ class ParallaxManager {
         if (!performanceManager.effects.parallax) return;
 
         if (!this.ticking) {
-            window.requestAnimationFrame(() => this.update());
+            window.requestAnimationFrame(this.update);
             this.ticking = true;
         }
     }
@@ -3595,10 +3614,11 @@ class ParallaxManager {
     update() {
         this.lastScrollY = window.scrollY;
         
-        this.items.forEach(item => {
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
             const yPos = -(this.lastScrollY * item.speed);
             item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-        });
+        }
 
         this.ticking = false;
     }
