@@ -1551,11 +1551,15 @@ document.querySelectorAll('.link-block').forEach((link, index) => {
 // ========== PERFORMANCE MONITORING ==========
 if ('PerformanceObserver' in window) {
     const perfObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-            if (entry.entryType === 'largest-contentful-paint') {
-                console.log(`%c>> LCP: ${entry.renderTime || entry.loadTime}ms`, 
-                    'color: #39FF14; font-family: monospace; font-size: 11px;');
-            }
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Use `getEntriesByType('largest-contentful-paint')` instead of iterating and filtering over `getEntries()`.
+         * 🎯 Why: `getEntries()` returns an array of all performance entries. Iterating and filtering this array in Javascript adds unnecessary overhead. `getEntriesByType` performs the filtering natively and more efficiently.
+         * 📊 Impact: Eliminates a potentially large and redundant array iteration loop, reducing CPU overhead during performance monitoring callbacks.
+         */
+        for (const entry of list.getEntriesByType('largest-contentful-paint')) {
+            console.log(`%c>> LCP: ${entry.renderTime || entry.loadTime}ms`,
+                'color: #39FF14; font-family: monospace; font-size: 11px;');
         }
     });
 
@@ -1952,6 +1956,18 @@ class VolumeController {
 
 // ========== TERMINAL SYSTEM ==========
 class Terminal {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Store static file content on the class instead of recreating it inside `readFile()`.
+     * 🎯 Why: Re-declaring object literals inside methods that can be called repeatedly wastes memory and forces the garbage collector to work harder.
+     * 📊 Impact: O(1) memory allocation vs O(N) allocations for repeated file reading.
+     */
+    static FILES = {
+        'README.txt': 'Welcome to KAITOARTZ terminal interface. Type "help" for commands.',
+        'about.txt': 'VR Developer specializing in immersive experiences and real-time rendering.',
+        'contact.txt': 'Contact info available via "contact" command.'
+    };
+
     constructor() {
         this.modal = null;
         this.output = null;
@@ -2387,14 +2403,8 @@ STATUS: <span style="color: #00ff00;">AUTHENTICATED</span>
     }
 
     readFile(file) {
-        const files = {
-            'README.txt': 'Welcome to KAITOARTZ terminal interface. Type "help" for commands.',
-            'about.txt': 'VR Developer specializing in immersive experiences and real-time rendering.',
-            'contact.txt': 'Contact info available via "contact" command.'
-        };
-        
-        if (files[file]) {
-            this.addOutput(files[file]);
+        if (Terminal.FILES[file]) {
+            this.addOutput(Terminal.FILES[file]);
         } else {
             this.addOutput(`cat: ${file}: No such file or directory`);
         }
