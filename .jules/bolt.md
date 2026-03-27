@@ -36,3 +36,7 @@
 ## 2025-02-17 - Eliminate Layout Thrashing in `requestAnimationFrame`
 **Learning:** Using `.innerText` to update high-frequency text elements (like HUD stats or FPS counters) inside a `requestAnimationFrame` loop forces the browser to perform synchronous style recalculations and layout thrashing. This is because `.innerText` is layout-aware (it respects CSS styling like `display: none` and text transformations).
 **Action:** Always use `.textContent` for updating text nodes in animation loops, as it modifies the text directly without triggering expensive reflows.
+
+## 2025-02-23 - DOM Querying in RAF
+**Learning:** Calling `querySelector` inside `requestAnimationFrame` loops (e.g., in `HyperScrollIntro`) forces the browser to evaluate the DOM tree at up to 60fps. This causes severe layout thrashing and CPU spikes on lower-end devices.
+**Action:** Always cache references to required child elements (e.g., `item.cardEl = item.el.querySelector(...)`) during the initialization phase instead of querying them dynamically inside the render loop.
