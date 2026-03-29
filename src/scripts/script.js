@@ -1010,6 +1010,8 @@ class HyperScrollIntro {
 
                 this.items.push({
                     el, type: 'card',
+                    cardEl: card,
+                    isCardActive: false,
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
@@ -1283,11 +1285,19 @@ class HyperScrollIntro {
                     } else {
                         // Card Logic
                         if (this.isHyperEnabled) {
+                            /**
+                             * ⚡ Bolt Performance Optimization
+                             * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
+                             * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
+                             * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
+                             */
                             // AUTO-ANIMATION: Trigger .is-active when card is in focus range
-                            const cardEl = item.el.querySelector('.intro-card');
-                            if (cardEl) {
+                            if (item.cardEl) {
                                 const isInFocus = vizZ > -400 && vizZ < 400;
-                                cardEl.classList.toggle('is-active', isInFocus);
+                                if (item.isCardActive !== isInFocus) {
+                                    item.cardEl.classList.toggle('is-active', isInFocus);
+                                    item.isCardActive = isInFocus;
+                                }
                             }
 
                             const t = time * 0.001;

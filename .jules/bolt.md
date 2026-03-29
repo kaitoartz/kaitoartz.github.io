@@ -36,3 +36,7 @@
 ## 2025-02-17 - Eliminate Layout Thrashing in `requestAnimationFrame`
 **Learning:** Using `.innerText` to update high-frequency text elements (like HUD stats or FPS counters) inside a `requestAnimationFrame` loop forces the browser to perform synchronous style recalculations and layout thrashing. This is because `.innerText` is layout-aware (it respects CSS styling like `display: none` and text transformations).
 **Action:** Always use `.textContent` for updating text nodes in animation loops, as it modifies the text directly without triggering expensive reflows.
+
+## 2025-02-23 - DOM Queries in Animation Loops
+**Learning:** Performing DOM queries like `querySelector` and modifying `classList` inside a 60fps `requestAnimationFrame` loop (e.g., in `HyperScrollIntro`) is extremely expensive, causing O(N) operations per frame and potential layout thrashing.
+**Action:** Cache DOM elements (like `cardEl`) during initialization and track active states (like `isCardActive`) using a boolean flag to only update the DOM when the state actually changes.
