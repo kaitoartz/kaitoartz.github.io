@@ -1284,16 +1284,19 @@ class HyperScrollIntro {
                     } else {
                         // Card Logic
                         if (this.isHyperEnabled) {
-                            // AUTO-ANIMATION: Trigger .is-active when card is in focus range
                             /**
                              * ⚡ Bolt Performance Optimization
-                             * 💡 What: Removed `item.el.querySelector('.intro-card')` from the requestAnimationFrame loop, replacing it with a cached `item.cardEl` reference.
-                             * 🎯 Why: Querying the DOM inside an animation loop forces the browser to evaluate the DOM tree structure up to 60 times per second per element, severely degrading frame rates on lower-end devices.
-                             * 📊 Impact: Eliminates repeated O(N) DOM node lookups, making the update O(1) and preventing main-thread layout blocking.
+                             * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
+                             * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
+                             * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
                              */
+                            // AUTO-ANIMATION: Trigger .is-active when card is in focus range
                             if (item.cardEl) {
                                 const isInFocus = vizZ > -400 && vizZ < 400;
-                                item.cardEl.classList.toggle('is-active', isInFocus);
+                                if (item.isCardActive !== isInFocus) {
+                                    item.cardEl.classList.toggle('is-active', isInFocus);
+                                    item.isCardActive = isInFocus;
+                                }
                             }
 
                             const t = time * 0.001;
