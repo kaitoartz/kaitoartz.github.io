@@ -838,6 +838,7 @@ class HyperScrollIntro {
 
                 this.items.push({
                     el, type: 'card',
+                    cardEl: card,
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
