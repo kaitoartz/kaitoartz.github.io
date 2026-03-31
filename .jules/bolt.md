@@ -43,3 +43,7 @@
 ## 2025-02-23 - DOM Querying in RAF
 **Learning:** Calling `querySelector` inside `requestAnimationFrame` loops (e.g., in `HyperScrollIntro`) forces the browser to evaluate the DOM tree at up to 60fps. This causes severe layout thrashing and CPU spikes on lower-end devices.
 **Action:** Always cache references to required child elements (e.g., `item.cardEl = item.el.querySelector(...)`) during the initialization phase instead of querying them dynamically inside the render loop.
+
+## 2025-03-31 - Dirty Checking in RAF Loops
+**Learning:** `src/scripts/script.js` was continuously updating DOM properties (`transform`, `perspective`) in `HyperScrollIntro`'s `requestAnimationFrame` loop even when the values hadn't significantly changed, leading to layout thrashing.
+**Action:** Always cache the last applied values (`lastVizZ`, `lastTiltX`, etc.) and skip DOM updates if the calculated difference (`Math.abs(diff)`) is below a visually perceptible threshold (e.g., `< 0.1` for pixels/degrees).

@@ -929,6 +929,11 @@ class HyperScrollIntro {
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
+
+        // Tracking for dirty checking in RAF
+        this.lastFov = 0;
+        this.lastTiltX = 0;
+        this.lastTiltY = 0;
     }
 
     init() {
@@ -981,7 +986,11 @@ class HyperScrollIntro {
                     x: 0, y: 0, rot: 0,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
-                    currentTrans: null
+                    currentTrans: null,
+                    lastVizZ: -9999,
+                    lastStretch: -1,
+                    lastFloat: -1,
+                    lastOffset: -1
                 });
             } else {
                 const card = document.createElement('div');
@@ -1014,7 +1023,11 @@ class HyperScrollIntro {
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
-                    currentTrans: null
+                    currentTrans: null,
+                    lastVizZ: -9999,
+                    lastStretch: -1,
+                    lastFloat: -1,
+                    lastOffset: -1
                 });
             }
             this.world.appendChild(el);
@@ -1031,7 +1044,11 @@ class HyperScrollIntro {
                 y: (Math.random() - 0.5) * 3000,
                 baseZ: -Math.random() * this.config.loopSize,
                 currentAlpha: -1,
-                currentTrans: null
+                currentTrans: null,
+                lastVizZ: -9999,
+                lastStretch: -1,
+                lastFloat: -1,
+                lastOffset: -1
             });
         }
     }
@@ -1233,14 +1250,21 @@ class HyperScrollIntro {
                 const tiltX = (this.state.mouseY * tiltScale - this.state.velocity * 0.2);
                 const tiltY = (this.state.mouseX * tiltScale);
 
-                this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                if (Math.abs(this.lastTiltX - tiltX) > 0.1 || Math.abs(this.lastTiltY - tiltY) > 0.1) {
+                    this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                    this.lastTiltX = tiltX;
+                    this.lastTiltY = tiltY;
+                }
             }
 
             // 2. Dynamic Perspective (Warp)
             if (this.viewport && this.isHyperEnabled) {
                 const baseFov = 1000;
                 const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-                this.viewport.style.perspective = `${fov}px`;
+                if (Math.abs(this.lastFov - fov) > 0.1) {
+                    this.viewport.style.perspective = `${fov}px`;
+                    this.lastFov = fov;
+                }
             }
 
             // 3. Item Loop (Optimized Infinite Scroll)
@@ -1267,49 +1291,80 @@ class HyperScrollIntro {
                 }
 
                 if (alpha > 0) {
-                    let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
-
+                    let stretch = 1;
                     if (item.type === 'star') {
-                        const stretch = Math.max(1, Math.min(1 + Math.abs(this.state.velocity) * 0.1, 20));
-                        trans += ` scale3d(1, 1, ${stretch})`;
-                    } else if (item.type === 'text') {
-                        trans += ` rotateZ(${item.rot}deg)`;
+                        stretch = Math.max(1, Math.min(1 + Math.abs(this.state.velocity) * 0.1, 20));
+                    }
+
+                    let float = 0;
+                    if (item.type === 'card') {
+                        const t = time * 0.001;
+                        float = Math.sin(t + item.x) * 10;
+                    }
+
+                    // Optimization: Only update transform if values changed significantly
+                    let needsUpdate = false;
+                    if (item.currentTrans === null || Math.abs(item.lastVizZ - vizZ) > 0.1) {
+                        needsUpdate = true;
+                    } else if (item.type === 'star' && Math.abs(item.lastStretch - stretch) > 0.01) {
+                        needsUpdate = true;
+                    } else if (item.type === 'card' && Math.abs(item.lastFloat - float) > 0.1) {
+                        needsUpdate = true;
+                    }
+
+                    if (item.type === 'text') {
                         // RGB Split effect (Hyper ONLY)
                         if (this.isHyperEnabled && Math.abs(this.state.velocity) > 1) {
                             const offset = this.state.velocity * 1.5;
-                            item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                        } else {
-                            item.el.style.textShadow = 'none';
-                        }
-                    } else {
-                        // Card Logic
-                        if (this.isHyperEnabled) {
-                            /**
-                             * ⚡ Bolt Performance Optimization
-                             * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
-                             * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
-                             * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
-                             */
-                            // AUTO-ANIMATION: Trigger .is-active when card is in focus range
-                            if (item.cardEl) {
-                                const isInFocus = vizZ > -400 && vizZ < 400;
-                                if (item.isCardActive !== isInFocus) {
-                                    item.cardEl.classList.toggle('is-active', isInFocus);
-                                    item.isCardActive = isInFocus;
-                                }
+                            if (Math.abs(item.lastOffset - offset) > 0.1 || item.lastOffset === 0) {
+                                item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
+                                item.lastOffset = offset;
                             }
-
-                            const t = time * 0.001;
-                            const float = Math.sin(t + item.x) * 10;
-                            trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
-                        } else {
-                            trans += ` rotateZ(${item.rot}deg)`;
+                        } else if (item.lastOffset !== 0) {
+                            item.el.style.textShadow = 'none';
+                            item.lastOffset = 0;
                         }
                     }
 
-                    if (item.currentTrans !== trans) {
-                        item.el.style.transform = trans;
-                        item.currentTrans = trans;
+                    if (needsUpdate) {
+                        let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
+
+                        if (item.type === 'star') {
+                            trans += ` scale3d(1, 1, ${stretch})`;
+                            item.lastStretch = stretch;
+                        } else if (item.type === 'text') {
+                            trans += ` rotateZ(${item.rot}deg)`;
+                        } else {
+                            // Card Logic
+                            if (this.isHyperEnabled) {
+                                /**
+                                 * ⚡ Bolt Performance Optimization
+                                 * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
+                                 * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
+                                 * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
+                                 */
+                                // AUTO-ANIMATION: Trigger .is-active when card is in focus range
+                                if (item.cardEl) {
+                                    const isInFocus = vizZ > -400 && vizZ < 400;
+                                    if (item.isCardActive !== isInFocus) {
+                                        item.cardEl.classList.toggle('is-active', isInFocus);
+                                        item.isCardActive = isInFocus;
+                                    }
+                                }
+
+                                trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                                item.lastFloat = float;
+                            } else {
+                                trans += ` rotateZ(${item.rot}deg)`;
+                            }
+                        }
+
+                        item.lastVizZ = vizZ;
+
+                        if (item.currentTrans !== trans) {
+                            item.el.style.transform = trans;
+                            item.currentTrans = trans;
+                        }
                     }
                 }
             }
