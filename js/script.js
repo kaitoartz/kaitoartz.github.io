@@ -2518,19 +2518,43 @@ class TechnicalBackground {
     constructor() {
         this.container = null;
         this.startTime = Date.now();
+
+        this.timestampEl = null;
+        this.uptimeEl = null;
+        this.isVisible = false;
+        this.lastUpdateTime = 0;
+
+        this.updateLoop = this.updateLoop.bind(this);
     }
 
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced setInterval with a requestAnimationFrame loop gated by IntersectionObserver and cached DOM references.
+     * 🎯 Why: setInterval runs unconditionally, even when the background is off-screen or the tab is inactive. Querying the DOM every second is also inefficient.
+     * 📊 Impact: Prevents wasted CPU cycles and layout thrashing by only updating the DOM when the component is visible, and eliminates O(N) DOM queries by caching elements on initialization.
+     */
     init() {
         this.container = document.querySelector('.tech-background');
         if (!this.container) return;
         
-        // Update timestamp
-        this.updateTimestamp();
-        setInterval(() => this.updateTimestamp(), 1000);
+        this.timestampEl = document.getElementById('techTimestamp');
+        this.uptimeEl = document.getElementById('uptimeCounter');
+
+        // Use IntersectionObserver to pause updates when off-screen
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                this.isVisible = entry.isIntersecting;
+                if (this.isVisible) {
+                    this.updateLoop(performance.now());
+                }
+            });
+        });
+
+        observer.observe(this.container);
         
-        // Update uptime counter
+        // Initial update
+        this.updateTimestamp();
         this.updateUptime();
-        setInterval(() => this.updateUptime(), 1000);
     }
 
     show() {
@@ -2541,21 +2565,32 @@ class TechnicalBackground {
         }
     }
 
+    updateLoop(time) {
+        if (!this.isVisible) return;
+
+        // Throttle updates to ~1 second (1000ms)
+        if (time - this.lastUpdateTime >= 1000) {
+            this.updateTimestamp();
+            this.updateUptime();
+            this.lastUpdateTime = time;
+        }
+
+        requestAnimationFrame(this.updateLoop);
+    }
+
     updateTimestamp() {
-        const element = document.getElementById('techTimestamp');
-        if (element) {
+        if (this.timestampEl) {
             const now = new Date();
-            element.textContent = now.toTimeString().split(' ')[0];
+            this.timestampEl.textContent = now.toTimeString().split(' ')[0];
         }
     }
 
     updateUptime() {
-        const element = document.getElementById('uptimeCounter');
-        if (element) {
+        if (this.uptimeEl) {
             const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
-            element.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            this.uptimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 }

@@ -2949,18 +2949,21 @@ class TechnicalBackground {
     constructor() {
         this.container = null;
         this.startTime = Date.now();
-        this.active = false;
-        this.animationId = null;
-        this.lastUpdate = 0;
 
-        // Cache DOM elements
         this.timestampEl = null;
         this.uptimeEl = null;
+        this.isVisible = false;
+        this.lastUpdateTime = 0;
 
-        // Bind for RAF optimization
-        this.update = this.update.bind(this);
+        this.updateLoop = this.updateLoop.bind(this);
     }
 
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced setInterval with a requestAnimationFrame loop gated by IntersectionObserver and cached DOM references.
+     * 🎯 Why: setInterval runs unconditionally, even when the background is off-screen or the tab is inactive. Querying the DOM every second is also inefficient.
+     * 📊 Impact: Prevents wasted CPU cycles and layout thrashing by only updating the DOM when the component is visible, and eliminates O(N) DOM queries by caching elements on initialization.
+     */
     init() {
         this.container = document.querySelector('.tech-background');
         if (!this.container) return;
@@ -2968,50 +2971,21 @@ class TechnicalBackground {
         this.timestampEl = document.getElementById('techTimestamp');
         this.uptimeEl = document.getElementById('uptimeCounter');
 
-        // Setup visibility observer to stop render loop when off-screen
-        this.observer = new IntersectionObserver((entries) => {
+        // Use IntersectionObserver to pause updates when off-screen
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.start();
-                } else {
-                    this.stop();
+                this.isVisible = entry.isIntersecting;
+                if (this.isVisible) {
+                    this.updateLoop(performance.now());
                 }
             });
         });
-        this.observer.observe(this.container);
+
+        observer.observe(this.container);
         
         // Initial update
         this.updateTimestamp();
         this.updateUptime();
-    }
-
-    start() {
-        if (this.active) return;
-        this.active = true;
-        this.update();
-    }
-
-    stop() {
-        this.active = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-    }
-
-    update(time) {
-        if (!this.active) return;
-
-        const now = time || performance.now();
-
-        // Throttle updates to ~1 second
-        if (now - this.lastUpdate > 1000) {
-            this.updateTimestamp();
-            this.updateUptime();
-            this.lastUpdate = now;
-        }
-
-        this.animationId = requestAnimationFrame(this.update);
     }
 
     show() {
@@ -3020,6 +2994,19 @@ class TechnicalBackground {
                 this.container.classList.add('visible');
             }, 500);
         }
+    }
+
+    updateLoop(time) {
+        if (!this.isVisible) return;
+
+        // Throttle updates to ~1 second (1000ms)
+        if (time - this.lastUpdateTime >= 1000) {
+            this.updateTimestamp();
+            this.updateUptime();
+            this.lastUpdateTime = time;
+        }
+
+        requestAnimationFrame(this.updateLoop);
     }
 
     updateTimestamp() {
