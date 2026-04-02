@@ -2949,19 +2949,69 @@ class TechnicalBackground {
     constructor() {
         this.container = null;
         this.startTime = Date.now();
+        this.active = false;
+        this.animationId = null;
+        this.lastUpdate = 0;
+
+        // Cache DOM elements
+        this.timestampEl = null;
+        this.uptimeEl = null;
+
+        // Bind for RAF optimization
+        this.update = this.update.bind(this);
     }
 
     init() {
         this.container = document.querySelector('.tech-background');
         if (!this.container) return;
         
-        // Update timestamp
-        this.updateTimestamp();
-        setInterval(() => this.updateTimestamp(), 1000);
+        this.timestampEl = document.getElementById('techTimestamp');
+        this.uptimeEl = document.getElementById('uptimeCounter');
+
+        // Setup visibility observer to stop render loop when off-screen
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    this.start();
+                } else {
+                    this.stop();
+                }
+            });
+        });
+        this.observer.observe(this.container);
         
-        // Update uptime counter
+        // Initial update
+        this.updateTimestamp();
         this.updateUptime();
-        setInterval(() => this.updateUptime(), 1000);
+    }
+
+    start() {
+        if (this.active) return;
+        this.active = true;
+        this.update();
+    }
+
+    stop() {
+        this.active = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+    update(time) {
+        if (!this.active) return;
+
+        const now = time || performance.now();
+
+        // Throttle updates to ~1 second
+        if (now - this.lastUpdate > 1000) {
+            this.updateTimestamp();
+            this.updateUptime();
+            this.lastUpdate = now;
+        }
+
+        this.animationId = requestAnimationFrame(this.update);
     }
 
     show() {
@@ -2973,20 +3023,18 @@ class TechnicalBackground {
     }
 
     updateTimestamp() {
-        const element = document.getElementById('techTimestamp');
-        if (element) {
+        if (this.timestampEl) {
             const now = new Date();
-            element.textContent = now.toTimeString().split(' ')[0];
+            this.timestampEl.textContent = now.toTimeString().split(' ')[0];
         }
     }
 
     updateUptime() {
-        const element = document.getElementById('uptimeCounter');
-        if (element) {
+        if (this.uptimeEl) {
             const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
-            element.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            this.uptimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 }
