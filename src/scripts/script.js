@@ -1753,16 +1753,17 @@ function triggerGlitch(element, force = false) {
     }
 
     const glitchInterval = setInterval(() => {
-        element.textContent = original
-            .split('')
-            .map((char, index) => {
-                if (index < iterations) {
-                    return original[index];
-                }
-                if (char === ' ') return ' '; // Preserve spaces
-                return chars[Math.floor(Math.random() * chars.length)];
-            })
-            .join('');
+        let glitchedText = '';
+        for (let i = 0; i < original.length; i++) {
+            if (i < iterations) {
+                glitchedText += original[i];
+            } else if (original[i] === ' ') {
+                glitchedText += ' '; // Preserve spaces
+            } else {
+                glitchedText += chars[Math.floor(Math.random() * chars.length)];
+            }
+        }
+        element.textContent = glitchedText;
 
         if (iterations >= original.length) {
             clearInterval(glitchInterval);
