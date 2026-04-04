@@ -48,6 +48,6 @@
 **Learning:** `src/scripts/script.js` was continuously updating DOM properties (`transform`, `perspective`) in `HyperScrollIntro`'s `requestAnimationFrame` loop even when the values hadn't significantly changed, leading to layout thrashing.
 **Action:** Always cache the last applied values (`lastVizZ`, `lastTiltX`, etc.) and skip DOM updates if the calculated difference (`Math.abs(diff)`) is below a visually perceptible threshold (e.g., `< 0.1` for pixels/degrees).
 
-## 2025-05-18 - Avoid array allocations in high-frequency intervals
-**Learning:** Using methods like `.split('').map(...).join('')` inside high-frequency `setInterval` loops (e.g., `triggerGlitch` running every 30ms) creates significant garbage by repeatedly allocating new arrays and strings. This causes GC pauses and jank, especially when multiple elements are animating simultaneously (like during the boot sequence).
-**Action:** Replace chaining array iteration methods with a simple `for` loop and string concatenation to construct strings efficiently without creating intermediate arrays.
+## 2025-05-15 - requestAnimationFrame for DOM Animations
+**Learning:** `setInterval` for animations operates independently of the screen refresh rate, leading to visual jitter, and it continues running even when the tab is backgrounded.
+**Action:** Replace `setInterval` with `requestAnimationFrame` for DOM animations (like count-ups) to guarantee smooth execution matched to the monitor's refresh rate and automatically pause when the tab is off-screen.
