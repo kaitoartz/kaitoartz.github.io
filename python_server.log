@@ -1,0 +1,11 @@
+127.0.0.1 - - [03/Apr/2026 13:29:15] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [03/Apr/2026 13:29:15] "GET /src/styles/styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [03/Apr/2026 13:29:16] "GET /src/scripts/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [03/Apr/2026 13:29:16] code 404, message File not found
+127.0.0.1 - - [03/Apr/2026 13:29:16] "GET /assets/projects/crehabitat.webp HTTP/1.1" 404 -
+127.0.0.1 - - [03/Apr/2026 13:29:16] code 404, message File not found
+127.0.0.1 - - [03/Apr/2026 13:29:16] "GET /assets/projects/candyparty.webp HTTP/1.1" 404 -
+127.0.0.1 - - [03/Apr/2026 13:29:16] code 404, message File not found
+127.0.0.1 - - [03/Apr/2026 13:29:16] "GET /assets/projects/IstGames.webp HTTP/1.1" 404 -
+127.0.0.1 - - [03/Apr/2026 13:29:16] code 404, message File not found
+127.0.0.1 - - [03/Apr/2026 13:29:16] "GET /assets/projects/mediapipe.webp HTTP/1.1" 404 -
