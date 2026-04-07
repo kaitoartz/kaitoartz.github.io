@@ -3665,8 +3665,14 @@ class MatrixRain {
 
             this.ctx.fillText(text, x, y);
 
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced \`this.canvas.height\` with \`this.logicalHeight\` inside the MatrixRain draw loop.
+             * 🎯 Why: Accessing DOM properties like \`canvas.height\` inside a high-frequency \`requestAnimationFrame\` loop forces synchronous C++ boundary crossings, which is slow.
+             * 📊 Impact: Eliminates O(N) DOM reads per frame, ensuring smoother 60fps rendering, and fixes a bug where drops reset prematurely on scaled down resolutions (e.g., mobile or 'low' preset).
+             */
             // Reset drop to top randomly
-            if (y > this.canvas.height && Math.random() > 0.975) {
+            if (y > this.logicalHeight && Math.random() > 0.975) {
                 this.drops[i] = 0;
             }
 
