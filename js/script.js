@@ -3278,8 +3278,27 @@ class ParallaxManager {
         // Optimization: Pre-calculate speed and cache elements to avoid DOM access in loop
         this.items = Array.from(layers).map(layer => ({
             el: layer,
-            speed: parseFloat(layer.dataset.speed) || 0.5
+            speed: parseFloat(layer.dataset.speed) || 0.5,
+            isVisible: true, // Assume visible initially
+            lastYPos: undefined
         }));
+
+        // Optimization: Use IntersectionObserver to skip DOM updates for off-screen layers
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const item = this.items.find(i => i.el === entry.target);
+                if (item) {
+                    item.isVisible = entry.isIntersecting;
+                    // Trigger an immediate update when an element becomes visible
+                    // to fix stale positions after sudden anchor jumps
+                    if (item.isVisible) {
+                        this.requestTick();
+                    }
+                }
+            });
+        }, { rootMargin: '100% 0px' }); // Margin to ensure it starts moving before entering viewport
+
+        this.items.forEach(item => this.observer.observe(item.el));
 
         // Optimization: Use passive listener to prevent blocking scroll
         window.addEventListener('scroll', () => this.requestTick(), { passive: true });
@@ -3312,8 +3331,21 @@ class ParallaxManager {
         
         for (let i = 0; i < this.items.length; i++) {
             const item = this.items[i];
+
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Implemented IntersectionObserver to skip off-screen elements and added dirty checking for sub-pixel changes.
+             * 🎯 Why: Modifying `style.transform` unconditionally on every scroll tick for off-screen elements or for imperceptible sub-pixel changes forces unnecessary layer compositing and CPU/GPU work.
+             * 📊 Impact: Eliminates DOM writes for off-screen parallax layers (saving O(N) operations) and prevents redundant sub-pixel layout thrashing.
+             */
+            if (!item.isVisible) continue;
+
             const yPos = -(this.lastScrollY * item.speed);
-            item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
+
+            if (item.lastYPos === undefined || Math.abs(item.lastYPos - yPos) > 0.5) {
+                item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
+                item.lastYPos = yPos;
+            }
         }
 
         this.ticking = false;

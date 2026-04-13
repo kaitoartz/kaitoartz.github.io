@@ -51,3 +51,7 @@
 ## 2025-05-15 - requestAnimationFrame for DOM Animations
 **Learning:** `setInterval` for animations operates independently of the screen refresh rate, leading to visual jitter, and it continues running even when the tab is backgrounded.
 **Action:** Replace `setInterval` with `requestAnimationFrame` for DOM animations (like count-ups) to guarantee smooth execution matched to the monitor's refresh rate and automatically pause when the tab is off-screen.
+
+## 2025-05-18 - Parallax Off-screen Optimization
+**Learning:** Updating CSS transforms on off-screen elements during high-frequency events (like scroll) wastes CPU/GPU resources and can cause layer tree recalculations, even if the elements are invisible. Furthermore, updating the DOM for imperceptible sub-pixel changes causes redundant layout and compositing work.
+**Action:** Use `IntersectionObserver` with a generous `rootMargin` (e.g., `100%`) to flag when parallax elements are safely out of view to skip their `style.transform` updates. Combine this with a dirty check (`Math.abs(lastYPos - yPos) > 0.5`) to eliminate sub-pixel DOM writes.
