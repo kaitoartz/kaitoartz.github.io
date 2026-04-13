@@ -1776,6 +1776,12 @@ console.log(
 
 // ========== GLITCH EFFECT TRIGGER ==========
 // ========== GLITCH EFFECT TRIGGER & TEXT DECODING ==========
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Replaced setInterval with requestAnimationFrame in triggerGlitch text animation.
+ * 🎯 Why: setInterval operates independently of screen refresh rate, causing visual jitter and running off-screen. RAF ensures smooth execution and pauses when off-screen.
+ * 📊 Impact: Eliminates visual jitter and background CPU waste.
+ */
 function triggerGlitch(element, force = false) {
     // Check performance settings unless forced
     if (!force && typeof performanceManager !== 'undefined' && !performanceManager.effects.glitch) return;
@@ -1788,30 +1794,18 @@ function triggerGlitch(element, force = false) {
 
     const chars = '!<>-_\\/[]{}—=+*^?#________';
     let iterations = 0;
+    let lastTime = 0;
 
-    /**
-     * ⚡ Bolt Performance Optimization
-     * 💡 What: Replaced \`setInterval\` with a \`requestAnimationFrame\` loop for the glitch effect.
-     * 🎯 Why: \`setInterval\` operates independently of the screen refresh rate, causing visual jitter and running even when the tab is backgrounded. \`requestAnimationFrame\` guarantees smooth execution matched to the monitor's refresh rate and automatically pauses when the tab is off-screen, saving CPU/battery.
-     * 📊 Impact: Eliminates micro-stutters during glitch animations and reduces background CPU/battery usage to 0.
-     */
-    // Clear any existing interval/RAF to prevent overlap
-    if (element.dataset.glitchInterval) {
-        clearInterval(parseInt(element.dataset.glitchInterval));
-        delete element.dataset.glitchInterval;
-    }
-    if (element.dataset.glitchRaf) {
-        cancelAnimationFrame(parseInt(element.dataset.glitchRaf));
-        delete element.dataset.glitchRaf;
+    // Clear any existing interval to prevent overlap
+    if (element.dataset.glitchRafId) {
+        cancelAnimationFrame(parseInt(element.dataset.glitchRafId));
     }
 
-    let lastTime = performance.now();
-    const interval = 30; // ms
+    const step = (timestamp) => {
+        if (!lastTime) lastTime = timestamp;
 
-    const glitchLoop = (time) => {
-        if (time - lastTime >= interval) {
-            lastTime = time;
-
+        // Target ~30ms interval
+        if (timestamp - lastTime >= 30) {
             let glitchedText = '';
             for (let i = 0; i < original.length; i++) {
                 if (i < iterations) {
@@ -1824,18 +1818,23 @@ function triggerGlitch(element, force = false) {
             }
             element.textContent = glitchedText;
 
-            iterations += 1 / 3;
-        }
+            if (iterations >= original.length) {
+                element.textContent = original; // Ensure final state is clean
+                delete element.dataset.glitchRafId;
+                return;
+            }
 
-        if (iterations < original.length) {
-            element.dataset.glitchRaf = requestAnimationFrame(glitchLoop);
-        } else {
-            element.textContent = original; // Ensure final state is clean
-            delete element.dataset.glitchRaf;
+            iterations += 1 / 3;
+            lastTime = timestamp;
         }
     };
 
-    element.dataset.glitchRaf = requestAnimationFrame(glitchLoop);
+        const rafId = requestAnimationFrame(step);
+        element.dataset.glitchRafId = rafId;
+    };
+
+    const rafId = requestAnimationFrame(step);
+    element.dataset.glitchRafId = rafId;
 }
 
 // Initial Text Decoding on Boot (Hook into your boot sequence)
