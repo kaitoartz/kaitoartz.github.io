@@ -51,3 +51,6 @@
 ## 2025-05-15 - requestAnimationFrame for DOM Animations
 **Learning:** `setInterval` for animations operates independently of the screen refresh rate, leading to visual jitter, and it continues running even when the tab is backgrounded.
 **Action:** Replace `setInterval` with `requestAnimationFrame` for DOM animations (like count-ups) to guarantee smooth execution matched to the monitor's refresh rate and automatically pause when the tab is off-screen.
+## 2025-05-18 - Glitch Animation RAF
+**Learning:** The `triggerGlitch` animation was using `setInterval(..., 30)`. This operates independently of the display refresh rate, causing visual stutter, and continues running at 30ms intervals even when the tab is in the background, needlessly consuming CPU and battery.
+**Action:** Refactored `triggerGlitch` to use `requestAnimationFrame`. We preserve the 30ms throttling logic by checking `time - lastTime >= 30` within the RAF loop. This maintains the original visual timing while ensuring the animation pauses automatically when off-screen and syncs with the browser's paint cycle when visible.

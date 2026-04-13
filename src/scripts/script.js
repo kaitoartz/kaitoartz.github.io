@@ -1789,34 +1789,53 @@ function triggerGlitch(element, force = false) {
     const chars = '!<>-_\\/[]{}—=+*^?#________';
     let iterations = 0;
 
-    // Clear any existing interval to prevent overlap
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced \`setInterval\` with a \`requestAnimationFrame\` loop for the glitch effect.
+     * 🎯 Why: \`setInterval\` operates independently of the screen refresh rate, causing visual jitter and running even when the tab is backgrounded. \`requestAnimationFrame\` guarantees smooth execution matched to the monitor's refresh rate and automatically pauses when the tab is off-screen, saving CPU/battery.
+     * 📊 Impact: Eliminates micro-stutters during glitch animations and reduces background CPU/battery usage to 0.
+     */
+    // Clear any existing interval/RAF to prevent overlap
     if (element.dataset.glitchInterval) {
         clearInterval(parseInt(element.dataset.glitchInterval));
+        delete element.dataset.glitchInterval;
+    }
+    if (element.dataset.glitchRaf) {
+        cancelAnimationFrame(parseInt(element.dataset.glitchRaf));
+        delete element.dataset.glitchRaf;
     }
 
-    const glitchInterval = setInterval(() => {
-        let glitchedText = '';
-        for (let i = 0; i < original.length; i++) {
-            if (i < iterations) {
-                glitchedText += original[i];
-            } else if (original[i] === ' ') {
-                glitchedText += ' '; // Preserve spaces
-            } else {
-                glitchedText += chars[Math.floor(Math.random() * chars.length)];
+    let lastTime = performance.now();
+    const interval = 30; // ms
+
+    const glitchLoop = (time) => {
+        if (time - lastTime >= interval) {
+            lastTime = time;
+
+            let glitchedText = '';
+            for (let i = 0; i < original.length; i++) {
+                if (i < iterations) {
+                    glitchedText += original[i];
+                } else if (original[i] === ' ') {
+                    glitchedText += ' '; // Preserve spaces
+                } else {
+                    glitchedText += chars[Math.floor(Math.random() * chars.length)];
+                }
             }
-        }
-        element.textContent = glitchedText;
+            element.textContent = glitchedText;
 
-        if (iterations >= original.length) {
-            clearInterval(glitchInterval);
+            iterations += 1 / 3;
+        }
+
+        if (iterations < original.length) {
+            element.dataset.glitchRaf = requestAnimationFrame(glitchLoop);
+        } else {
             element.textContent = original; // Ensure final state is clean
-            delete element.dataset.glitchInterval;
+            delete element.dataset.glitchRaf;
         }
+    };
 
-        iterations += 1 / 3;
-    }, 30);
-
-    element.dataset.glitchInterval = glitchInterval;
+    element.dataset.glitchRaf = requestAnimationFrame(glitchLoop);
 }
 
 // Initial Text Decoding on Boot (Hook into your boot sequence)
