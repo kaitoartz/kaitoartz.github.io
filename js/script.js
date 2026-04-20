@@ -1529,7 +1529,6 @@ function triggerGlitch(element, force = false) {
             iterations += 1 / 3;
             lastTime = timestamp;
         }
-    };
 
         const rafId = requestAnimationFrame(step);
         element.dataset.glitchRafId = rafId;
