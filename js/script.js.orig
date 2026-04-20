@@ -76,7 +76,7 @@ class FrameRateMonitor {
         // Gradual downgrade logic
         const tiers = ['ultra', 'high', 'medium', 'low'];
         const currentIndex = tiers.indexOf(performanceManager.currentPreset);
-        
+
         if (currentIndex < tiers.length - 1) {
             const nextTier = tiers[currentIndex + 1] || 'low'; // Fallback to medium if auto or unknown
             performanceManager.applyPreset(nextTier);
@@ -121,7 +121,7 @@ class PerformanceManager {
         const memory = navigator.deviceMemory || 4;
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
-        
+
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
@@ -134,11 +134,11 @@ class PerformanceManager {
         // RAM Scoring: 4GB is now minimum for smooth WebGL.
         // Increase weight slightly but cap logic remains
         score += Math.min(memory * 4, 20);
-        
+
         if (effectiveType === '4g') score += 10;
         else if (effectiveType === '3g') score -= 5; // Penalty for 3G
         else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 20; // Heavy penalty
-        
+
         // Penalize iOS devices that report low cores due to privacy
         if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
             // Assume modern iOS is at least medium, but don't let it hit ultra easily due to thermal throttling concerns
@@ -148,7 +148,7 @@ class PerformanceManager {
         }
 
         score = Math.max(0, Math.min(100, score));
-        
+
         return {
             isMobile,
             cores,
@@ -170,7 +170,7 @@ class PerformanceManager {
 
     applyPreset(preset) {
         this.currentPreset = preset;
-        
+
         const presets = {
             auto: this.hardware.tier,
             ultra: {
@@ -230,24 +230,24 @@ class PerformanceManager {
             document.body.classList.remove('no-scanlines');
             document.body.classList.remove('no-glitch');
         }
-        
+
         const targetPreset = preset === 'auto' ? presets[this.hardware.tier] : presets[preset];
-        
+
         Object.keys(targetPreset).forEach(effect => {
             this.effects[effect] = targetPreset[effect];
             this.toggleEffect(effect, targetPreset[effect], false);
         });
-        
+
         // Save to localStorage
         this.savePreferences();
-        
+
         devLog(`Performance preset applied: ${preset} (tier: ${this.hardware.tier})`);
     }
 
     toggleEffect(effectName, state = null, save = true) {
         const newState = state !== null ? state : !this.effects[effectName];
         this.effects[effectName] = newState;
-        
+
         switch(effectName) {
             case 'matrixRain':
                 this.toggleMatrixRain(newState);
@@ -277,7 +277,7 @@ class PerformanceManager {
                 this.toggleVisualizer(newState);
                 break;
         }
-        
+
         if (save) this.savePreferences();
         this.updateUI(effectName, newState);
     }
@@ -306,7 +306,7 @@ class PerformanceManager {
         if (canvas) {
             canvas.style.display = enable ? 'block' : 'none';
         }
-        
+
         if (this.cursorInstance) {
             if (enable) this.cursorInstance.start();
             else this.cursorInstance.stop();
@@ -366,7 +366,7 @@ class PerformanceManager {
         if (vizBlock) {
             vizBlock.style.display = enable ? 'flex' : 'none';
         }
-        
+
         // Find the visualizer instance (it's global 'audioVisualizer' or attached to manager)
         if (typeof audioVisualizer !== 'undefined') {
             if (enable) audioVisualizer.start();
@@ -387,13 +387,13 @@ class PerformanceManager {
             decorations: 'decorStatus',
             visualizer: 'vizStatus'
         };
-        
+
         const statusEl = document.getElementById(statusMap[effectName]);
         if (statusEl) {
             statusEl.textContent = state ? 'ON' : 'OFF';
             statusEl.classList.toggle('off', !state);
         }
-        
+
         const toggleBtn = document.querySelector(`[data-effect="${effectName}"]`);
         if (toggleBtn) {
             toggleBtn.setAttribute('data-state', state ? 'on' : 'off');
@@ -404,12 +404,12 @@ class PerformanceManager {
         Object.keys(this.effects).forEach(effect => {
             this.updateUI(effect, this.effects[effect]);
         });
-        
+
         // Update preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.preset === this.currentPreset);
         });
-        
+
         // Update hardware info
         this.updateHardwareInfo();
     }
@@ -446,11 +446,11 @@ class PerformanceManager {
     loadPreferences() {
         const savedPreset = localStorage.getItem('performancePreset');
         const savedEffects = localStorage.getItem('performanceEffects');
-        
+
         if (savedPreset) {
             this.currentPreset = savedPreset;
         }
-        
+
         if (savedEffects) {
             try {
                 const effects = JSON.parse(savedEffects);
@@ -463,7 +463,7 @@ class PerformanceManager {
 
     init() {
         this.loadPreferences();
-        
+
         // If no saved preferences, apply auto preset
         if (!localStorage.getItem('performancePreset')) {
             this.applyPreset('auto');
@@ -473,11 +473,11 @@ class PerformanceManager {
                 this.toggleEffect(effect, this.effects[effect], false);
             });
         }
-        
+
         // Setup UI event listeners
         this.setupEventListeners();
         this.updateAllUI();
-        
+
         devLog('PerformanceManager initialized:', this.hardware);
     }
 
@@ -489,18 +489,18 @@ class PerformanceManager {
                 this.updateAllUI();
             });
         });
-        
+
         // Effect toggles
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
-                
+
                 // If we were in low mode, clean up restrictive classes
                 if (this.currentPreset === 'low' || document.body.classList.contains('performance-mode-low')) {
                     document.body.classList.remove('performance-mode-low');
                     document.body.classList.remove('no-scanlines');
                 }
-                
+
                 this.toggleEffect(effect);
                 this.currentPreset = 'custom';
                 this.savePreferences();
@@ -531,7 +531,7 @@ class AudioManager {
         this.mediaSource = null;
         this.analyserNode = null;
 
-        
+
         // Audio file paths
         this.audioFiles = {
             background: 'assets/audio/background.mp3'
@@ -555,7 +555,7 @@ class AudioManager {
 
     playSound(soundName, volume = 1.0, loop = false) {
         if (!this.enabled || !this.audioContext) return;
-        
+
         // Para file:// usamos Audio directo en lugar de AudioBuffer
         try {
             const audio = new Audio(this.audioFiles[soundName]);
@@ -573,13 +573,13 @@ class AudioManager {
 
     synthesizeSound(soundName, volume) {
         if (!this.audioContext) return;
-        
+
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
-        
+
         // Different frequencies for different sounds
         const frequencies = {
             click: 800,
@@ -588,13 +588,13 @@ class AudioManager {
             glitch: 200,
             success: 1000
         };
-        
+
         oscillator.frequency.value = frequencies[soundName] || 500;
         oscillator.type = 'sine';
-        
+
         gainNode.gain.setValueAtTime(volume * 0.3, this.audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-        
+
         oscillator.start(this.audioContext.currentTime);
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
@@ -604,27 +604,27 @@ class AudioManager {
             console.log('%c>> MUSIC: AudioContext not initialized', 'color: #FF6B6B; font-family: monospace;');
             return;
         }
-        
+
         // Stop existing music if any
         if (this.bgMusic) {
             this.bgMusic.pause();
             this.bgMusic = null;
         }
-        
+
         console.log('%c>> MUSIC: Creating audio element...', 'color: #00FFFF; font-family: monospace;');
-        
+
         this.bgMusic = new Audio(this.audioFiles.background);
         this.bgMusic.volume = volume;
         this.bgMusic.loop = true;
         this.bgMusic.preload = 'auto';
-        
+
         // Setup analyser for visualizer (only once)
         if (!this.mediaSource && this.audioContext) {
             try {
                 this.mediaSource = this.audioContext.createMediaElementSource(this.bgMusic);
                 this.analyserNode = this.audioContext.createAnalyser();
                 this.analyserNode.fftSize = 512;
-                
+
                 this.mediaSource.connect(this.analyserNode);
                 this.analyserNode.connect(this.audioContext.destination);
                 console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
@@ -632,20 +632,20 @@ class AudioManager {
                 console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
             }
         }
-        
+
         // Add event listeners for debugging
         this.bgMusic.addEventListener('loadeddata', () => {
             console.log('%c>> MUSIC: Audio loaded (duration: ' + this.bgMusic.duration + 's)', 'color: #39FF14; font-family: monospace;');
         });
-        
+
         this.bgMusic.addEventListener('error', (e) => {
             console.log('%c>> MUSIC: Load error - ' + e.target.error.message, 'color: #FF6B6B; font-family: monospace;');
         });
-        
+
         // Attempt to play
         console.log('%c>> MUSIC: Attempting to play...', 'color: #00FFFF; font-family: monospace;');
         const playPromise = this.bgMusic.play();
-        
+
         if (playPromise !== undefined) {
             playPromise.then(() => {
                 console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
@@ -663,7 +663,7 @@ class AudioManager {
             console.log('%c>> MUSIC: Stopped', 'color: #FF6B6B; font-family: monospace;');
         }
     }
-    
+
     setVolume(volume) {
         if (this.bgMusic) {
             this.bgMusic.volume = Math.max(0, Math.min(1, volume));
@@ -726,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
 class HyperScrollIntro {
     constructor() {
         // Dynamic configuration based on performance tier
-        const isLowSpec = typeof performanceManager !== 'undefined' && 
+        const isLowSpec = typeof performanceManager !== 'undefined' &&
                           (performanceManager.hardware.isMobile || performanceManager.hardware.tier === 'low' || performanceManager.hardware.tier === 'medium');
 
         this.config = {
@@ -738,9 +738,9 @@ class HyperScrollIntro {
             loopSize: 0 // Calculated later
         };
         this.config.loopSize = this.config.itemCount * this.config.zGap;
-        
+
         this.texts = ["KAITOARTZ", "NEW", "PORTFOLIO", "WEB", "TECHNICAL", "ARTIST", "PIXEL", "HYPER", "NEON", "VOID"];
-        
+
         this.state = {
             scroll: 0,
             velocity: 0,
@@ -756,7 +756,7 @@ class HyperScrollIntro {
         this.rafId = null;
         this.frameCount = 0; // Better than relying on rafId for throttling
         this.lenis = null;
-        
+
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
@@ -769,7 +769,7 @@ class HyperScrollIntro {
 
         this.world = document.getElementById('intro-world');
         this.viewport = document.getElementById('intro-viewport');
-        
+
         // Bloquear scroll del body nativo
         document.body.classList.add('no-scroll');
 
@@ -777,7 +777,7 @@ class HyperScrollIntro {
         this.initLenis();
         this.bindEvents();
         this.startLoop();
-        
+
         console.log('%c>> HYPER INTRO: SYSTEM ONLINE', 'color: #E2FF00; font-family: monospace;');
 
         // Auto-initialize Audio Manager (silent)
@@ -788,7 +788,7 @@ class HyperScrollIntro {
 
     createWorld() {
         if (!this.world) return;
-        
+
         // Create Items
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -838,7 +838,6 @@ class HyperScrollIntro {
 
                 this.items.push({
                     el, type: 'card',
-                    cardEl: card,
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
@@ -875,17 +874,17 @@ class HyperScrollIntro {
     initLenis() {
         // We use Virtual Scroll for the Intro to achieve true mathematical infinity
         // without hitting browser pixel height limits (like the ~2400 limit reported)
-        
+
         const handleWheel = (e) => {
             if (!this.state.warping && this.state.active) {
                 // Accumulate scroll infinitely
                 // deltaY is usually around 100 for a wheel click
                 const delta = e.deltaY;
                 this.state.scroll += delta * 0.5; // Sensitivity adjustment
-                
+
                 // Track velocity for the HUD and warp effects
                 this.state.targetSpeed = delta * 0.2;
-                
+
                 // Clear velocity after a short delay (debounce feel)
                 if (this.velTimeout) clearTimeout(this.velTimeout);
                 this.velTimeout = setTimeout(() => {
@@ -895,14 +894,14 @@ class HyperScrollIntro {
         };
 
         window.addEventListener('wheel', handleWheel, { passive: true });
-        
+
         // Also support touch for a similar feel (optional for PC but good practice)
         let touchStartY = 0;
         window.addEventListener('touchstart', (e) => touchStartY = e.touches[0].clientY, { passive: true });
         window.addEventListener('touchmove', (e) => {
             if (!this.state.warping && this.state.active) {
                 const delta = touchStartY - e.touches[0].clientY;
-                this.state.scroll += delta * 2.0; 
+                this.state.scroll += delta * 2.0;
                 touchStartY = e.touches[0].clientY;
                 this.state.targetSpeed = delta * 0.5;
             }
@@ -917,7 +916,7 @@ class HyperScrollIntro {
             this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
         };
         window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
-        
+
         this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
@@ -933,14 +932,14 @@ class HyperScrollIntro {
     async warpAndEnter() {
         if (this.state.warping) return;
         this.state.warping = true;
-        
+
         console.log('%c>> HYPER INTRO: WARP ENGAGED', 'color: #E2FF00; font-family: monospace;');
-        
+
         // Init Audio
         await audioManager.init();
         audioManager.playBoot();
         audioManager.playBackgroundMusic();
-        
+
         // Update UI
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
@@ -954,15 +953,15 @@ class HyperScrollIntro {
         const feedbackVel = document.getElementById('intro-vel-readout');
         const feedbackFPS = document.getElementById('intro-fps');
         const feedbackCoord = document.getElementById('intro-coord');
-        
+
         let lastTime = 0;
 
         const loop = (time) => {
             if (!this.state.active) return;
-            
+
             this.rafId = requestAnimationFrame(loop);
             this.frameCount++;
-            
+
             if (this.lenis) this.lenis.raf(time);
 
             // FPS Calculation
@@ -976,7 +975,7 @@ class HyperScrollIntro {
                 // Accelerate hard
                 this.state.targetSpeed = 150; // Warp speed
                 this.state.scroll += this.state.velocity * 0.5; // Manual advance
-                
+
                 // Trigger fade out after reaching high speed
                 if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
                     this.state.fading = true;
@@ -1011,7 +1010,7 @@ class HyperScrollIntro {
             // Skip tilt calculations on low spec to save layout thrashing
             if (!isLowPerf) {
                 const shake = this.state.velocity * 0.2;
-                const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; 
+                const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2;
                 const tiltY = this.state.mouseX * 5;
 
                 if (this.world) {
@@ -1037,7 +1036,7 @@ class HyperScrollIntro {
                 const item = this.items[i];
                 let relZ = item.baseZ + cameraZ;
                 const modC = this.config.loopSize;
-                
+
                 // Infinite Tunnel Math
                 let vizZ = ((relZ % modC) + modC) % modC;
                 if (vizZ > 500) vizZ -= modC;
@@ -1048,7 +1047,7 @@ class HyperScrollIntro {
                 else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
                 if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400); // Fade out close
                 if (alpha < 0) alpha = 0;
-                
+
                 // Optimization: Update opacity only if changed significantly
                 if (Math.abs(item.currentAlpha - alpha) > 0.001) {
                     item.el.style.opacity = alpha;
@@ -1111,7 +1110,7 @@ class HyperScrollIntro {
                 }
             }
         };
-        
+
         requestAnimationFrame(loop);
     }
 
@@ -1129,12 +1128,12 @@ class HyperScrollIntro {
                 layer.style.opacity = 0;
                 layer.style.filter = "brightness(2) blur(10px)";
             }
-            
+
             setTimeout(() => {
                 layer.style.display = 'none';
                 this.state.active = false;
                 if (this.lenis) this.lenis.destroy();
-                
+
                 // Remove listeners to save resources
                 if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
                 if (this.handleResize) window.removeEventListener('resize', this.handleResize);
@@ -1143,7 +1142,7 @@ class HyperScrollIntro {
                 document.body.classList.remove('no-scroll');
                 window.scrollTo(0, 0); // Force scroll to top
                 document.documentElement.scrollTop = 0; // Double ensure for some browsers
-                
+
                 // Trigger Main Dashboard animations
                 const main = document.querySelector('main');
                 if(main) {
@@ -1156,10 +1155,10 @@ class HyperScrollIntro {
                     performanceManager.effects.matrixRain) {
                      matrixRain.start(true);
                 }
-                
+
                 // Optional: Trigger legacy boot sequence visuals briefly or just logging
                 // For now, we assume direct access to dashboard
-                
+
             }, 800);
         }
     }
@@ -1178,18 +1177,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== BOOT SEQUENCE ==========
 function startBootSequence() {
     console.log('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
-    
+
     const loadProgress = document.getElementById('loadProgress');
     const bootLoaderBar = document.getElementById('bootLoaderBar');
     const bootLog = document.getElementById('bootLog');
     const bootOverlay = document.querySelector('.boot-overlay');
     const dashboard = document.querySelector('.dashboard');
-    
+
     if (!loadProgress || !bootLoaderBar || !bootLog || !bootOverlay || !dashboard) {
         console.error('Boot elements not found!');
         return;
     }
-    
+
     // Boot Log Messages
     const bootLogs = [
         { text: '> INITIALIZING KERNEL...', type: 'system', delay: 100 },
@@ -1307,32 +1306,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== ANIMATED COUNTERS ==========
 // ========== UTILITY FUNCTIONS ==========
 const animateCounter = (element, target, duration = 1500) => {
-    let startTimestamp = null;
+    let current = 0;
+    const steps = duration / 30;
+    const stepIncrement = target / steps;
 
-    /**
-     * ⚡ Bolt Performance Optimization
-     * 💡 What: Replaced setInterval with requestAnimationFrame for UI counting animation.
-     * 🎯 Why: setInterval operates independently of the screen refresh rate, causing visual jitter and running even when the tab is backgrounded. requestAnimationFrame guarantees smooth execution matched to the monitor's refresh rate and pauses when off-screen.
-     * 📊 Impact: Eliminates micro-stutters during count-up animations and reduces background CPU/battery usage to 0.
-     */
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-
-        // Easing out cubic for smoother finish
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const current = Math.floor(easeOutQuart * target);
-
-        element.textContent = current.toString().padStart(2, '0');
-
-        if (progress < 1) {
-            requestAnimationFrame(step);
-        } else {
-            element.textContent = target.toString().padStart(2, '0');
-        }
-    };
-
-    requestAnimationFrame(step);
+    const timer = setInterval(() => {
+        current = Math.min(current + stepIncrement, target);
+        element.textContent = Math.floor(current).toString().padStart(2, '0');
+        if (current >= target) clearInterval(timer);
+    }, 30);
 };
 
 // Intersection Observer for counters
@@ -1369,13 +1351,13 @@ function addConsoleLine() {
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
-    
+
     const line = document.createElement('div');
     line.className = 'console-line';
     line.innerHTML = `<span>${timeStamp}</span><span>${message}</span>`;
-    
+
     consoleFeed.prepend(line);
-    
+
     // Keep only last 5 lines
     while (consoleFeed.childNodes.length > 5) {
         consoleFeed.removeChild(consoleFeed.lastChild);
@@ -1425,13 +1407,13 @@ document.addEventListener('keydown', (e) => {
     } else {
         konamiIndex = 0;
     }
-    
+
     // Ctrl + K: Open Terminal
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         terminal.open();
     }
-    
+
     // Ctrl + M: Toggle Audio
     if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
         e.preventDefault();
@@ -1441,19 +1423,19 @@ document.addEventListener('keydown', (e) => {
             audioManager.playBackgroundMusic(0.2);
         }
     }
-    
+
     // Ctrl + /: Show Shortcuts
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         shortcutsManager.open();
     }
-    
+
     // ESC: Close modals
     if (e.key === 'Escape') {
         terminal.close();
         shortcutsManager.close();
     }
-    
+
     // Press 'H' to scroll home (only if not in input)
     if ((e.key === 'h' || e.key === 'H') && e.target.tagName !== 'INPUT') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1478,12 +1460,6 @@ console.log(
 
 // ========== GLITCH EFFECT TRIGGER ==========
 // ========== GLITCH EFFECT TRIGGER & TEXT DECODING ==========
-/**
- * ⚡ Bolt Performance Optimization
- * 💡 What: Replaced setInterval with requestAnimationFrame in triggerGlitch text animation.
- * 🎯 Why: setInterval operates independently of screen refresh rate, causing visual jitter and running off-screen. RAF ensures smooth execution and pauses when off-screen.
- * 📊 Impact: Eliminates visual jitter and background CPU waste.
- */
 function triggerGlitch(element, force = false) {
     // Check performance settings unless forced
     if (!force && typeof performanceManager !== 'undefined' && !performanceManager.effects.glitch) return;
@@ -1496,47 +1472,34 @@ function triggerGlitch(element, force = false) {
 
     const chars = '!<>-_\\/[]{}—=+*^?#________';
     let iterations = 0;
-    let lastTime = 0;
 
     // Clear any existing interval to prevent overlap
-    if (element.dataset.glitchRafId) {
-        cancelAnimationFrame(parseInt(element.dataset.glitchRafId));
+    if (element.dataset.glitchInterval) {
+        clearInterval(parseInt(element.dataset.glitchInterval));
     }
 
-    const step = (timestamp) => {
-        if (!lastTime) lastTime = timestamp;
-
-        // Target ~30ms interval
-        if (timestamp - lastTime >= 30) {
-            let glitchedText = '';
-            for (let i = 0; i < original.length; i++) {
-                if (i < iterations) {
-                    glitchedText += original[i];
-                } else if (original[i] === ' ') {
-                    glitchedText += ' '; // Preserve spaces
-                } else {
-                    glitchedText += chars[Math.floor(Math.random() * chars.length)];
+    const glitchInterval = setInterval(() => {
+        element.textContent = original
+            .split('')
+            .map((char, index) => {
+                if (index < iterations) {
+                    return original[index];
                 }
-            }
-            element.textContent = glitchedText;
+                if (char === ' ') return ' '; // Preserve spaces
+                return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join('');
 
-            if (iterations >= original.length) {
-                element.textContent = original; // Ensure final state is clean
-                delete element.dataset.glitchRafId;
-                return;
-            }
-
-            iterations += 1 / 3;
-            lastTime = timestamp;
+        if (iterations >= original.length) {
+            clearInterval(glitchInterval);
+            element.textContent = original; // Ensure final state is clean
+            delete element.dataset.glitchInterval;
         }
-    };
 
-        const rafId = requestAnimationFrame(step);
-        element.dataset.glitchRafId = rafId;
-    };
+        iterations += 1 / 3;
+    }, 30);
 
-    const rafId = requestAnimationFrame(step);
-    element.dataset.glitchRafId = rafId;
+    element.dataset.glitchInterval = glitchInterval;
 }
 
 // Initial Text Decoding on Boot (Hook into your boot sequence)
@@ -1618,11 +1581,11 @@ class ThemeManager {
     init() {
         this.toggleButton = document.getElementById('themeToggle');
         this.toggleLabel = document.getElementById('toggleLabel');
-        
+
         // Apply saved theme
         this.applyTheme(this.theme, false);
         this.setColorTheme(this.colorTheme, false);
-        
+
         // Add event listener only if button exists
         if (this.toggleButton) {
             this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
@@ -1675,24 +1638,24 @@ class ThemeManager {
     handleToggle(e) {
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
-        
+
         if (this.toggleButton) {
             const rect = this.toggleButton.getBoundingClientRect();
             x = rect.left + rect.width / 2;
             y = rect.top + rect.height / 2;
         }
-        
+
         // Play sound
         audioManager.playClick();
-        
+
         // Toggle theme
         this.theme = this.theme === 'dark' ? 'light' : 'dark';
-        
+
         // Animate transition
         this.animateTransition(x, y, () => {
             this.applyTheme(this.theme, true);
         });
-        
+
         // Save preference
         localStorage.setItem('theme', this.theme);
     }
@@ -1710,20 +1673,20 @@ class ThemeManager {
             pointer-events: none;
         `;
         document.body.appendChild(snapshot);
-        
+
         // Fade in overlay
         requestAnimationFrame(() => {
             snapshot.style.opacity = '1';
         });
-        
+
         // Change theme at peak opacity
         setTimeout(() => {
             if (callback) callback();
-            
+
             // Fade out overlay
             setTimeout(() => {
                 snapshot.style.opacity = '0';
-                
+
                 // Remove overlay after fade
                 setTimeout(() => {
                     snapshot.remove();
@@ -1741,7 +1704,7 @@ class ThemeManager {
             if (this.toggleLabel) {
                 this.toggleLabel.textContent = 'DAY_MODE';
             }
-            
+
             if (animate) {
                 console.log('%c>> THEME_SWITCH: DAY_MODE_ACTIVATED', 'color: #FFD700; font-family: monospace;');
             }
@@ -1753,7 +1716,7 @@ class ThemeManager {
             if (this.toggleLabel) {
                 this.toggleLabel.textContent = 'NIGHT_MODE';
             }
-            
+
             if (animate) {
                 console.log('%c>> THEME_SWITCH: NIGHT_MODE_ACTIVATED', 'color: #39FF14; font-family: monospace;');
             }
@@ -1792,11 +1755,11 @@ class CursorManager {
     init() {
         this.canvas = document.getElementById('cursorCanvas');
         if (!this.canvas) return;
-        
+
         this.ctx = this.canvas.getContext('2d');
         this.resize();
         this.updateColor(); // Initial color fetch
-        
+
         document.addEventListener('mousemove', (e) => {
             if (!this.running) return;
             // Update cursor position in place
@@ -1816,9 +1779,9 @@ class CursorManager {
                 this.animate();
             }
         }, { passive: true });
-        
+
         window.addEventListener('resize', debounce(() => this.resize(), 200));
-        
+
         // Observer for theme changes (Performance Optimization: avoid getComputedStyle in loop)
         const observer = new MutationObserver(() => {
             this.updateColor();
@@ -1884,12 +1847,12 @@ class CursorManager {
             this.looping = false;
             return;
         }
-        
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
+
         // Use cached RGB instead of calling getComputedStyle every frame
         const { r, g, b } = this.rgb;
-        
+
         // Draw trail - Iterate ring buffer from oldest to newest
         this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
 
@@ -1907,7 +1870,7 @@ class CursorManager {
                 }
             }
         }
-        
+
         // Reset alpha for crosshair
         this.ctx.globalAlpha = 1.0;
 
@@ -1916,7 +1879,7 @@ class CursorManager {
         const size = 20;
         this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
         this.ctx.lineWidth = 1;
-        
+
         this.ctx.beginPath();
         this.ctx.arc(x, y, size/2, 0, Math.PI * 2);
         this.ctx.moveTo(x - size, y);
@@ -1924,10 +1887,10 @@ class CursorManager {
         this.ctx.moveTo(x, y - size);
         this.ctx.lineTo(x, y + size);
         this.ctx.stroke();
-        
+
         this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
-        
+
         // Optimization: Stop loop if idle (no trails and static cursor)
         let hasActiveTrails = false;
         for (let i = 0; i < this.trail.length; i++) {
@@ -1971,17 +1934,17 @@ class VolumeController {
         this.slider = document.getElementById('volumeSlider');
         this.value = document.getElementById('volumeValue');
         this.icon = document.getElementById('volumeIcon');
-        
+
         if (!this.slider) return;
-        
+
         this.slider.addEventListener('input', (e) => {
             const volume = parseInt(e.target.value);
             this.value.textContent = volume + '%';
             audioManager.setVolume(volume / 100);
-            
+
             this.icon.textContent = volume === 0 ? '🔇' : volume < 50 ? '🔉' : '🔊';
         });
-        
+
         this.icon.addEventListener('click', () => {
             const current = parseInt(this.slider.value);
             this.slider.value = current > 0 ? (this.slider.dataset.lastVolume = current, 0) : (this.slider.dataset.lastVolume || 20);
@@ -2012,7 +1975,7 @@ class Terminal {
         this.backdrop = null;
         this.history = [];
         this.historyIndex = -1;
-        
+
         this.commands = {
             help: () => this.showHelp(),
             about: () => this.showAbout(),
@@ -2045,18 +2008,18 @@ class Terminal {
         this.modal = document.getElementById('terminalModal');
         this.output = document.getElementById('terminalOutput');
         this.input = document.getElementById('terminalInput');
-        
+
         if (!this.modal) return;
-        
+
         // Create backdrop
         this.backdrop = document.createElement('div');
         this.backdrop.className = 'modal-backdrop';
         this.backdrop.addEventListener('click', () => this.close());
         document.body.appendChild(this.backdrop);
-        
+
         // Close button
         document.getElementById('terminalClose').addEventListener('click', () => this.close());
-        
+
         // Input handling
         this.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -2098,22 +2061,22 @@ class Terminal {
 
     executeCommand(cmd) {
         if (!cmd) return;
-        
+
         this.history.push(cmd);
         this.historyIndex = -1;
-        
+
         const [command, ...args] = cmd.split(' ');
         const arg = args.join(' ');
-        
+
         // Add command to output
         this.addOutput(`<span class="terminal-prompt">$ </span>${cmd}`, false);
-        
+
         if (this.commands[command.toLowerCase()]) {
             this.commands[command.toLowerCase()](arg);
         } else {
             this.addOutput(`Command not found: ${command}. Type 'help' for available commands.`);
         }
-        
+
         audioManager.playClick();
     }
 
@@ -2344,7 +2307,7 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
 
     setPerformance(preset) {
         const validPresets = ['ultra', 'high', 'medium', 'low', 'auto'];
-        
+
         if (!preset || !validPresets.includes(preset.toLowerCase())) {
             this.addOutput(`
 Usage: performance [preset]<br>
@@ -2360,7 +2323,7 @@ Current: <span style="color: #39FF14;">${performanceManager.currentPreset}</span
             `);
             return;
         }
-        
+
         performanceManager.applyPreset(preset.toLowerCase());
         this.addOutput(`
 <span style="color: #39FF14;">Performance preset changed to: ${preset.toUpperCase()}</span><br>
@@ -2392,16 +2355,16 @@ Recommendations:<br>
             `);
             return;
         }
-        
+
         const fps = parseInt(value);
         if (isNaN(fps) || fps < 12 || fps > 60) {
             this.addOutput(`<span style="color: #FF6B6B;">Error: FPS must be between 12 and 60</span>`);
             return;
         }
-        
+
         matrixRain.fps = fps;
         matrixRain.frameInterval = 1000 / fps;
-        
+
         this.addOutput(`
 <span style="color: #39FF14;">Matrix rain FPS set to: ${fps}</span><br>
 Frame interval: ${matrixRain.frameInterval.toFixed(2)}ms
@@ -2478,7 +2441,7 @@ Achievement unlocked: Retro Gamer<br>
 
     hackEffect() {
         this.addOutput(`<span style="color: #ff0000;">Initiating hack sequence...</span>`);
-        
+
         const steps = [
             'Scanning network...',
             'Found 3 vulnerabilities',
@@ -2489,7 +2452,7 @@ Achievement unlocked: Retro Gamer<br>
             'Upload complete',
             '<span style="color: #00ff00;">ACCESS GRANTED</span>'
         ];
-        
+
         let delay = 0;
         steps.forEach(step => {
             setTimeout(() => {
@@ -2510,7 +2473,7 @@ class ShortcutsManager {
     init() {
         this.modal = document.getElementById('shortcutsModal');
         if (!this.modal) return;
-        
+
         document.getElementById('shortcutsClose').addEventListener('click', () => this.close());
     }
 
@@ -2521,7 +2484,7 @@ class ShortcutsManager {
             this.backdrop.addEventListener('click', () => this.close());
             document.body.appendChild(this.backdrop);
         }
-        
+
         this.modal.classList.add('active');
         this.backdrop.classList.add('active');
         document.body.classList.add('no-scroll');
@@ -2554,43 +2517,19 @@ class TechnicalBackground {
     constructor() {
         this.container = null;
         this.startTime = Date.now();
-
-        this.timestampEl = null;
-        this.uptimeEl = null;
-        this.isVisible = false;
-        this.lastUpdateTime = 0;
-
-        this.updateLoop = this.updateLoop.bind(this);
     }
 
-    /**
-     * ⚡ Bolt Performance Optimization
-     * 💡 What: Replaced setInterval with a requestAnimationFrame loop gated by IntersectionObserver and cached DOM references.
-     * 🎯 Why: setInterval runs unconditionally, even when the background is off-screen or the tab is inactive. Querying the DOM every second is also inefficient.
-     * 📊 Impact: Prevents wasted CPU cycles and layout thrashing by only updating the DOM when the component is visible, and eliminates O(N) DOM queries by caching elements on initialization.
-     */
     init() {
         this.container = document.querySelector('.tech-background');
         if (!this.container) return;
-        
-        this.timestampEl = document.getElementById('techTimestamp');
-        this.uptimeEl = document.getElementById('uptimeCounter');
 
-        // Use IntersectionObserver to pause updates when off-screen
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                this.isVisible = entry.isIntersecting;
-                if (this.isVisible) {
-                    this.updateLoop(performance.now());
-                }
-            });
-        });
-
-        observer.observe(this.container);
-        
-        // Initial update
+        // Update timestamp
         this.updateTimestamp();
+        setInterval(() => this.updateTimestamp(), 1000);
+
+        // Update uptime counter
         this.updateUptime();
+        setInterval(() => this.updateUptime(), 1000);
     }
 
     show() {
@@ -2601,32 +2540,21 @@ class TechnicalBackground {
         }
     }
 
-    updateLoop(time) {
-        if (!this.isVisible) return;
-
-        // Throttle updates to ~1 second (1000ms)
-        if (time - this.lastUpdateTime >= 1000) {
-            this.updateTimestamp();
-            this.updateUptime();
-            this.lastUpdateTime = time;
-        }
-
-        requestAnimationFrame(this.updateLoop);
-    }
-
     updateTimestamp() {
-        if (this.timestampEl) {
+        const element = document.getElementById('techTimestamp');
+        if (element) {
             const now = new Date();
-            this.timestampEl.textContent = now.toTimeString().split(' ')[0];
+            element.textContent = now.toTimeString().split(' ')[0];
         }
     }
 
     updateUptime() {
-        if (this.uptimeEl) {
+        const element = document.getElementById('uptimeCounter');
+        if (element) {
             const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
-            this.uptimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            element.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 }
@@ -2658,15 +2586,15 @@ class SkillsManager {
             <div class="skill-card-tech" style="--skill-color: ${skill.color}; animation-delay: ${index * 100}ms">
                 <!-- Decorative Corner Cut -->
                 <div class="card-corner-cut"></div>
-                
+
                 <div class="skill-main-content">
                     <div class="skill-header-row">
                         <span class="skill-id">ID_0${index + 1} // ${skill.code}</span>
                         <i class="skill-icon-small ${skill.icon}"></i>
                     </div>
-                    
+
                     <div class="skill-name-large">${skill.name}</div>
-                    
+
                     <div class="skill-bar-complex">
                         <div class="skill-bar-track">
                             <div class="skill-bar-fill" style="width: ${skill.value}%"></div>
@@ -2766,7 +2694,7 @@ class AwardsManager {
         this.modal.classList.add('active');
         document.body.classList.add('no-scroll');
         audioManager.playSuccess();
-        
+
         // Close on click outside
         this.modal.onclick = (e) => {
             if (e.target === this.modal) this.close();
@@ -2806,12 +2734,12 @@ class NotificationManager {
 
     show(title, message, type = 'info', duration = 5000) {
         if (!this.container) return;
-        
+
         const id = Date.now();
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.dataset.id = id;
-        
+
         notification.innerHTML = `
             <div class="notification-header">
                 <div class="notification-title">${title}</div>
@@ -2819,26 +2747,26 @@ class NotificationManager {
             </div>
             <div class="notification-message">${message}</div>
         `;
-        
+
         this.container.appendChild(notification);
-        
+
         // Close button
         notification.querySelector('.notification-close').addEventListener('click', () => {
             this.remove(id);
         });
-        
+
         // Auto remove
         if (duration > 0) {
             setTimeout(() => this.remove(id), duration);
         }
-        
+
         this.notifications.push({ id, element: notification });
     }
 
     remove(id) {
         const notification = this.notifications.find(n => n.id === id);
         if (!notification) return;
-        
+
         notification.element.classList.add('removing');
         setTimeout(() => {
             notification.element.remove();
@@ -2883,9 +2811,9 @@ class AudioVisualizer {
     init(audioManager) {
         this.canvas = document.getElementById('audioVisualizer');
         if (!this.canvas) return;
-        
+
         this.ctx = this.canvas.getContext('2d');
-        
+
         // Setup visibility observer to stop render loop when off-screen
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -2903,11 +2831,11 @@ class AudioVisualizer {
             this.analyser = audioManager.analyserNode;
             this.bufferLength = this.analyser.frequencyBinCount;
             this.dataArray = new Uint8Array(this.bufferLength);
-            
+
             // Only start if visible (IntersectionObserver will handle it, but we set initial state)
             // this.active = true;
             // this.draw();
-            
+
             const statusEl = document.getElementById('visualizerStatus');
             if (statusEl) statusEl.textContent = 'ACTIVE';
         } else {
@@ -2940,15 +2868,15 @@ class AudioVisualizer {
 
     draw() {
         if (!this.active) return;
-        
+
         this.animationId = requestAnimationFrame(this.draw);
-        
+
         this.analyser.getByteFrequencyData(this.dataArray);
-        
+
         const ctx = this.ctx;
         const width = this.canvas.width;
         const height = this.canvas.height;
-        
+
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.fillRect(0, 0, width, height);
 
@@ -2957,11 +2885,11 @@ class AudioVisualizer {
             this.gradientCache = [];
             this.lastHeight = height;
         }
-        
+
         const barWidth = (width / this.bufferLength) * 2.5;
         let barHeight;
         let x = 0;
-        
+
         for (let i = 0; i < this.bufferLength; i++) {
             const value = this.dataArray[i];
 
@@ -2972,7 +2900,7 @@ class AudioVisualizer {
             }
 
             barHeight = (value / 255) * height;
-            
+
             // Optimization: Cache gradients
             if (!this.gradientCache[value]) {
                 const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
@@ -2981,10 +2909,10 @@ class AudioVisualizer {
                 gradient.addColorStop(1, '#FF00FF');
                 this.gradientCache[value] = gradient;
             }
-            
+
             ctx.fillStyle = this.gradientCache[value];
             ctx.fillRect(x, height - barHeight, barWidth, barHeight);
-            
+
             x += barWidth + 1;
         }
     }
@@ -2994,19 +2922,19 @@ class AudioVisualizer {
         const ctx = this.ctx;
         const width = this.canvas.width;
         const height = this.canvas.height;
-        
+
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, width, height);
-        
+
         ctx.strokeStyle = '#39FF14';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, height / 2);
-        
+
         for (let x = 0; x < width; x += 5) {
             ctx.lineTo(x, height / 2 + Math.sin(x * 0.05) * 10);
         }
-        
+
         ctx.stroke();
     }
 }
@@ -3091,7 +3019,7 @@ class TimelineManager {
     render() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
-        
+
         container.innerHTML = this.experiences.map(exp => `
             <div class="timeline-item" style="opacity: 0; transform: translateX(-20px);">
                 <div class="timeline-dot"></div>
@@ -3155,17 +3083,17 @@ class MatrixRain {
 
         this.ctx = this.canvas.getContext('2d');
         this.resize();
-        
+
         window.addEventListener('resize', debounce(() => this.resize(), 200));
-        
+
         // Register with performance manager
         performanceManager.registerEffect('matrixRain', this);
-        
+
         // Start based on performance settings
         if (performanceManager.effects.matrixRain) {
             this.start();
         }
-        
+
         devLog('Matrix Rain initialized');
     }
 
@@ -3203,7 +3131,7 @@ class MatrixRain {
         if (this.isActive) {
             this.animationId = requestAnimationFrame(this.draw);
         }
-        
+
         // Control de FPS
         const elapsed = currentTime - this.lastFrameTime;
         if (elapsed < this.frameInterval) {
@@ -3233,14 +3161,8 @@ class MatrixRain {
 
             this.ctx.fillText(text, x, y);
 
-            /**
-             * ⚡ Bolt Performance Optimization
-             * 💡 What: Replaced \`this.canvas.height\` with \`this.logicalHeight\` inside the MatrixRain draw loop.
-             * 🎯 Why: Accessing DOM properties like \`canvas.height\` inside a high-frequency \`requestAnimationFrame\` loop forces synchronous C++ boundary crossings, which is slow.
-             * 📊 Impact: Eliminates O(N) DOM reads per frame, ensuring smoother 60fps rendering, and fixes a bug where drops reset prematurely on scaled down resolutions (e.g., mobile or 'low' preset).
-             */
             // Reset drop to top randomly
-            if (y > this.logicalHeight && Math.random() > 0.975) {
+            if (y > this.canvas.height && Math.random() > 0.975) {
                 this.drops[i] = 0;
             }
 
@@ -3296,41 +3218,22 @@ class ParallaxManager {
         // Optimization: Pre-calculate speed and cache elements to avoid DOM access in loop
         this.items = Array.from(layers).map(layer => ({
             el: layer,
-            speed: parseFloat(layer.dataset.speed) || 0.5,
-            isVisible: true, // Assume visible initially
-            lastYPos: undefined
+            speed: parseFloat(layer.dataset.speed) || 0.5
         }));
-
-        // Optimization: Use IntersectionObserver to skip DOM updates for off-screen layers
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const item = this.items.find(i => i.el === entry.target);
-                if (item) {
-                    item.isVisible = entry.isIntersecting;
-                    // Trigger an immediate update when an element becomes visible
-                    // to fix stale positions after sudden anchor jumps
-                    if (item.isVisible) {
-                        this.requestTick();
-                    }
-                }
-            });
-        }, { rootMargin: '100% 0px' }); // Margin to ensure it starts moving before entering viewport
-
-        this.items.forEach(item => this.observer.observe(item.el));
 
         // Optimization: Use passive listener to prevent blocking scroll
         window.addEventListener('scroll', () => this.requestTick(), { passive: true });
-        
+
         // Register with performance manager
         performanceManager.registerEffect('parallax', this);
-        
+
         // Apply initial state
         if (!performanceManager.effects.parallax) {
             for (let i = 0; i < this.items.length; i++) {
                 this.items[i].el.style.display = 'none';
             }
         }
-        
+
         devLog('Parallax initialized with', this.items.length, 'layers');
     }
 
@@ -3346,24 +3249,11 @@ class ParallaxManager {
 
     update() {
         this.lastScrollY = window.scrollY;
-        
+
         for (let i = 0; i < this.items.length; i++) {
             const item = this.items[i];
-
-            /**
-             * ⚡ Bolt Performance Optimization
-             * 💡 What: Implemented IntersectionObserver to skip off-screen elements and added dirty checking for sub-pixel changes.
-             * 🎯 Why: Modifying `style.transform` unconditionally on every scroll tick for off-screen elements or for imperceptible sub-pixel changes forces unnecessary layer compositing and CPU/GPU work.
-             * 📊 Impact: Eliminates DOM writes for off-screen parallax layers (saving O(N) operations) and prevents redundant sub-pixel layout thrashing.
-             */
-            if (!item.isVisible) continue;
-
             const yPos = -(this.lastScrollY * item.speed);
-
-            if (item.lastYPos === undefined || Math.abs(item.lastYPos - yPos) > 0.5) {
-                item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-                item.lastYPos = yPos;
-            }
+            item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
         }
 
         this.ticking = false;
@@ -3484,12 +3374,12 @@ class ContactFormManager {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            
+
             this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
             audioManager.playSound('success');
             notificationManager.show('Message transmitted successfully!', 'success');
             this.form.reset();
-            
+
         } catch (error) {
             console.error('Form submission error:', error);
             this.showStatus('TRANSMISSION_FAILED: TRY AGAIN', 'error');
@@ -3504,7 +3394,7 @@ class ContactFormManager {
     showStatus(message, type) {
         this.statusDiv.textContent = message;
         this.statusDiv.className = 'form-status show ' + type;
-        
+
         setTimeout(() => {
             this.statusDiv.classList.remove('show');
         }, 5000);
@@ -3555,8 +3445,8 @@ class BurgerMenuManager {
 
         // Close on click outside
         document.addEventListener('click', (e) => {
-            if (this.isOpen && 
-                !this.panel.contains(e.target) && 
+            if (this.isOpen &&
+                !this.panel.contains(e.target) &&
                 !this.burgerBtn.contains(e.target)) {
                 this.close();
             }
@@ -3565,7 +3455,7 @@ class BurgerMenuManager {
 
     handleBurgerClick(e) {
         e.stopPropagation();
-        
+
         // Si el panel está cerrado, primero expandir el dock si está colapsado
         if (!this.isOpen && !this.isDockExpanded) {
             this.toggleDock();
@@ -3613,12 +3503,12 @@ class BurgerMenuManager {
         this.burgerBtn.classList.add('active');
         this.burgerBtn.setAttribute('aria-expanded', 'true');
         this.isOpen = true;
-        
+
         // Ocultar el dock cuando se abre el panel
         setTimeout(() => {
             this.dock.classList.add('hidden');
         }, 100);
-        
+
         audioManager.playSound('click');
     }
 
@@ -3627,10 +3517,10 @@ class BurgerMenuManager {
         this.burgerBtn.classList.remove('active');
         this.burgerBtn.setAttribute('aria-expanded', 'false');
         this.isOpen = false;
-        
+
         // Mostrar el dock cuando se cierra el panel
         this.dock.classList.remove('hidden');
-        
+
         audioManager.playSound('click');
     }
 }
@@ -3645,7 +3535,7 @@ class LanguageManager {
     init() {
         // Botón del dock
         this.langBtn = document.getElementById('langToggleBtn');
-        
+
         if (this.langBtn) {
             this.langBtn.addEventListener('click', () => {
                 const newLang = this.currentLang === 'es' ? 'en' : 'es';
@@ -3712,14 +3602,14 @@ class SettingsManager {
         if (this.themeBtn) {
             this.themeBtn.addEventListener('click', () => this.toggleTheme());
         }
-        
+
         this.updateThemeButton();
 
         // Audio button
         if (this.audioBtn) {
             this.audioBtn.addEventListener('click', () => this.toggleAudio());
         }
-        
+
         this.updateAudioButton();
     }
 
@@ -3731,7 +3621,7 @@ class SettingsManager {
 
     updateThemeButton() {
         const isDark = themeManager.theme === 'dark';
-        
+
         // Actualizar botón del dock
         if (this.themeBtn) {
             const dockIcon = this.themeBtn.querySelector('.theme-icon') || this.themeBtn.querySelector('i');
@@ -3757,7 +3647,7 @@ class SettingsManager {
 
     updateAudioButton(isPlaying = null) {
         const playing = isPlaying !== null ? isPlaying : (audioManager.bgMusic && !audioManager.bgMusic.paused);
-        
+
         // Actualizar botón del dock
         if (this.audioBtn) {
             const dockIcon = this.audioBtn.querySelector('.audio-icon') || this.audioBtn.querySelector('i');
@@ -3769,7 +3659,7 @@ class SettingsManager {
                     dockIcon.textContent = playing ? '🔊' : '🔇';
                 }
             }
-            
+
             if (playing) {
                 this.audioBtn.classList.add('active');
             } else {
@@ -3938,10 +3828,10 @@ class ProjectManager {
         this.container.innerHTML = projects.map((proj, index) => `
             <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
                 <div class="project-image-container">
-                    <img src="${proj.image}" 
-                         alt="${proj.title}" 
-                         class="project-image" 
-                         loading="lazy" 
+                    <img src="${proj.image}"
+                         alt="${proj.title}"
+                         class="project-image"
+                         loading="lazy"
                          decoding="async"
                          onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
@@ -3985,7 +3875,7 @@ class VideoManager {
     constructor() {
         this.modal = null;
         this.iframe = null;
-        this.videoId = '1157471071'; 
+        this.videoId = '1157471071';
         this.videoHash = 'c3e7f59c16';
     }
 
@@ -4003,7 +3893,7 @@ class VideoManager {
         });
 
         if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-        
+
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) this.close();
         });
@@ -4013,10 +3903,10 @@ class VideoManager {
         this.modal.classList.add('active');
         document.body.classList.add('no-scroll');
         if (typeof audioManager !== 'undefined') audioManager.playSuccess();
-        
+
         const loader = document.getElementById('videoLoading');
         const statusText = document.getElementById('videoStatus');
-        
+
         // Reset Loader State
         if (loader) loader.style.display = 'flex';
         if (statusText) statusText.textContent = "INITIALIZING...";
@@ -4030,7 +3920,7 @@ class VideoManager {
 
         // Include the hash parameter for unlisted videos
         this.iframe.src = `https://player.vimeo.com/video/${this.videoId}?h=${this.videoHash}&autoplay=1&title=0&byline=0&portrait=0`;
-        
+
         // Timeout for slow connection feedback
         this.loadTimeout = setTimeout(() => {
             if (loader && loader.style.display !== 'none') {
@@ -4066,7 +3956,7 @@ class ScrollRevealManager {
 
     init() {
         this.elements = document.querySelectorAll('.grid-item');
-        
+
         const options = {
             root: null,
             rootMargin: '0px',
@@ -4104,11 +3994,11 @@ const scrollRevealManager = new ScrollRevealManager();
 
 document.addEventListener('DOMContentLoaded', () => {
     devLog('%c>> DOM: Ready', 'color: #39FF14; font-family: monospace;');
-    
+
     // Initialize Performance Manager first (Critical for deciding other inits)
     performanceManager.init();
     devLog('%c>> INIT: Performance Manager ✓', 'color: #39FF14; font-family: monospace;');
-    
+
     // Critical UI systems - Init immediately
     burgerMenuManager.init();
     settingsManager.init();
@@ -4136,13 +4026,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 cursorManager.init();
                 performanceManager.registerEffect('cursor', cursorManager);
             }
-            
+
             technicalBackground.init();
             parallaxManager.init();
             matrixRain.init();
-            
+
             devLog('%c>> SYSTEM: Deferred modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
-            
+
             // Terminal button
             const terminalButton = document.getElementById('terminalButton');
             if (terminalButton) {
@@ -4155,7 +4045,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const presetName = performanceManager.currentPreset.toUpperCase();
                     const tier = performanceManager.hardware.tier.toUpperCase();
                     notificationManager.success(
-                        'SYSTEM_ONLINE', 
+                        'SYSTEM_ONLINE',
                         `Performance preset: ${presetName} | Hardware tier: ${tier}`
                     );
                 }

@@ -25,3 +25,33 @@
 ## 2025-02-23 - Disable Lenis on Mobile
 **Learning:** Lenis smooth scrolling library was initialized on mobile devices in "Physical Mode" (Low/Medium tier), causing "scroll hijacking" and potentially degrading performance/UX by overriding native smooth scroll.
 **Action:** Explicitly check `!isMobileBrowser` (or `!performanceManager.hardware.isMobile`) before initializing scroll hijacking libraries, ensuring mobile users get the native, hardware-accelerated scroll experience.
+
+## 2025-02-23 - MutationObserver Performance Drain on Global Event Listeners
+**Learning:** Using a `MutationObserver` on `document.body` to attach individual `mouseenter` event listeners to hundreds of dynamically generated elements creates a massive memory footprint and severe CPU overhead during DOM updates.
+**Action:** Replace `MutationObserver` and individual listeners with O(1) event delegation. Use a single `mouseover` listener on `document` and a stateless `!e.relatedTarget || !target.contains(e.relatedTarget)` check to emulate `mouseenter` efficiently.
+
+## 2025-02-23 - Array Iteration Methods in RAF
+**Learning:** Array iteration methods like `.forEach()` and `.some()` require a callback function. When used inside a 60fps `requestAnimationFrame` loop, this forces the JS engine to allocate a new closure (function object) every single frame, leading to high garbage collection (GC) pressure and micro-stutters.
+**Action:** Always replace `.forEach()`, `.some()`, and similar methods with standard `for` loops inside `requestAnimationFrame` loops or high-frequency event handlers.
+## 2025-02-17 - Eliminate Layout Thrashing in `requestAnimationFrame`
+**Learning:** Using `.innerText` to update high-frequency text elements (like HUD stats or FPS counters) inside a `requestAnimationFrame` loop forces the browser to perform synchronous style recalculations and layout thrashing. This is because `.innerText` is layout-aware (it respects CSS styling like `display: none` and text transformations).
+**Action:** Always use `.textContent` for updating text nodes in animation loops, as it modifies the text directly without triggering expensive reflows.
+
+## 2025-02-23 - DOM Queries in Animation Loops
+**Learning:** Performing DOM queries like `querySelector` and modifying `classList` inside a 60fps `requestAnimationFrame` loop (e.g., in `HyperScrollIntro`) is extremely expensive, causing O(N) operations per frame and potential layout thrashing.
+**Action:** Cache DOM elements (like `cardEl`) during initialization and track active states (like `isCardActive`) using a boolean flag to only update the DOM when the state actually changes.
+## 2025-02-23 - DOM Querying in RAF
+**Learning:** Calling `querySelector` inside `requestAnimationFrame` loops (e.g., in `HyperScrollIntro`) forces the browser to evaluate the DOM tree at up to 60fps. This causes severe layout thrashing and CPU spikes on lower-end devices.
+**Action:** Always cache references to required child elements (e.g., `item.cardEl = item.el.querySelector(...)`) during the initialization phase instead of querying them dynamically inside the render loop.
+
+## 2025-03-31 - Dirty Checking in RAF Loops
+**Learning:** `src/scripts/script.js` was continuously updating DOM properties (`transform`, `perspective`) in `HyperScrollIntro`'s `requestAnimationFrame` loop even when the values hadn't significantly changed, leading to layout thrashing.
+**Action:** Always cache the last applied values (`lastVizZ`, `lastTiltX`, etc.) and skip DOM updates if the calculated difference (`Math.abs(diff)`) is below a visually perceptible threshold (e.g., `< 0.1` for pixels/degrees).
+
+## 2025-05-15 - requestAnimationFrame for DOM Animations
+**Learning:** `setInterval` for animations operates independently of the screen refresh rate, leading to visual jitter, and it continues running even when the tab is backgrounded.
+**Action:** Replace `setInterval` with `requestAnimationFrame` for DOM animations (like count-ups) to guarantee smooth execution matched to the monitor's refresh rate and automatically pause when the tab is off-screen.
+
+## 2025-05-18 - Parallax Off-screen Optimization
+**Learning:** Updating CSS transforms on off-screen elements during high-frequency events (like scroll) wastes CPU/GPU resources and can cause layer tree recalculations, even if the elements are invisible. Furthermore, updating the DOM for imperceptible sub-pixel changes causes redundant layout and compositing work.
+**Action:** Use `IntersectionObserver` with a generous `rootMargin` (e.g., `100%`) to flag when parallax elements are safely out of view to skip their `style.transform` updates. Combine this with a dirty check (`Math.abs(lastYPos - yPos) > 0.5`) to eliminate sub-pixel DOM writes.
