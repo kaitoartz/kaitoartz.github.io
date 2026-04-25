@@ -2288,7 +2288,7 @@ class CursorManager {
             }
         }, { passive: true });
         
-        window.addEventListener('resize', debounce(() => this.resize(), 200));
+        window.addEventListener('resize', debounce(() => this.resize(), 200), { passive: true });
         
         // Observer for theme changes (Performance Optimization: avoid getComputedStyle in loop)
         const observer = new MutationObserver(() => {
@@ -3643,7 +3643,7 @@ class MatrixRain {
         this.ctx = this.canvas.getContext('2d');
         this.resize();
         
-        window.addEventListener('resize', debounce(() => this.resize(), 200));
+        window.addEventListener('resize', debounce(() => this.resize(), 200), { passive: true });
         
         // Register with performance manager
         performanceManager.registerEffect('matrixRain', this);
