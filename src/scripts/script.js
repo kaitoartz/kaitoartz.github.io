@@ -1846,14 +1846,32 @@ function decodeTextElements() {
     });
 }
 
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Gated the 10-second random title glitch interval with an IntersectionObserver and document.hidden check, and cached the DOM query.
+ * 🎯 Why: Unconditional setInterval loops that perform DOM queries and trigger animations waste CPU and battery when the tab is hidden or the element is scrolled off-screen.
+ * 📊 Impact: Eliminates O(N) DOM queries every 10 seconds and prevents background CPU waste and audio playback when the user cannot see the title.
+ */
+let cachedTitleEl = null;
+let isTitleVisible = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    cachedTitleEl = document.querySelector('.main-title');
+    if (cachedTitleEl) {
+        const titleObserver = new IntersectionObserver((entries) => {
+            isTitleVisible = entries[0].isIntersecting;
+        });
+        titleObserver.observe(cachedTitleEl);
+    }
+});
+
 // Random glitch on title occasionally
 setInterval(() => {
+    if (document.hidden || !isTitleVisible || !cachedTitleEl) return;
+
     if (Math.random() > 0.8) {
-        const title = document.querySelector('.main-title');
-        if (title) {
-            triggerGlitch(title);
-            audioManager.playGlitch();
-        }
+        triggerGlitch(cachedTitleEl);
+        if (typeof audioManager !== 'undefined') audioManager.playGlitch();
     }
 }, 10000);
 
