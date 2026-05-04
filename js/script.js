@@ -1549,15 +1549,29 @@ function decodeTextElements() {
 }
 
 // Random glitch on title occasionally
-setInterval(() => {
-    if (Math.random() > 0.8) {
-        const title = document.querySelector('.main-title');
-        if (title) {
+document.addEventListener('DOMContentLoaded', () => {
+    const title = document.querySelector('.main-title');
+    if (!title) return;
+
+    let isTitleVisible = false;
+    const observer = new IntersectionObserver((entries) => {
+        isTitleVisible = entries[0].isIntersecting;
+    });
+    observer.observe(title);
+
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Gated 10-second random title glitch interval with IntersectionObserver and document.hidden. Cached DOM query.
+     * 🎯 Why: setInterval was running unconditionally, executing DOM queries and animations when the element was off-screen or the tab was in the background, wasting CPU cycles.
+     * 📊 Impact: Eliminates O(N) DOM query per 10s and prevents wasted animation cycles when the tab is backgrounded or the user scrolled past the title.
+     */
+    setInterval(() => {
+        if (!document.hidden && isTitleVisible && Math.random() > 0.8) {
             triggerGlitch(title);
             audioManager.playGlitch();
         }
-    }
-}, 10000);
+    }, 10000);
+});
 
 // ========== PARTICLE SYSTEM ==========
 function createParticles() {

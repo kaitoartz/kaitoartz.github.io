@@ -55,3 +55,7 @@
 ## 2025-05-18 - Parallax Off-screen Optimization
 **Learning:** Updating CSS transforms on off-screen elements during high-frequency events (like scroll) wastes CPU/GPU resources and can cause layer tree recalculations, even if the elements are invisible. Furthermore, updating the DOM for imperceptible sub-pixel changes causes redundant layout and compositing work.
 **Action:** Use `IntersectionObserver` with a generous `rootMargin` (e.g., `100%`) to flag when parallax elements are safely out of view to skip their `style.transform` updates. Combine this with a dirty check (`Math.abs(lastYPos - yPos) > 0.5`) to eliminate sub-pixel DOM writes.
+
+## 2025-05-18 - Off-screen and Background setIntervals
+**Learning:** `setInterval` for periodic UI tasks (like occasional random glitches) executes unconditionally, even when the element is not visible or the user has navigated to another tab. This wastes CPU/GPU cycles and battery, particularly when combined with DOM queries inside the interval.
+**Action:** When implementing infrequent, recurring animations via `setInterval`, always cache the target element, and gate the execution using both `!document.hidden` (for tab visibility) and an `IntersectionObserver` flag (for element visibility).
