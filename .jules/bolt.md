@@ -55,6 +55,6 @@
 ## 2025-05-18 - Parallax Off-screen Optimization
 **Learning:** Updating CSS transforms on off-screen elements during high-frequency events (like scroll) wastes CPU/GPU resources and can cause layer tree recalculations, even if the elements are invisible. Furthermore, updating the DOM for imperceptible sub-pixel changes causes redundant layout and compositing work.
 **Action:** Use `IntersectionObserver` with a generous `rootMargin` (e.g., `100%`) to flag when parallax elements are safely out of view to skip their `style.transform` updates. Combine this with a dirty check (`Math.abs(lastYPos - yPos) > 0.5`) to eliminate sub-pixel DOM writes.
-## 2026-04-22 - Prevent DOM reads in requestAnimationFrame
-**Learning:** Reading DOM properties like `canvas.width` and `canvas.height` inside a high-frequency `requestAnimationFrame` loop forces synchronous JavaScript-to-C++ boundary crossings, causing performance overhead and potential layout thrashing.
-**Action:** Cache the required properties during initialization and resize events (e.g., `this.logicalWidth = this.canvas.width`), and use these cached properties exclusively within the animation loop to eliminate redundant DOM reads.
+## 2024-05-18 - Passive Event Listeners for Resize/Mousemove
+**Learning:** While `passive: true` is most famous for scroll-blocking events (touch/wheel), applying it to other high-frequency window events like `resize` or `mousemove` is a solid defensive practice that guarantees the browser spends zero time considering event cancellation logic, even if it wouldn't normally block layout for them.
+**Action:** Always add `{ passive: true }` to `mousemove`, `resize`, and `scroll` listeners when `preventDefault()` is not needed, especially in performance-sensitive components like canvas managers.
