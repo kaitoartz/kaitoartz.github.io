@@ -1529,7 +1529,6 @@ function triggerGlitch(element, force = false) {
             iterations += 1 / 3;
             lastTime = timestamp;
         }
-
         const rafId = requestAnimationFrame(step);
         element.dataset.glitchRafId = rafId;
     };
@@ -1548,16 +1547,33 @@ function decodeTextElements() {
     });
 }
 
-// Random glitch on title occasionally
-setInterval(() => {
-    if (Math.random() > 0.8) {
-        const title = document.querySelector('.main-title');
-        if (title) {
-            triggerGlitch(title);
-            audioManager.playGlitch();
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Cached the DOM element and conditionally triggered the glitch interval.
+ * 🎯 Why: Querying the DOM via querySelector every 10 seconds and firing the interval when the document is hidden consumes unnecessary cycles.
+ * 📊 Impact: O(1) DOM lookup instead of O(N), plus zero background CPU usage when off-screen.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const mainTitleEl = document.querySelector('.main-title');
+    if (!mainTitleEl) return;
+
+    let isTitleVisible = false;
+    const titleObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            isTitleVisible = entry.isIntersecting;
+        });
+    });
+    titleObserver.observe(mainTitleEl);
+
+    setInterval(() => {
+        if (!document.hidden && isTitleVisible && Math.random() > 0.8) {
+            triggerGlitch(mainTitleEl);
+            if (typeof audioManager !== 'undefined') {
+                audioManager.playGlitch();
+            }
         }
-    }
-}, 10000);
+    }, 10000);
+});
 
 // ========== PARTICLE SYSTEM ==========
 function createParticles() {
@@ -1784,6 +1800,8 @@ class CursorManager {
         this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
+        this.logicalWidth = 0;
+        this.logicalHeight = 0;
 
         this.animate = this.animate.bind(this);
     }
@@ -1844,8 +1862,10 @@ class CursorManager {
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.logicalWidth = window.innerWidth;
+        this.logicalHeight = window.innerHeight;
+        this.canvas.width = this.logicalWidth;
+        this.canvas.height = this.logicalHeight;
         if (this.running && !this.looping) {
             this.looping = true;
             this.animate();
@@ -1870,7 +1890,7 @@ class CursorManager {
         }
         // Clear canvas when stopped
         if (this.ctx && this.canvas) {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.logicalWidth || this.canvas.width, this.logicalHeight || this.canvas.height);
         }
         // Reset trail without destroying objects
         for (let i = 0; i < this.trail.length; i++) {
@@ -1878,13 +1898,19 @@ class CursorManager {
         }
     }
 
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Cached `this.logicalWidth` and `this.logicalHeight` and used them instead of reading `this.canvas.width` and `this.canvas.height`.
+     * 🎯 Why: Reading DOM properties like `canvas.width` inside a high-frequency `requestAnimationFrame` loop forces synchronous C++ boundary crossings which adds CPU overhead.
+     * 📊 Impact: Eliminates O(N) DOM reads per frame, ensuring smoother rendering.
+     */
     animate() {
         if (!this.running) {
             this.looping = false;
             return;
         }
         
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
         
         // Use cached RGB instead of calling getComputedStyle every frame
         const { r, g, b } = this.rgb;
@@ -2874,6 +2900,8 @@ class AudioVisualizer {
         this.animationId = null;
         this.gradientCache = [];
         this.lastHeight = 0;
+        this.logicalWidth = 0;
+        this.logicalHeight = 0;
 
         // Bind for RAF optimization
         this.draw = this.draw.bind(this);
@@ -2885,6 +2913,9 @@ class AudioVisualizer {
         
         this.ctx = this.canvas.getContext('2d');
         
+        this.logicalWidth = this.canvas.width;
+        this.logicalHeight = this.canvas.height;
+
         // Setup visibility observer to stop render loop when off-screen
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -2945,8 +2976,14 @@ class AudioVisualizer {
         this.analyser.getByteFrequencyData(this.dataArray);
         
         const ctx = this.ctx;
-        const width = this.canvas.width;
-        const height = this.canvas.height;
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Cached canvas dimensions as `this.logicalWidth` and `this.logicalHeight` to prevent reading DOM properties `this.canvas.width` and `this.canvas.height` on every frame.
+         * 🎯 Why: Accessing DOM properties inside a 60fps `requestAnimationFrame` loop forces synchronous JS-to-C++ boundary crossings, causing performance overhead.
+         * 📊 Impact: Eliminates DOM reads during the animation loop, reducing CPU usage.
+         */
+        const width = this.logicalWidth;
+        const height = this.logicalHeight;
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.fillRect(0, 0, width, height);
@@ -2991,8 +3028,8 @@ class AudioVisualizer {
     drawStandby() {
         if (!this.canvas || !this.ctx) return;
         const ctx = this.ctx;
-        const width = this.canvas.width;
-        const height = this.canvas.height;
+        const width = this.logicalWidth || this.canvas.width;
+        const height = this.logicalHeight || this.canvas.height;
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, width, height);
