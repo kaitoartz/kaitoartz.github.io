@@ -58,3 +58,7 @@
 ## 2024-05-18 - Passive Event Listeners for Resize/Mousemove
 **Learning:** While `passive: true` is most famous for scroll-blocking events (touch/wheel), applying it to other high-frequency window events like `resize` or `mousemove` is a solid defensive practice that guarantees the browser spends zero time considering event cancellation logic, even if it wouldn't normally block layout for them.
 **Action:** Always add `{ passive: true }` to `mousemove`, `resize`, and `scroll` listeners when `preventDefault()` is not needed, especially in performance-sensitive components like canvas managers.
+
+## 2026-05-06 - String Allocation in Animation Loops
+**Learning:** Constructing strings (like colors using template literals) inside a 60fps `requestAnimationFrame` loop generates new objects every frame, leading to garbage collection overhead and potential micro-stutters.
+**Action:** Compute and cache static or infrequent string values outside the animation loop, and reuse the cached string property inside the loop.

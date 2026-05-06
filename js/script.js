@@ -1800,6 +1800,7 @@ class CursorManager {
         this.looping = false; // Tracks active RAF loop
         this.animationId = null;
         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
+        this.colorString = 'rgb(57, 255, 20)'; // Pre-calculated color string
         this.logicalWidth = 0;
         this.logicalHeight = 0;
 
@@ -1858,6 +1859,7 @@ class CursorManager {
         const cursorColor = getComputedStyle(document.body).getPropertyValue('--toxic-green').trim();
         if (cursorColor) {
             this.rgb = this.hexToRgb(cursorColor);
+            this.colorString = `rgb(${this.rgb.r}, ${this.rgb.g}, ${this.rgb.b})`;
         }
     }
 
@@ -1912,11 +1914,8 @@ class CursorManager {
         
         this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
         
-        // Use cached RGB instead of calling getComputedStyle every frame
-        const { r, g, b } = this.rgb;
-        
         // Draw trail - Iterate ring buffer from oldest to newest
-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.fillStyle = this.colorString;
 
         for (let i = 0; i < this.maxTrail; i++) {
             const idx = (this.head + i) % this.maxTrail;
@@ -1939,7 +1938,7 @@ class CursorManager {
         // Draw crosshair
         const { x, y } = this.cursor;
         const size = 20;
-        this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.strokeStyle = this.colorString;
         this.ctx.lineWidth = 1;
         
         this.ctx.beginPath();
@@ -1950,7 +1949,7 @@ class CursorManager {
         this.ctx.lineTo(x, y + size);
         this.ctx.stroke();
         
-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.fillStyle = this.colorString;
         this.ctx.fillRect(x - 1, y - 1, 2, 2);
         
         // Optimization: Stop loop if idle (no trails and static cursor)
