@@ -41,8 +41,18 @@ class FrameRateMonitor {
     }
 
     checkPerformance() {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Cached the `.boot-overlay` DOM element during the first execution instead of re-querying it every second.
+         * 🎯 Why: `document.querySelector` is an expensive operation. Executing it repeatedly in a periodic monitor (even outside of requestAnimationFrame) adds unnecessary CPU overhead.
+         * 📊 Impact: Eliminates redundant DOM queries in the periodic performance checks.
+         */
+        if (this.bootOverlay === undefined) {
+            this.bootOverlay = document.querySelector('.boot-overlay');
+        }
+
         // Ignore during boot or if tab is hidden
-        if (document.hidden || (document.querySelector('.boot-overlay') && document.querySelector('.boot-overlay').style.display !== 'none')) return;
+        if (document.hidden || (this.bootOverlay && this.bootOverlay.style.display !== 'none')) return;
 
         this.history.push(this.fps);
         if (this.history.length > 5) this.history.shift();
