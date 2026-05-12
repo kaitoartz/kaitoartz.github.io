@@ -58,3 +58,7 @@
 ## 2024-05-18 - Passive Event Listeners for Resize/Mousemove
 **Learning:** While `passive: true` is most famous for scroll-blocking events (touch/wheel), applying it to other high-frequency window events like `resize` or `mousemove` is a solid defensive practice that guarantees the browser spends zero time considering event cancellation logic, even if it wouldn't normally block layout for them.
 **Action:** Always add `{ passive: true }` to `mousemove`, `resize`, and `scroll` listeners when `preventDefault()` is not needed, especially in performance-sensitive components like canvas managers.
+
+## 2026-05-12 - Prevent Temporary String Allocation in RAF Loops
+**Learning:** Constructing strings dynamically (e.g., `` \`rgb(${r}, ${g}, ${b})\` ``) inside high-frequency `requestAnimationFrame` loops (like `CursorManager`) creates temporary string objects every frame, leading to unnecessary garbage collection overhead and potential micro-stutters.
+**Action:** When working with Canvas drawing APIs (`fillStyle`, `strokeStyle`) inside animation loops, pre-calculate and cache the CSS string representation of the color outside of the loop. Update the cached string only when the underlying color value changes.

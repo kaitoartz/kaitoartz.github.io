@@ -1,0 +1,62 @@
+--- src/scripts/script.js
++++ src/scripts/script.js
+@@ -2271,6 +2271,7 @@
+         this.looping = false; // Tracks active RAF loop
+         this.animationId = null;
+         this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
++        this.rgbString = 'rgb(57, 255, 20)'; // Cached string for performance
+         this.logicalWidth = 0;
+         this.logicalHeight = 0;
+
+@@ -2329,6 +2330,7 @@
+         const cursorColor = getComputedStyle(document.body).getPropertyValue('--toxic-green').trim();
+         if (cursorColor) {
+             this.rgb = this.hexToRgb(cursorColor);
++            this.rgbString = `rgb(${this.rgb.r}, ${this.rgb.g}, ${this.rgb.b})`;
+         }
+     }
+
+@@ -2371,6 +2373,13 @@
+     }
+
+     /**
++     * ⚡ Bolt Performance Optimization
++     * 💡 What: Cached the constructed \`rgb(...)\` string as \`this.rgbString\`.
++     * 🎯 Why: String concatenation inside high-frequency loops (like \`requestAnimationFrame\`) creates temporary string objects that must be garbage collected, leading to CPU overhead and potential micro-stutters.
++     * 📊 Impact: Eliminates per-frame string allocation for \`fillStyle\` and \`strokeStyle\` assignments.
++     */
++
++    /**
+      * ⚡ Bolt Performance Optimization
+      * 💡 What: Cached `this.logicalWidth` and `this.logicalHeight` and used them instead of reading `this.canvas.width` and `this.canvas.height`.
+      * 🎯 Why: Accessing DOM properties inside a 60fps `requestAnimationFrame` loop forces synchronous JS-to-C++ boundary crossings, causing performance overhead.
+@@ -2386,10 +2395,7 @@
+
+         this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
+
+-        // Use cached RGB instead of calling getComputedStyle every frame
+-        const { r, g, b } = this.rgb;
+-
+         // PERF: Set base color once to avoid repeated string concatenation/parsing
+-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
++        this.ctx.fillStyle = this.rgbString;
+
+         // Draw trail - Iterate ring buffer from oldest to newest
+@@ -2412,7 +2418,7 @@
+         // Draw crosshair
+         const { x, y } = this.cursor;
+         const size = 20;
+-        this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
++        this.ctx.strokeStyle = this.rgbString;
+         this.ctx.lineWidth = 1;
+
+         this.ctx.beginPath();
+@@ -2423,7 +2429,7 @@
+         this.ctx.lineTo(x, y + size);
+         this.ctx.stroke();
+
+-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
++        this.ctx.fillStyle = this.rgbString;
+         this.ctx.fillRect(x - 1, y - 1, 2, 2);
+
+         // Optimization: Stop loop if idle (no trails and static cursor)
