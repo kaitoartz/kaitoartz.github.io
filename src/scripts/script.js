@@ -1591,7 +1591,14 @@ function startBootSequence() {
 }
 
 // ========== SYSTEM TIME ==========
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added visibility checks to periodic UI updates (System Time).
+ * 🎯 Why: Unconditional setIntervals execute even when the tab is backgrounded, causing unnecessary CPU wake-ups and DOM node allocations. Checking `document.hidden` ensures resources are only used when the user can see the UI.
+ * 📊 Impact: Reduces idle CPU usage and memory allocation when the tab is not in focus.
+ */
 const updateSystemTime = () => {
+    if (document.hidden) return;
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1663,7 +1670,14 @@ const consoleMessages = [
     'PHYSICS ENGINE // RUNNING'
 ];
 
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added visibility checks to periodic UI updates (Console Feed).
+ * 🎯 Why: Unconditional setIntervals execute even when the tab is backgrounded, causing unnecessary CPU wake-ups and DOM node allocations. Checking `document.hidden` ensures resources are only used when the user can see the UI.
+ * 📊 Impact: Reduces idle CPU usage and memory allocation when the tab is not in focus.
+ */
 function addConsoleLine() {
+    if (document.hidden) return;
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
