@@ -58,3 +58,7 @@
 ## 2024-05-18 - Passive Event Listeners for Resize/Mousemove
 **Learning:** While `passive: true` is most famous for scroll-blocking events (touch/wheel), applying it to other high-frequency window events like `resize` or `mousemove` is a solid defensive practice that guarantees the browser spends zero time considering event cancellation logic, even if it wouldn't normally block layout for them.
 **Action:** Always add `{ passive: true }` to `mousemove`, `resize`, and `scroll` listeners when `preventDefault()` is not needed, especially in performance-sensitive components like canvas managers.
+
+## 2025-05-18 - Idle UI Polling Optimizations
+**Learning:** `setInterval` loops that update purely visual UI elements (like on-screen clocks or simulated terminal feeds) continue executing and waking up the CPU even when the user's browser tab is completely hidden, causing unnecessary power drain.
+**Action:** Always add an early return `if (document.hidden) return;` at the beginning of the callback for unconditional visual `setInterval` polling loops to save battery and processing time.

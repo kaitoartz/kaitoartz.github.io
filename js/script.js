@@ -1294,6 +1294,7 @@ function startBootSequence() {
 
 // ========== SYSTEM TIME ==========
 const updateSystemTime = () => {
+    if (document.hidden) return; // Bolt Optimization: Prevent DOM updates when off-screen
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1366,6 +1367,7 @@ const consoleMessages = [
 ];
 
 function addConsoleLine() {
+    if (document.hidden) return; // Bolt Optimization: Prevent DOM updates when off-screen
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
