@@ -1591,7 +1591,14 @@ function startBootSequence() {
 }
 
 // ========== SYSTEM TIME ==========
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added `document.hidden` guard to `updateSystemTime`.
+ * 🎯 Why: Prevents unnecessary DOM queries and string allocations when the tab is hidden.
+ * 📊 Impact: Eliminates background CPU wake-ups from this interval when off-screen.
+ */
 const updateSystemTime = () => {
+    if (document.hidden) return;
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1663,7 +1670,14 @@ const consoleMessages = [
     'PHYSICS ENGINE // RUNNING'
 ];
 
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added `document.hidden` guard to `addConsoleLine`.
+ * 🎯 Why: Prevents unnecessary DOM node creation and insertions when the tab is hidden.
+ * 📊 Impact: Eliminates background CPU wake-ups from this interval and reduces GC overhead when off-screen.
+ */
 function addConsoleLine() {
+    if (document.hidden) return;
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
