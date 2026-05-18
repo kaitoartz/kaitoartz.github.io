@@ -1592,6 +1592,13 @@ function startBootSequence() {
 
 // ========== SYSTEM TIME ==========
 const updateSystemTime = () => {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Added visibility check to skip DOM updates when tab is backgrounded.
+     * 🎯 Why: Unconditional setInterval runs even when the tab is not visible, waking up CPU.
+     * 📊 Impact: Zero background CPU usage for this interval.
+     */
+    if (document.hidden) return;
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1664,6 +1671,14 @@ const consoleMessages = [
 ];
 
 function addConsoleLine() {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Added visibility check to skip string parsing and DOM allocations when tab is backgrounded.
+     * 🎯 Why: Unconditional setInterval allocates DOM nodes and runs strings processing even when the tab is not visible.
+     * 📊 Impact: Zero background memory allocation and DOM manipulation for this interval.
+     */
+    if (document.hidden) return;
+
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
