@@ -1591,7 +1591,14 @@ function startBootSequence() {
 }
 
 // ========== SYSTEM TIME ==========
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added document.hidden check to skip periodic UI updates.
+ * 🎯 Why: Unconditional setInterval execution when the tab is inactive wastes background CPU and battery.
+ * 📊 Impact: Eliminates unnecessary DOM writes and CPU wake-ups when off-screen.
+ */
 const updateSystemTime = () => {
+    if (document.hidden) return;
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1663,7 +1670,14 @@ const consoleMessages = [
     'PHYSICS ENGINE // RUNNING'
 ];
 
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Added document.hidden check to skip periodic console updates.
+ * 🎯 Why: Unconditional setInterval execution and DOM element creation when the tab is inactive wastes background CPU, memory, and battery.
+ * 📊 Impact: Eliminates unnecessary DOM allocations and CPU wake-ups when off-screen.
+ */
 function addConsoleLine() {
+    if (document.hidden) return;
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
