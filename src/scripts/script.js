@@ -4745,3 +4745,51 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(initDeferredSystems, 200);
     }
 });
+
+
+// ========== NAVIGATION & SCROLL TO TOP ==========
+document.addEventListener('DOMContentLoaded', () => {
+    // Scroll to Top Button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    if (scrollTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
+                scrollManager.lenis.scrollTo(0);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Nav Links Smooth Scroll
+    document.querySelectorAll('a.nav-btn').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
+                    scrollManager.lenis.scrollTo(targetElement);
+                } else {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Close dock if open
+                const dock = this.closest('.control-dock');
+                if (dock && !dock.classList.contains('collapsed')) {
+                    dock.classList.add('collapsed');
+                    dock.setAttribute('data-expanded', 'false');
+                }
+            }
+        });
+    });
+});

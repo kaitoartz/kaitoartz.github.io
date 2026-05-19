@@ -7247,3 +7247,39 @@ body.light-theme .modal-close {
     .project-overlay { opacity: 1; background: rgba(0, 0, 0, 0.4); }
     .project-card .view-project-btn { transform: translateY(0); }
 }
+
+/* ================== SCROLL TO TOP BUTTON ================== */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: rgba(10, 10, 10, 0.8);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px var(--shadow-color);
+    backdrop-filter: blur(5px);
+}
+
+.scroll-top-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    box-shadow: 0 0 20px var(--shadow-color);
+}
