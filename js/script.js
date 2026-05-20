@@ -1294,6 +1294,13 @@ function startBootSequence() {
 
 // ========== SYSTEM TIME ==========
 const updateSystemTime = () => {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Added early return when the document is hidden.
+     * 🎯 Why: setInterval runs in the background. Avoiding DOM queries and string manipulation when the tab is hidden saves CPU/battery.
+     * 📊 Impact: Zero execution overhead for system time updates when off-screen.
+     */
+    if (document.hidden) return;
     const el = document.getElementById('systemTime');
     if (el) el.textContent = new Date().toTimeString().split(' ')[0];
 };
@@ -1366,6 +1373,14 @@ const consoleMessages = [
 ];
 
 function addConsoleLine() {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Added early return when the document is hidden.
+     * 🎯 Why: setInterval runs in the background. Avoiding DOM element creation and DOM manipulation when the tab is hidden saves CPU/battery and prevents unnecessary reflows/garbage collection.
+     * 📊 Impact: Zero execution overhead for console feed updates when off-screen.
+     */
+    if (document.hidden) return;
+
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
