@@ -42,7 +42,8 @@ class FrameRateMonitor {
 
     checkPerformance() {
         // Ignore during boot or if tab is hidden
-        if (document.hidden || (document.querySelector('.boot-overlay') && document.querySelector('.boot-overlay').style.display !== 'none')) return;
+        if (!this.bootOverlay) this.bootOverlay = document.querySelector('.boot-overlay');
+        if (document.hidden || (this.bootOverlay && this.bootOverlay.style.display !== 'none')) return;
 
         this.history.push(this.fps);
         if (this.history.length > 5) this.history.shift();

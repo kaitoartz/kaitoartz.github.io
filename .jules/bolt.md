@@ -58,3 +58,7 @@
 ## 2024-05-18 - Passive Event Listeners for Resize/Mousemove
 **Learning:** While `passive: true` is most famous for scroll-blocking events (touch/wheel), applying it to other high-frequency window events like `resize` or `mousemove` is a solid defensive practice that guarantees the browser spends zero time considering event cancellation logic, even if it wouldn't normally block layout for them.
 **Action:** Always add `{ passive: true }` to `mousemove`, `resize`, and `scroll` listeners when `preventDefault()` is not needed, especially in performance-sensitive components like canvas managers.
+
+## 2025-05-21 - Caching DOM lookups in periodic loops
+**Learning:** Calling `document.querySelector` inside an unconditionally firing periodic function (like `setInterval` or `requestAnimationFrame` loops) wastes CPU cycles on repeated DOM lookups, even if the result is static (like the `.boot-overlay` element in `FrameRateMonitor`).
+**Action:** Always cache the queried DOM element locally on the class/instance (e.g. `this.bootOverlay`) and reuse it instead of querying the DOM on every loop iteration.
