@@ -599,11 +599,6 @@ class AudioManager {
             background: ASSET_PATH + 'audio/background.mp3'
         };
         
-        this.radioStations = [];
-        this.currentStation = 0;
-        this.isLoadingRadio = false;
-        this.failedAttempts = 0;
-        
         // Safety for async race conditions
         this.playPromise = null;
     }
@@ -674,100 +669,6 @@ class AudioManager {
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
 
-    /**
-     * ⚡ Bolt Performance Optimization
-     * 💡 What: Added localStorage caching with a 24-hour TTL for radio station API data.
-     * 🎯 Why: Repeatedly fetching the same static radio station list on every page load unnecessarily blocks execution and wastes network bandwidth, increasing time-to-interactive for the audio module.
-     * 📊 Impact: Eliminates ~500ms network request on subsequent visits and reduces API rate limiting risks.
-     */
-    async loadRadioStations() {
-        if (this.radioStations.length > 0 || this.isLoadingRadio) return;
-        this.isLoadingRadio = true;
-
-        try {
-            const cacheKey = 'radioStationsCache';
-            const cacheTimeKey = 'radioStationsCacheTimestamp';
-            const cacheTTL = 24 * 60 * 60 * 1000; // 24 hours
-
-            let cachedData = null;
-            let cachedTime = null;
-
-            try {
-                cachedData = localStorage.getItem(cacheKey);
-                cachedTime = localStorage.getItem(cacheTimeKey);
-            } catch (e) {
-                // Ignore localStorage errors (e.g., quota exceeded or privacy mode)
-            }
-
-            let cacheValid = false;
-            if (cachedData && cachedTime && (Date.now() - parseInt(cachedTime, 10)) < cacheTTL) {
-                try {
-                    this.radioStations = JSON.parse(cachedData);
-                    cacheValid = true;
-                    console.log('%c>> RADIO: Loaded from cache ✓', 'color: #39FF14; font-family: monospace;');
-                } catch (e) {
-                    // Ignore parsing errors, cache is invalid
-                }
-            }
-
-            if (!cacheValid) {
-                console.log('%c>> RADIO: Fetching station list...', 'color: #00FFFF; font-family: monospace;');
-                // Request synthwave and cyberpunk stations
-                const response = await fetch("https://de1.api.radio-browser.info/json/stations/search?tagList=synthwave&limit=30");
-                const data = await response.json();
-                this.radioStations = data.filter(s => s.url_resolved && !s.url_resolved.endsWith('.m3u'));
-
-                if (this.radioStations.length === 0) {
-                    this.radioStations = [{name: 'Fallback Synth', url_resolved: 'http://stream.simulatorradio.com/simulator-radio'}];
-                } else {
-                    try {
-                        localStorage.setItem(cacheKey, JSON.stringify(this.radioStations));
-                        localStorage.setItem(cacheTimeKey, Date.now().toString());
-                    } catch (e) {
-                        // Ignore cache write errors
-                    }
-                }
-            }
-        } catch(e) {
-            console.error('>> RADIO: Fetch error', e);
-            this.radioStations = [{name: 'Fallback Radio', url_resolved: 'http://stream.simulatorradio.com/simulator-radio'}];
-        }
-        this.isLoadingRadio = false;
-    }
-
-    async prevStation() {
-        if(this.radioStations.length === 0) await this.loadRadioStations();
-        if(this.radioStations.length === 0) return;
-        this.currentStation = (this.currentStation - 1 + this.radioStations.length) % this.radioStations.length;
-        this.playSound('click', 0.5);
-        if (this.bgMusic && !this.bgMusic.paused) {
-             this.playBackgroundMusic(this.bgMusic.volume);
-        } else {
-             this.updateRadioUI();
-        }
-    }
-
-    async nextStation() {
-        if(this.radioStations.length === 0) await this.loadRadioStations();
-        if(this.radioStations.length === 0) return;
-        this.currentStation = (this.currentStation + 1) % this.radioStations.length;
-        this.playSound('click', 0.5);
-        if (this.bgMusic && !this.bgMusic.paused) {
-             this.playBackgroundMusic(this.bgMusic.volume);
-        } else {
-             this.updateRadioUI();
-        }
-    }
-    
-    updateRadioUI() {
-        const station = this.radioStations[this.currentStation];
-        document.querySelectorAll('.radio-station-name').forEach(el => {
-            el.textContent = station ? station.name.substring(0,25) + (station.name.length>25?'...':'') : "Offline";
-            el.title = station ? station.name : "Offline";
-            if (typeof triggerGlitch === 'function') triggerGlitch(el);
-        });
-    }
-
     async playBackgroundMusic(volume = 0.3) {
         if (!this.audioContext) await this.init();
         
@@ -776,9 +677,7 @@ class AudioManager {
             return;
         }
         
-        if (this.radioStations.length === 0) await this.loadRadioStations();
-        const station = this.radioStations[this.currentStation];
-        const streamUrl = station ? station.url_resolved : this.audioFiles.background;
+        const streamUrl = this.audioFiles.background;
         
         console.log('%c>> MUSIC: Creating audio element...', 'color: #00FFFF; font-family: monospace;');
         
@@ -817,8 +716,6 @@ class AudioManager {
         this.bgMusic.volume = volume;
         this.bgMusic.loop = true;
         this.bgMusic.preload = 'auto';
-        this.updateRadioUI();
-        
         // Add event listeners for debugging
         this.bgMusic.addEventListener('loadeddata', () => {
             console.log('%c>> MUSIC: Audio loaded (duration: ' + this.bgMusic.duration + 's)', 'color: #39FF14; font-family: monospace;');
@@ -835,19 +732,10 @@ class AudioManager {
         if (this.playPromise !== undefined) {
             this.playPromise.then(() => {
                 this.playPromise = null;
-                this.failedAttempts = 0; // reset
                 console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
             }).catch(error => {
                 this.playPromise = null;
-                this.failedAttempts++;
                 console.log('%c>> MUSIC: Play blocked - ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-                console.log('%c>> MUSIC: Trying next station or fallback', 'color: #FFAA00; font-family: monospace;');
-                // Wait briefly and try next to avoid infinite immediate loops on full failure lists
-                if (this.failedAttempts < 5) {
-                    setTimeout(() => this.nextStation(), 500);
-                } else {
-                    console.error('>> MUSIC: Aborting radio playback after multiple failures.');
-                }
             });
         }
     }
@@ -2000,21 +1888,7 @@ class DockManager {
                 });
             }
 
-            // Radio Prev/Next
-            const prevBtn = dock.querySelector('.prev-station-btn');
-            if (prevBtn) {
-                prevBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (typeof audioManager !== 'undefined') audioManager.prevStation();
-                });
-            }
-            const nextBtn = dock.querySelector('.next-station-btn');
-            if (nextBtn) {
-                nextBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (typeof audioManager !== 'undefined') audioManager.nextStation();
-                });
-            }
+
 
             // Language Button
             const langBtn = dock.querySelector('.lang-toggle-btn');
