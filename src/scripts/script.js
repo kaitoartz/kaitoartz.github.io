@@ -817,17 +817,18 @@ document.addEventListener('DOMContentLoaded', () => {
 class HyperScrollIntro {
     constructor() {
         // Detect performance and device characteristics
-        const isMobile = performanceManager.detectHardware().isMobile;
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobile = performanceManager.detectHardware().isMobile || isMobileBrowser;
         const tier = performanceManager.hardware.tier;
         const isLowPerf = tier === 'low' || tier === 'medium';
         
-        // HYPER mode only for PC/High-end devices
-        this.isHyperEnabled = !isMobile || (tier === 'ultra' || tier === 'high');
+        // HYPER mode only for PC/High-end devices (Disabled on mobile)
+        this.isHyperEnabled = !isMobile && (tier === 'ultra' || tier === 'high');
 
         this.config = {
-            isLowSpec: isLowPerf && isMobile,
-            itemCount: isLowPerf ? 12 : 20, 
-            starCount: isLowPerf ? 50 : 150,
+            isLowSpec: isMobile || (isLowPerf && isMobile),
+            itemCount: isMobile ? 8 : (isLowPerf ? 12 : 20), 
+            starCount: isMobile ? 0 : (isLowPerf ? 50 : 150),
             zGap: 800,
             camSpeed: 2.5,
             loopSize: 0,
@@ -987,11 +988,9 @@ class HyperScrollIntro {
     initLenis() {
         const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const tier = performanceManager.hardware.tier;
-        const isLowPerf = tier === 'low' || tier === 'medium';
         
-        // VIRTUAL MODE: PC or High-performance devices
-        // PHYSICAL MODE: Only for Mobile or Low-performance browsers
-        this.isVirtualMode = !isMobileBrowser && (tier === 'ultra' || tier === 'high');
+        // VIRTUAL MODE: PC or High-performance devices, OR Mobile Browser (now virtualized for touch swipe)
+        this.isVirtualMode = isMobileBrowser || (!isMobileBrowser && (tier === 'ultra' || tier === 'high'));
 
         if (!this.isVirtualMode) {
             // PHYSICAL MODE: USamos Lenis con scroll real
@@ -1029,33 +1028,90 @@ class HyperScrollIntro {
     }
 
     bindEvents() {
-        this.handleMouseMove = (e) => {
-            if (!this.state.active) return;
-            this.state.targetMouseX = (e.clientX / this.winW - 0.5) * 2;
-            this.state.targetMouseY = (e.clientY / this.winH - 0.5) * 2;
-        };
-        window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        this.handleTouch = (e) => {
-            if (!this.state.active || !e.touches.length) return;
-            const touch = e.touches[0];
-            this.state.targetMouseX = (touch.clientX / this.winW - 0.5) * 2;
-            this.state.targetMouseY = (touch.clientY / this.winH - 0.5) * 2;
-        };
-        window.addEventListener('touchstart', this.handleTouch, { passive: true });
-        window.addEventListener('touchmove', this.handleTouch, { passive: true });
-        
-        // Reset position on release for mobile/terminal feel
-        const resetPos = () => {
-            this.state.targetMouseX = 0;
-            this.state.targetMouseY = 0;
-        };
-        window.addEventListener('touchend', resetPos, { passive: true });
-        window.addEventListener('touchcancel', resetPos, { passive: true });
-        window.addEventListener('mouseleave', resetPos, { passive: true });
+        if (!isMobileBrowser) {
+            // Desktop tilt controls
+            this.handleMouseMove = (e) => {
+                if (!this.state.active) return;
+                this.state.targetMouseX = (e.clientX / this.winW - 0.5) * 2;
+                this.state.targetMouseY = (e.clientY / this.winH - 0.5) * 2;
+            };
+            window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
 
-        // VIRTUAL SCROLL: Only for PC/High-end
-        if (this.isVirtualMode) {
+            this.handleTouch = (e) => {
+                if (!this.state.active || !e.touches.length) return;
+                const touch = e.touches[0];
+                this.state.targetMouseX = (touch.clientX / this.winW - 0.5) * 2;
+                this.state.targetMouseY = (touch.clientY / this.winH - 0.5) * 2;
+            };
+            window.addEventListener('touchstart', this.handleTouch, { passive: true });
+            window.addEventListener('touchmove', this.handleTouch, { passive: true });
+            
+            // Reset position on release for mobile/terminal feel
+            const resetPos = () => {
+                this.state.targetMouseX = 0;
+                this.state.targetMouseY = 0;
+            };
+            window.addEventListener('touchend', resetPos, { passive: true });
+            window.addEventListener('touchcancel', resetPos, { passive: true });
+            window.addEventListener('mouseleave', resetPos, { passive: true });
+        } else {
+            // Mobile Gyroscope tilt controls
+            this.handleDeviceOrientation = (e) => {
+                if (!this.state.active) return;
+                let beta = e.beta !== null ? e.beta : 0;
+                let gamma = e.gamma !== null ? e.gamma : 0;
+
+                // Calibrate tilt: center holding position at 50 degrees
+                const targetBeta = (beta - 50) / 25;
+                const targetGamma = gamma / 25;
+
+                this.state.targetMouseX = Math.max(-1, Math.min(1, targetGamma));
+                this.state.targetMouseY = Math.max(-1, Math.min(1, targetBeta));
+            };
+
+            const requestGyro = () => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('deviceorientation', this.handleDeviceOrientation, true);
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    window.addEventListener('deviceorientation', this.handleDeviceOrientation, true);
+                }
+                window.removeEventListener('click', requestGyro);
+                window.removeEventListener('touchstart', requestGyro);
+            };
+            window.addEventListener('click', requestGyro);
+            window.addEventListener('touchstart', requestGyro);
+
+            // Mobile touch swipe scrolling
+            let lastTouchY = 0;
+            this.handleTouchStart = (e) => {
+                if (!this.state.active || !e.touches.length) return;
+                lastTouchY = e.touches[0].clientY;
+            };
+            this.handleTouchMove = (e) => {
+                if (!this.state.active || !e.touches.length || this.state.warping) return;
+                const touchY = e.touches[0].clientY;
+                const deltaY = lastTouchY - touchY;
+                lastTouchY = touchY;
+
+                if (e.cancelable) e.preventDefault();
+
+                this.state.targetSpeed += deltaY * 1.5;
+                this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
+            };
+            window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+            window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+        }
+
+        // VIRTUAL SCROLL: Only for PC/High-end (and not mobile)
+        if (this.isVirtualMode && !isMobileBrowser) {
             this.handleWheel = (e) => {
                 if (!this.state.active || this.state.warping) return;
                 // Accumulate target speed based on wheel delta (Speed increased as requested)
@@ -1244,14 +1300,7 @@ class HyperScrollIntro {
                     }
 
                     if (item.type === 'text') {
-                        // RGB Split effect (Hyper ONLY)
-                        if (this.isHyperEnabled && Math.abs(this.state.velocity) > 1) {
-                            const offset = this.state.velocity * 1.5;
-                            if (Math.abs(item.lastOffset - offset) > 0.1 || item.lastOffset === 0) {
-                                item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                                item.lastOffset = offset;
-                            }
-                        } else if (item.lastOffset !== 0) {
+                        if (item.lastOffset !== 0) {
                             item.el.style.textShadow = 'none';
                             item.lastOffset = 0;
                         }
@@ -1347,6 +1396,9 @@ class HyperScrollIntro {
             window.removeEventListener('touchstart', this.handleTouch);
             window.removeEventListener('touchmove', this.handleTouch);
         }
+        if (this.handleTouchStart) window.removeEventListener('touchstart', this.handleTouchStart);
+        if (this.handleTouchMove) window.removeEventListener('touchmove', this.handleTouchMove);
+        if (this.handleDeviceOrientation) window.removeEventListener('deviceorientation', this.handleDeviceOrientation);
         if (this.handleResize) window.removeEventListener('resize', this.handleResize);
         if (this.handleWheel) window.removeEventListener('wheel', this.handleWheel);
     }
