@@ -962,8 +962,11 @@ class HyperScrollIntro {
             // Mobile Gyroscope tilt controls
             this.handleDeviceOrientation = (e) => {
                 if (!this.state.active) return;
-                let beta = e.beta !== null ? e.beta : 0;
-                let gamma = e.gamma !== null ? e.gamma : 0;
+                // Guard against undefined/null gyro values to prevent NaN lock
+                if (e.beta === null || e.beta === undefined || e.gamma === null || e.gamma === undefined) return;
+                
+                let beta = e.beta;
+                let gamma = e.gamma;
 
                 // Calibrate tilt: center holding position at 50 degrees
                 const targetBeta = (beta - 50) / 25;
@@ -973,23 +976,27 @@ class HyperScrollIntro {
                 this.state.targetMouseY = Math.max(-1, Math.min(1, targetBeta));
             };
 
-            const requestGyro = () => {
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS / Safari: require user gesture (touchend/click) + permission request
+                const requestGyro = () => {
                     DeviceOrientationEvent.requestPermission()
                         .then(permissionState => {
                             if (permissionState === 'granted') {
-                                window.addEventListener('deviceorientation', this.handleDeviceOrientation, true);
+                                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
                             }
+                            window.removeEventListener('click', requestGyro);
+                            window.removeEventListener('touchend', requestGyro);
                         })
-                        .catch(console.error);
-                } else {
-                    window.addEventListener('deviceorientation', this.handleDeviceOrientation, true);
-                }
-                window.removeEventListener('click', requestGyro);
-                window.removeEventListener('touchstart', requestGyro);
-            };
-            window.addEventListener('click', requestGyro);
-            window.addEventListener('touchstart', requestGyro);
+                        .catch(err => {
+                            console.error('Gyroscope request failed:', err);
+                        });
+                };
+                window.addEventListener('click', requestGyro);
+                window.addEventListener('touchend', requestGyro);
+            } else {
+                // Android / Other: bind immediately on load
+                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
+            }
 
             // Mobile touch swipe scrolling
             let lastTouchY = 0;

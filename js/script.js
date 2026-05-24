@@ -1,6 +1,8 @@
-// ========== CONFIGURATION ==========
 const DEV_MODE = false; // Set to true for development logging
 const devLog = (...args) => DEV_MODE && console.log(...args);
+
+// Local Asset Resolver (Fix for Live Server, Github Pages, and Vite)
+const ASSET_PATH = (window.location.port === '5500' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('github.io') || window.location.hostname.includes('vercel.app')) ? 'public/assets/' : 'assets/';
 
 // ========== UTILITIES ==========
 const debounce = (func, wait) => {
@@ -123,10 +125,30 @@ class PerformanceManager {
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
         
+        // Battery API (if available)
+        let batteryLevel = 1;
+        let isCharging = true;
+        
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+                batteryLevel = battery.level;
+                isCharging = battery.charging;
+            });
+        }
+        
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
-        if (isMobile) score -= 25; // Increased penalty for mobile (was 20)
+        if (isMobile) {
+            score -= 30; // Increased penalty for mobile (was 25)
+            // Critical check for low-end mobile specific keywords
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                // Check if device memory is low or screen is small/dense
+                if ((memory && memory < 4) || (window.devicePixelRatio > 2 && window.screen.width < 400)) {
+                     score -= 20; // Massive penalty for high-DPI small screens (very GPU intensive)
+                }
+            }
+        }
 
         // CPU Scoring: Budget phones often have 8 cores but low IPC.
         // Reduce weight: +2.5 per core instead of +5
@@ -156,6 +178,8 @@ class PerformanceManager {
             memory,
             gpu: 'unknown',
             connection: effectiveType,
+            batteryLevel,
+            isCharging,
             score,
             tier: this.getPerformanceTier(score)
         };
@@ -163,14 +187,35 @@ class PerformanceManager {
 
     getPerformanceTier(score) {
         // Stricter thresholds for dynamic performance
-        if (score >= 85) return 'ultra'; // Was 80
-        if (score >= 65) return 'high';  // Was 60
-        if (score >= 45) return 'medium';// Was 40
-        return 'low'; // < 45 is low (covers most budget devices like A32)
+        if (score >= 85) return 'ultra'; 
+        if (score >= 70) return 'high';  // Was 65
+        if (score >= 55) return 'medium';// Was 45
+        return 'low'; // < 55 is low (more inclusive for devices like A32)
     }
 
     applyPreset(preset) {
+        // --- MOBILE OPTIMIZATION: STRICT ENFORCEMENT ---
+        // If device is mobile and truly low-perf, disable high-end presets even if user clicks them.
+        if (this.hardware.isMobile && (this.hardware.tier === 'low' || this.hardware.score < 50)) {
+            if (preset !== 'low') {
+                console.warn('>> PERF: Blocked high-end preset on low-end mobile. Forcing LOW.');
+                preset = 'low';
+                // Show notification to user? Maybe too intrusive.
+            }
+        }
+
         this.currentPreset = preset;
+        
+        // --- MOBILE OPTIMIZATION: DOUBLE IF LOGIC ---
+        const isLowPerf = preset === 'low' || (preset === 'auto' && this.hardware.tier === 'low');
+        const isMobile = this.hardware.isMobile;
+
+        if (isLowPerf || isMobile) {
+             document.body.classList.add('mobile-low-perf');
+             devLog('>> PERF: Mobile/Low-End mode active. Deferred body rendering engaged.');
+        } else {
+             document.body.classList.remove('mobile-low-perf');
+        }
         
         const presets = {
             auto: this.hardware.tier,
@@ -188,9 +233,9 @@ class PerformanceManager {
             high: {
                 matrixRain: true,
                 parallax: true,
-                cursorTrail: false, // Desactivado por defecto para mejor rendimiento
+                cursorTrail: false, 
                 scanlines: true,
-                glitch: false, // Desactivado por defecto
+                glitch: false, 
                 particles: false,
                 grid3d: true,
                 decorations: true,
@@ -221,11 +266,11 @@ class PerformanceManager {
         };
 
         // LÓGICA NUEVA: Inyectar clase al body para control total CSS
-        if (preset === 'low') {
+        if (isLowPerf) {
             document.body.classList.add('performance-mode-low');
-            document.body.classList.add('no-scanlines'); // Asegurar scanlines fuera
-            document.body.classList.add('no-glitch'); // Disable glitches
-            this.toggleParticles(false); // Forzar apagado JS
+            document.body.classList.add('no-scanlines'); 
+            document.body.classList.add('no-glitch'); 
+            this.toggleParticles(false); 
         } else {
             document.body.classList.remove('performance-mode-low');
             document.body.classList.remove('no-scanlines');
@@ -464,15 +509,31 @@ class PerformanceManager {
 
     init() {
         this.loadPreferences();
-        
-        // If no saved preferences, apply auto preset
-        if (!localStorage.getItem('performancePreset')) {
+
+        // STRICT ENFORCEMENT: If device is actually Low Tier (especially mobile), force 'low' preset
+        // irrespective of what might have been saved in localStorage previously, to ensure usability.
+        if (this.hardware.tier === 'low' || (this.hardware.isMobile && this.hardware.score < 50)) {
+            console.warn('>> PERF: Low-end device detected. Forcing LOW preset.');
+            this.currentPreset = 'low';
+            this.applyPreset('low');
+            // We do NOT save this forced preset to localStorage to avoid locking them forever if they upgrade device, 
+            // but for this session it is enforced. 
+            // Actually, for "obligatorily has to use", we just apply it.
+        } else if (!localStorage.getItem('performancePreset')) {
+             // If no saved preferences, apply auto preset
             this.applyPreset('auto');
         } else {
-            // Apply saved effects
-            Object.keys(this.effects).forEach(effect => {
-                this.toggleEffect(effect, this.effects[effect], false);
-            });
+             // Apply saved effects (but we already loaded them in loadPreferences, just need to apply)
+            // If the saved preset was 'custom', we need to apply individual effects.
+            // If it was a named preset, apply that.
+            if (this.currentPreset !== 'custom') {
+                 this.applyPreset(this.currentPreset);
+            } else {
+                 // Apply saved effects for custom
+                Object.keys(this.effects).forEach(effect => {
+                    this.toggleEffect(effect, this.effects[effect], false);
+                });
+            }
         }
         
         // Setup UI event listeners
@@ -528,34 +589,31 @@ class AudioManager {
         this.audioContext = null;
         this.enabled = false;
         this.sounds = {};
-        this.bgMusic = null;
-        this.mediaSource = null;
-        this.analyserNode = null;
-
-        
-        // Audio file paths
-        this.audioFiles = {
-            background: 'assets/audio/background.mp3'
-            // hover: 'assets/audio/hover.mp3',
-            // click: 'assets/audio/click.mp3',
-            // boot: 'assets/audio/boot.mp3',
-            // glitch: 'assets/audio/glitch.mp3',
-            // success: 'assets/audio/success.mp3'
-        };
+        this.audioFiles = {};
     }
 
     async init() {
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            this.enabled = true;
-            console.log('%c>> AUDIO SYSTEM: INITIALIZED', 'color: #39FF14; font-family: monospace;');
-            // No cargamos archivos con fetch (problema de CORS en file://)
-            // Los archivos se cargarán cuando se necesiten
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.enabled = true;
+                console.log('%c>> AUDIO SYSTEM: INITIALIZED ✓', 'color: #39FF14; font-family: monospace;');
+            } catch (e) {
+                console.error('>> AUDIO SYSTEM: Failed to initialize', e);
+                return;
+            }
+        }
+        
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+            console.log('%c>> AUDIO SYSTEM: RESUMED ✓', 'color: #39FF14; font-family: monospace;');
         }
     }
 
     playSound(soundName, volume = 1.0, loop = false) {
-        if (!this.enabled || !this.audioContext) return;
+        // Auto-init on first sound if possible (gesture required)
+        if (!this.audioContext) this.init();
+        if (!this.enabled) return;
         
         // Para file:// usamos Audio directo en lugar de AudioBuffer
         try {
@@ -600,76 +658,7 @@ class AudioManager {
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
 
-    playBackgroundMusic(volume = 0.3) {
-        if (!this.enabled || !this.audioContext) {
-            console.log('%c>> MUSIC: AudioContext not initialized', 'color: #FF6B6B; font-family: monospace;');
-            return;
-        }
-        
-        // Stop existing music if any
-        if (this.bgMusic) {
-            this.bgMusic.pause();
-            this.bgMusic = null;
-        }
-        
-        console.log('%c>> MUSIC: Creating audio element...', 'color: #00FFFF; font-family: monospace;');
-        
-        this.bgMusic = new Audio(this.audioFiles.background);
-        this.bgMusic.volume = volume;
-        this.bgMusic.loop = true;
-        this.bgMusic.preload = 'auto';
-        
-        // Setup analyser for visualizer (only once)
-        if (!this.mediaSource && this.audioContext) {
-            try {
-                this.mediaSource = this.audioContext.createMediaElementSource(this.bgMusic);
-                this.analyserNode = this.audioContext.createAnalyser();
-                this.analyserNode.fftSize = 512;
-                
-                this.mediaSource.connect(this.analyserNode);
-                this.analyserNode.connect(this.audioContext.destination);
-                console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
-            } catch (error) {
-                console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-            }
-        }
-        
-        // Add event listeners for debugging
-        this.bgMusic.addEventListener('loadeddata', () => {
-            console.log('%c>> MUSIC: Audio loaded (duration: ' + this.bgMusic.duration + 's)', 'color: #39FF14; font-family: monospace;');
-        });
-        
-        this.bgMusic.addEventListener('error', (e) => {
-            console.log('%c>> MUSIC: Load error - ' + e.target.error.message, 'color: #FF6B6B; font-family: monospace;');
-        });
-        
-        // Attempt to play
-        console.log('%c>> MUSIC: Attempting to play...', 'color: #00FFFF; font-family: monospace;');
-        const playPromise = this.bgMusic.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
-            }).catch(error => {
-                console.log('%c>> MUSIC: Play blocked - ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-                console.log('%c>> MUSIC: User interaction may be required', 'color: #FFAA00; font-family: monospace;');
-            });
-        }
-    }
 
-    stopBackgroundMusic() {
-        if (this.bgMusic) {
-            this.bgMusic.pause();
-            this.bgMusic.currentTime = 0;
-            console.log('%c>> MUSIC: Stopped', 'color: #FF6B6B; font-family: monospace;');
-        }
-    }
-    
-    setVolume(volume) {
-        if (this.bgMusic) {
-            this.bgMusic.volume = Math.max(0, Math.min(1, volume));
-        }
-    }
 
     // Shortcut methods
     playClick() { this.playSound('click', 0.5); }
@@ -685,9 +674,9 @@ class AudioManager {
 
     /**
      * ⚡ Bolt Performance Optimization
-     * 💡 What: Replaced stateful 'lastHoveredTarget' tracking with a stateless relatedTarget check.
-     * 🎯 Why: Keeping state introduces potential bugs if elements are unmounted and requires unnecessary assignment operations. The DOM event API provides relatedTarget to correctly emulate mouseenter natively.
-     * 📊 Impact: Micro-optimization that removes object references from the manager, slightly reducing memory footprint and GC pressure during heavy mouse movement.
+     * 💡 What: Replaced MutationObserver and individual 'mouseenter' event listeners with a single global 'mouseover' delegation using a stateless relatedTarget check.
+     * 🎯 Why: MutationObservers watching the entire body for node additions are expensive. Attaching hundreds of individual event listeners wastes memory and slows down DOM insertion.
+     * 📊 Impact: O(1) event listeners instead of O(N). Eliminates constant DOM polling/mutation overhead, reducing idle CPU usage and garbage collection.
      */
     handleMouseOver(e) {
         if (!this.enabled) return;
@@ -700,11 +689,13 @@ class AudioManager {
         }
     }
 
-    initGlobalListeners() {
+    attachGlobalListeners() {
         // Universal Hover - Optimized with Event Delegation
         document.addEventListener('mouseover', this.handleMouseOver.bind(this), { passive: true });
 
         // Typing Sound Generators
+        const typingInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea, .terminal-input');
+
         // Delegate for dynamic elements (like terminal)
         document.addEventListener('input', (e) => {
             if (e.target.matches('input, textarea')) {
@@ -719,28 +710,36 @@ const audioManager = new AudioManager();
 // Attach sounds after init
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        audioManager.initGlobalListeners();
+        audioManager.attachGlobalListeners();
     }, 1000);
 });
 
 // ========== HYPER SCROLL INTRO ==========
+// ========== HYPER SCROLL INTRO ==========
 class HyperScrollIntro {
     constructor() {
-        // Dynamic configuration based on performance tier
-        const isLowSpec = typeof performanceManager !== 'undefined' && 
-                          (performanceManager.hardware.isMobile || performanceManager.hardware.tier === 'low' || performanceManager.hardware.tier === 'medium');
+        // Detect performance and device characteristics
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobile = performanceManager.detectHardware().isMobile || isMobileBrowser;
+        const tier = performanceManager.hardware.tier;
+        const isLowPerf = tier === 'low' || tier === 'medium';
+        
+        // HYPER mode only for PC/High-end devices (Disabled on mobile)
+        this.isHyperEnabled = !isMobile && (tier === 'ultra' || tier === 'high');
 
         this.config = {
-            isLowSpec: isLowSpec, // Store this for runtime checks
-            itemCount: isLowSpec ? 6 : 20, // Reduced further for extreme low mode
-            starCount: isLowSpec ? 10 : 150, // Reduced further
+            isLowSpec: isMobile || (isLowPerf && isMobile),
+            itemCount: isMobile ? 8 : (isLowPerf ? 12 : 20), 
+            starCount: isMobile ? 0 : (isLowPerf ? 50 : 150),
             zGap: 800,
-            camSpeed: isLowSpec ? 2.0 : 2.5,
-            loopSize: 0 // Calculated later
+            camSpeed: 2.5,
+            loopSize: 0,
+            colors: ['#ff003c', '#00f3ff', '#ccff00', '#ffffff'] // User colors
         };
         this.config.loopSize = this.config.itemCount * this.config.zGap;
         
-        this.texts = ["KAITOARTZ", "NEW", "PORTFOLIO", "WEB", "TECHNICAL", "ARTIST", "PIXEL", "HYPER", "NEON", "VOID"];
+        // Use user's preferred texts with a brand touch
+        this.texts = ["KAITOARTZ", "IMPACT", "VELOCITY", "BRUTAL", "SYSTEM", "FUTURE", "DESIGN", "PIXEL", "HYPER", "NEON", "VOID"];
         
         this.state = {
             scroll: 0,
@@ -748,6 +747,8 @@ class HyperScrollIntro {
             targetSpeed: 0,
             mouseX: 0,
             mouseY: 0,
+            targetMouseX: 0,
+            targetMouseY: 0,
             active: true,
             warping: false,
             fading: false
@@ -755,13 +756,18 @@ class HyperScrollIntro {
 
         this.items = [];
         this.rafId = null;
-        this.frameCount = 0; // Better than relying on rafId for throttling
+        this.frameCount = 0;
         this.lenis = null;
+        this.perfMode = 0; // 0: Normal, 1: No Stars
         
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
+
+        // Tracking for dirty checking in RAF
         this.lastFov = 0;
+        this.lastTiltX = 0;
+        this.lastTiltY = 0;
     }
 
     init() {
@@ -771,26 +777,33 @@ class HyperScrollIntro {
         this.world = document.getElementById('intro-world');
         this.viewport = document.getElementById('intro-viewport');
         
-        // Bloquear scroll del body nativo
         document.body.classList.add('no-scroll');
+        document.documentElement.classList.add('no-scroll');
+        
+        // VIRTUAL MODE: Hide the scroll proxy to remove scrollbar
+        const proxy = layer.querySelector('.intro-scroll-proxy');
+        if (proxy && this.isVirtualMode) {
+            proxy.style.display = 'none';
+        }
 
         this.createWorld();
         this.initLenis();
         this.bindEvents();
+        
+        // HUD Setup
+        this.feedbackVel = document.getElementById('intro-vel-readout');
+        this.feedbackFPS = document.getElementById('intro-fps');
+        this.feedbackCoord = document.getElementById('intro-coord');
+
         this.startLoop();
         
-        console.log('%c>> HYPER INTRO: SYSTEM ONLINE', 'color: #E2FF00; font-family: monospace;');
-
-        // Auto-initialize Audio Manager (silent)
-        if (typeof audioManager !== 'undefined') {
-            // Wait for interaction
-        }
+        console.log(`%c>> HYPER INTRO: SYSTEM ONLINE (HYPER: ${this.isHyperEnabled})`, 'color: #E2FF00; font-family: monospace;');
     }
 
     createWorld() {
         if (!this.world) return;
         
-        // Create Items
+        // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-item';
@@ -831,15 +844,16 @@ class HyperScrollIntro {
                 `;
                 el.appendChild(card);
 
+                // Spiral / Chaos positioning (User logic)
                 const angle = (i / this.config.itemCount) * Math.PI * 6;
                 const radius = 400 + Math.random() * 200;
-                const x = Math.cos(angle) * (window.innerWidth * 0.3);
-                const y = Math.sin(angle) * (window.innerHeight * 0.3);
+                const x = Math.cos(angle) * (this.winW * 0.3);
+                const y = Math.sin(angle) * (this.winH * 0.3);
                 const rot = (Math.random() - 0.5) * 30;
 
                 this.items.push({
                     el, type: 'card',
-                    cardEl: card,
+                    cardEl: el.querySelector('.intro-card'), // Performance: cache DOM query
                     x, y, rot,
                     baseZ: -i * this.config.zGap,
                     currentAlpha: -1,
@@ -874,88 +888,182 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        // We use Virtual Scroll for the Intro to achieve true mathematical infinity
-        // without hitting browser pixel height limits (like the ~2400 limit reported)
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const tier = performanceManager.hardware.tier;
         
-        const handleWheel = (e) => {
-            if (!this.state.warping && this.state.active) {
-                // Accumulate scroll infinitely
-                // deltaY is usually around 100 for a wheel click
-                const delta = e.deltaY;
-                this.state.scroll += delta * 0.5; // Sensitivity adjustment
-                
-                // Track velocity for the HUD and warp effects
-                this.state.targetSpeed = delta * 0.2;
-                
-                // Clear velocity after a short delay (debounce feel)
-                if (this.velTimeout) clearTimeout(this.velTimeout);
-                this.velTimeout = setTimeout(() => {
-                    this.state.targetSpeed = 0;
-                }, 100);
-            }
-        };
+        // VIRTUAL MODE: PC or High-performance devices, OR Mobile Browser (now virtualized for touch swipe)
+        this.isVirtualMode = isMobileBrowser || (!isMobileBrowser && (tier === 'ultra' || tier === 'high'));
 
-        window.addEventListener('wheel', handleWheel, { passive: true });
-        
-        // Also support touch for a similar feel (optional for PC but good practice)
-        let touchStartY = 0;
-        window.addEventListener('touchstart', (e) => touchStartY = e.touches[0].clientY, { passive: true });
-        window.addEventListener('touchmove', (e) => {
-            if (!this.state.warping && this.state.active) {
-                const delta = touchStartY - e.touches[0].clientY;
-                this.state.scroll += delta * 2.0; 
-                touchStartY = e.touches[0].clientY;
-                this.state.targetSpeed = delta * 0.5;
+        if (!this.isVirtualMode) {
+            // PHYSICAL MODE: USamos Lenis con scroll real
+            // OPTIMIZATION: Disable Lenis on mobile for native performance
+            if (typeof Lenis !== 'undefined' && !isMobileBrowser) {
+                this.lenis = new Lenis({
+                    smooth: true,
+                    lerp: 0.08,
+                    direction: 'vertical',
+                    gestureDirection: 'vertical',
+                    smoothTouch: true,
+                    touchMultiplier: 2,
+                });
+
+                this.lenis.on('scroll', ({ scroll, velocity }) => {
+                    if (!this.state.warping && this.state.active) {
+                        this.state.scroll = scroll;
+                        this.state.targetSpeed = velocity;
+                    }
+                });
+            } else {
+                // Mobile Fallback: Use manual scroll listener
+                window.addEventListener('scroll', () => {
+                    if (this.state.active && !this.state.warping) {
+                        const scrollPos = window.pageYOffset || document.documentElement.scrollTop;
+                        this.state.targetSpeed = (scrollPos - this.state.scroll) * 0.5;
+                        this.state.scroll = scrollPos;
+                    }
+                }, { passive: true });
             }
-        }, { passive: true });
+        } else {
+            // VIRTUAL MODE: No instantiation of Lenis or Scroll Listeners on window
+            console.log('>> HYPER INTRO: VIRTUAL SCROLL ACTIVE');
+        }
     }
 
     bindEvents() {
-        this.handleMouseMove = (e) => {
-            if (!this.state.active) return;
-            // Performance: Use cached dimensions
-            this.state.mouseX = (e.clientX / this.winW - 0.5) * 2;
-            this.state.mouseY = (e.clientY / this.winH - 0.5) * 2;
-        };
-        window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
+        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (!isMobileBrowser) {
+            // Desktop tilt controls
+            this.handleMouseMove = (e) => {
+                if (!this.state.active) return;
+                this.state.targetMouseX = (e.clientX / this.winW - 0.5) * 2;
+                this.state.targetMouseY = (e.clientY / this.winH - 0.5) * 2;
+            };
+            window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
+
+            this.handleTouch = (e) => {
+                if (!this.state.active || !e.touches.length) return;
+                const touch = e.touches[0];
+                this.state.targetMouseX = (touch.clientX / this.winW - 0.5) * 2;
+                this.state.targetMouseY = (touch.clientY / this.winH - 0.5) * 2;
+            };
+            window.addEventListener('touchstart', this.handleTouch, { passive: true });
+            window.addEventListener('touchmove', this.handleTouch, { passive: true });
+            
+            // Reset position on release for mobile/terminal feel
+            const resetPos = () => {
+                this.state.targetMouseX = 0;
+                this.state.targetMouseY = 0;
+            };
+            window.addEventListener('touchend', resetPos, { passive: true });
+            window.addEventListener('touchcancel', resetPos, { passive: true });
+            window.addEventListener('mouseleave', resetPos, { passive: true });
+        } else {
+            // Mobile Gyroscope tilt controls
+            this.handleDeviceOrientation = (e) => {
+                if (!this.state.active) return;
+                // Guard against undefined/null gyro values to prevent NaN lock
+                if (e.beta === null || e.beta === undefined || e.gamma === null || e.gamma === undefined) return;
+                
+                let beta = e.beta;
+                let gamma = e.gamma;
+
+                // Calibrate tilt: center holding position at 50 degrees
+                const targetBeta = (beta - 50) / 25;
+                const targetGamma = gamma / 25;
+
+                this.state.targetMouseX = Math.max(-1, Math.min(1, targetGamma));
+                this.state.targetMouseY = Math.max(-1, Math.min(1, targetBeta));
+            };
+
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS / Safari: require user gesture (touchend/click) + permission request
+                const requestGyro = () => {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
+                            }
+                            window.removeEventListener('click', requestGyro);
+                            window.removeEventListener('touchend', requestGyro);
+                        })
+                        .catch(err => {
+                            console.error('Gyroscope request failed:', err);
+                        });
+                };
+                window.addEventListener('click', requestGyro);
+                window.addEventListener('touchend', requestGyro);
+            } else {
+                // Android / Other: bind immediately on load
+                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
+            }
+
+            // Mobile touch swipe scrolling
+            let lastTouchY = 0;
+            this.handleTouchStart = (e) => {
+                if (!this.state.active || !e.touches.length) return;
+                lastTouchY = e.touches[0].clientY;
+            };
+            this.handleTouchMove = (e) => {
+                if (!this.state.active || !e.touches.length || this.state.warping) return;
+                const touchY = e.touches[0].clientY;
+                const deltaY = lastTouchY - touchY;
+                lastTouchY = touchY;
+
+                if (e.cancelable) e.preventDefault();
+
+                this.state.targetSpeed += deltaY * 1.5;
+                this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
+            };
+            window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+            window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+        }
+
+        // VIRTUAL SCROLL: Only for PC/High-end (and not mobile)
+        if (this.isVirtualMode && !isMobileBrowser) {
+            this.handleWheel = (e) => {
+                if (!this.state.active || this.state.warping) return;
+                // Accumulate target speed based on wheel delta (Speed increased as requested)
+                this.state.targetSpeed += e.deltaY * 0.12; 
+                // Clamp target speed to prevent insane values
+                this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
+            };
+            window.addEventListener('wheel', this.handleWheel, { passive: false });
+        }
         
         this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
+            this.config.loopSize = this.config.itemCount * this.config.zGap;
         }, 200);
         window.addEventListener('resize', this.handleResize, { passive: true });
 
-        const btn = document.getElementById('enterSystemBtn');
-        if (btn) {
-            btn.addEventListener('click', () => this.warpAndEnter());
-        }
-    }
+        const enterBtn = document.getElementById('enterSystemBtn');
+        if (enterBtn) enterBtn.addEventListener('click', () => this.warpAndEnter());    }
 
     async warpAndEnter() {
         if (this.state.warping) return;
         this.state.warping = true;
         
-        console.log('%c>> HYPER INTRO: WARP ENGAGED', 'color: #E2FF00; font-family: monospace;');
-        
-        // Init Audio
         await audioManager.init();
         audioManager.playBoot();
-        audioManager.playBackgroundMusic();
         
-        // Update UI
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
             btn.textContent = "ACCESSING...";
             btn.style.borderColor = "#fff";
             btn.style.color = "#fff";
         }
+
+        // Sync content for smoother reveal
+        const bodyContent = document.getElementById('body-content');
+        if (bodyContent) {
+            document.body.classList.add('preparing-system');
+            void bodyContent.offsetHeight; 
+        }
     }
 
     startLoop() {
-        const feedbackVel = document.getElementById('intro-vel-readout');
-        const feedbackFPS = document.getElementById('intro-fps');
-        const feedbackCoord = document.getElementById('intro-coord');
-        
         let lastTime = 0;
 
         const loop = (time) => {
@@ -966,94 +1074,115 @@ class HyperScrollIntro {
             
             if (this.lenis) this.lenis.raf(time);
 
-            // FPS Calculation
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
-            if (feedbackFPS && this.frameCount % 10 === 0) feedbackFPS.textContent = Math.round(1000 / delta) || 60;
-
-            // Logic
-            if (this.state.warping) {
-                // Accelerate hard
-                this.state.targetSpeed = 150; // Warp speed
-                this.state.scroll += this.state.velocity * 0.5; // Manual advance
-                
-                // Trigger fade out after reaching high speed
-                if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
-                    this.state.fading = true;
-                    // Slightly longer delay for low spec to ensure frame stability
-                    setTimeout(() => this.endIntro(), this.config.isLowSpec ? 500 : 1000);
-                }
-            }
-
-            // Smooth Velocity Interp
-            this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.05;
-
-            // Check dynamic low performance mode (in case it changed)
-            const isLowPerf = this.config.isLowSpec || document.body.classList.contains('performance-mode-low');
-
-            // HUD Updates (Throttled to minimize layout thrashing)
+            const fps = Math.round(1000 / delta) || 60;
+            
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Replaced innerText with textContent in the RAF loop.
+             * 🎯 Why: innerText triggers synchronous layout calculations (reflow) because it considers CSS styling (hidden text, text-transform). textContent directly modifies the text node, avoiding reflows in this hot path.
+             * 📊 Impact: Prevents layout thrashing during the high-frequency HUD updates in the requestAnimationFrame loop.
+             */
+            // HUD Updates Throttled
             /**
              * ⚡ Bolt Performance Optimization
              * 💡 What: Replaced layout-aware `.innerText` with layout-agnostic `.textContent` for HUD updates.
              * 🎯 Why: `.innerText` triggers expensive synchronous style recalculations (layout thrashing), which kills frame rates inside requestAnimationFrame loops.
              * 📊 Impact: Prevents forced reflows up to 60 times per second, freeing up main thread CPU time for rendering.
              */
-            if (this.frameCount % 6 === 0) {
-                if (feedbackVel) feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
-                if (feedbackCoord) {
-                    // Show relative coordinate based on tunnel cycle
-                    const relativePos = (this.state.scroll * this.config.camSpeed % this.config.loopSize + this.config.loopSize) % this.config.loopSize;
-                    feedbackCoord.textContent = relativePos.toFixed(0).padStart(6, '0');
+            if (this.frameCount % 10 === 0) {
+                if (this.feedbackFPS) this.feedbackFPS.textContent = fps;
+                if (this.feedbackVel) this.feedbackVel.textContent = Math.abs(this.state.velocity).toFixed(2);
+                if (this.feedbackCoord) {
+                    this.feedbackCoord.textContent = this.isVirtualMode ? "∞" : this.state.scroll.toFixed(0);
                 }
             }
 
-            // Camera logic
-            // Skip tilt calculations on low spec to save layout thrashing
-            if (!isLowPerf) {
-                const shake = this.state.velocity * 0.2;
-                const tiltX = this.state.mouseY * 5 - this.state.velocity * 0.2; 
-                const tiltY = this.state.mouseX * 5;
+            // Adaptive Degrade Logic (Wait 2s at start before judging)
+            if (time > 2000 && this.perfMode < 1) {
+                if (fps < 30) {
+                    this.perfMode = 1;
+                    // Optimized: Use cached items array instead of DOM query
+                    for (let i = 0; i < this.items.length; i++) {
+                        if (this.items[i].type === 'star') this.items[i].el.style.display = 'none';
+                    }
+                    console.warn('>> PERF: Adaptive degrade triggered. Stars disabled.');
+                }
+            }
 
-                if (this.world) {
+            // Warp Logic
+            if (this.state.warping) {
+                this.state.targetSpeed = 150;
+                this.state.scroll += this.state.velocity * 0.5;
+                if (Math.abs(this.state.velocity) > 100 && !this.state.fading) {
+                    this.state.fading = true;
+                    setTimeout(() => this.endIntro(), this.config.isLowSpec ? 500 : 1000);
+                }
+            }
+
+            // Smooth Velocity (0.1 weight as requested by user)
+            this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.1;
+            
+            // Smooth Camera Movement (Lerp)
+            this.state.mouseX += (this.state.targetMouseX - this.state.mouseX) * 0.08;
+            this.state.mouseY += (this.state.targetMouseY - this.state.mouseY) * 0.08;
+
+            // Apply decay in Virtual Mode so it eventually stops
+            if (this.isVirtualMode) {
+                this.state.targetSpeed *= 0.95;
+                this.state.scroll += this.state.velocity * 0.5; // Infinite accumulation
+            }
+
+            // --- RENDER LOGIC ---
+
+            // 1. Camera Tilt & Shake (Modified from User Snippet)
+            if (this.world) {
+                const shake = this.state.velocity * 0.1; 
+                // Enable tilt for mobile too (Relaxed isHyperEnabled check)
+                const tiltScale = this.isHyperEnabled ? 5 : 4; 
+                const tiltX = (this.state.mouseY * tiltScale - this.state.velocity * 0.2);
+                const tiltY = (this.state.mouseX * tiltScale);
+
+                if (Math.abs(this.lastTiltX - tiltX) > 0.1 || Math.abs(this.lastTiltY - tiltY) > 0.1) {
                     this.world.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                    this.lastTiltX = tiltX;
+                    this.lastTiltY = tiltY;
                 }
-            } else if (this.world) {
-                 // Minimal static tilt or none for performance
-                 this.world.style.transform = `rotateX(0deg) rotateY(0deg)`;
             }
 
-            // FOV Dynamic
-            const baseFov = 1000;
-            const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
-            if (this.viewport && Math.abs(this.lastFov - fov) > 0.1) {
-                this.viewport.style.perspective = `${fov}px`;
-                this.lastFov = fov;
+            // 2. Dynamic Perspective (Warp)
+            if (this.viewport && this.isHyperEnabled) {
+                const baseFov = 1000;
+                const fov = baseFov - Math.min(Math.abs(this.state.velocity) * 5, 800);
+                if (Math.abs(this.lastFov - fov) > 0.1) {
+                    this.viewport.style.perspective = `${fov}px`;
+                    this.lastFov = fov;
+                }
             }
 
-            // Items Loop
+            // 3. Item Loop (Optimized Infinite Scroll)
             const cameraZ = this.state.scroll * this.config.camSpeed;
+            const modC = this.config.loopSize;
 
             for (let i = 0; i < this.items.length; i++) {
                 const item = this.items[i];
                 let relZ = item.baseZ + cameraZ;
-                const modC = this.config.loopSize;
-                
-                // Infinite Tunnel Math
                 let vizZ = ((relZ % modC) + modC) % modC;
                 if (vizZ > 500) vizZ -= modC;
 
-                // Opacity
+                // Opacity Calculation
                 let alpha = 1;
                 if (vizZ < -3000) alpha = 0;
                 else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
-                if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400); // Fade out close
+                if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400);
                 if (alpha < 0) alpha = 0;
                 
-                // Optimization: Update opacity only if changed significantly
                 if (Math.abs(item.currentAlpha - alpha) > 0.001) {
                     item.el.style.opacity = alpha;
                     item.currentAlpha = alpha;
+                    if (this.config.isLowSpec) item.el.style.display = alpha <= 0 ? 'none' : 'flex';
                 }
 
                 if (alpha > 0) {
@@ -1078,6 +1207,13 @@ class HyperScrollIntro {
                         needsUpdate = true;
                     }
 
+                    if (item.type === 'text') {
+                        if (item.lastOffset !== 0) {
+                            item.el.style.textShadow = 'none';
+                            item.lastOffset = 0;
+                        }
+                    }
+
                     if (needsUpdate) {
                         let trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px)`;
 
@@ -1087,26 +1223,35 @@ class HyperScrollIntro {
                         } else if (item.type === 'text') {
                             trans += ` rotateZ(${item.rot}deg)`;
                         } else {
-                            trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
-                            item.lastFloat = float;
+                            // Card Logic
+                            if (this.isHyperEnabled) {
+                                /**
+                                 * ⚡ Bolt Performance Optimization
+                                 * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
+                                 * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
+                                 * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
+                                 */
+                                // AUTO-ANIMATION: Trigger .is-active when card is in focus range
+                                if (item.cardEl) {
+                                    const isInFocus = vizZ > -400 && vizZ < 400;
+                                    if (item.isCardActive !== isInFocus) {
+                                        item.cardEl.classList.toggle('is-active', isInFocus);
+                                        item.isCardActive = isInFocus;
+                                    }
+                                }
+
+                                trans += ` rotateZ(${item.rot}deg) rotateY(${float}deg)`;
+                                item.lastFloat = float;
+                            } else {
+                                trans += ` rotateZ(${item.rot}deg)`;
+                            }
                         }
 
-                        item.el.style.transform = trans;
-                        item.currentTrans = trans;
                         item.lastVizZ = vizZ;
-                    }
 
-                    // RGB Split Optimization: Update only if offset changed significantly
-                    if (item.type === 'text') {
-                        if (!isLowPerf && Math.abs(this.state.velocity) > 2) {
-                            const offset = this.state.velocity * 0.5;
-                            if (Math.abs(item.lastOffset - offset) > 0.1 || item.lastOffset === 0) {
-                                item.el.style.textShadow = `${offset}px 0 var(--intro-glitch-1), ${-offset}px 0 var(--intro-glitch-2)`;
-                                item.lastOffset = offset;
-                            }
-                        } else if (item.lastOffset !== 0) {
-                            item.el.style.textShadow = 'none';
-                            item.lastOffset = 0;
+                        if (item.currentTrans !== trans) {
+                            item.el.style.transform = trans;
+                            item.currentTrans = trans;
                         }
                     }
                 }
@@ -1116,53 +1261,54 @@ class HyperScrollIntro {
         requestAnimationFrame(loop);
     }
 
-    endIntro() {
+    endIntro(isFast = false) {
         const layer = document.getElementById('hyper-intro-layer');
         if (layer) {
-             // White out effect or Black out
-            // Performance: Simplify transition for low spec
-            if (this.config.isLowSpec) {
-                layer.style.transition = "opacity 0.5s ease-out";
+            if (!isFast) {
+                const isLowSpec = this.config.isLowSpec;
+                layer.style.transition = isLowSpec ? "opacity 0.5s ease-out" : "opacity 0.8s ease-out, filter 0.8s ease-out";
                 layer.style.opacity = 0;
-                 // No filter blur for low performance
-            } else {
-                layer.style.transition = "opacity 0.8s ease-out, filter 0.8s ease-out";
-                layer.style.opacity = 0;
-                layer.style.filter = "brightness(2) blur(10px)";
+                if (!isLowSpec) layer.style.filter = "brightness(2) blur(10px)";
             }
+            
+            const waitTime = isFast ? 250 : 800;
             
             setTimeout(() => {
                 layer.style.display = 'none';
                 this.state.active = false;
                 if (this.lenis) this.lenis.destroy();
                 
-                // Remove listeners to save resources
-                if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
-                if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+                this.cleanup();
 
-                // Allow scrolling again
-                document.body.classList.remove('no-scroll');
-                window.scrollTo(0, 0); // Force scroll to top
-                document.documentElement.scrollTop = 0; // Double ensure for some browsers
+                document.body.classList.add('system-ready');
+                document.body.classList.remove('preparing-system', 'no-scroll');
+                document.documentElement.classList.remove('no-scroll');
+
+                window.scrollTo(0, 0);
                 
-                // Trigger Main Dashboard animations
                 const main = document.querySelector('main');
                 if(main) {
-                    main.style.animation = "fadeIn 1s ease forwards";
+                    main.style.animation = isFast ? "fadeIn 0.4s ease forwards" : "fadeIn 1s ease forwards";
                 }
 
-                // Optimization: Start background effects now that they are visible
-                if (typeof matrixRain !== 'undefined' &&
-                    typeof performanceManager !== 'undefined' &&
-                    performanceManager.effects.matrixRain) {
+                if (typeof matrixRain !== 'undefined' && performanceManager.effects.matrixRain) {
                      matrixRain.start(true);
                 }
-                
-                // Optional: Trigger legacy boot sequence visuals briefly or just logging
-                // For now, we assume direct access to dashboard
-                
-            }, 800);
+            }, waitTime);
         }
+    }
+
+    cleanup() {
+        if (this.handleMouseMove) window.removeEventListener('mousemove', this.handleMouseMove);
+        if (this.handleTouch) {
+            window.removeEventListener('touchstart', this.handleTouch);
+            window.removeEventListener('touchmove', this.handleTouch);
+        }
+        if (this.handleTouchStart) window.removeEventListener('touchstart', this.handleTouchStart);
+        if (this.handleTouchMove) window.removeEventListener('touchmove', this.handleTouchMove);
+        if (this.handleDeviceOrientation) window.removeEventListener('deviceorientation', this.handleDeviceOrientation);
+        if (this.handleResize) window.removeEventListener('resize', this.handleResize);
+        if (this.handleWheel) window.removeEventListener('wheel', this.handleWheel);
     }
 }
 
@@ -1415,7 +1561,7 @@ const linkBlocks = document.querySelectorAll('.link-block');
 linkBlocks.forEach(block => {
     block.addEventListener('mouseenter', function() {
         const id = this.dataset.id;
-        // audioManager.playHover(); // Handled by global delegation
+        audioManager.playHover();
         console.log(`%c>> ACCESS LINK_${id}`, 'color: #39FF14; font-family: monospace; font-size: 12px;');
     });
 
@@ -1448,15 +1594,7 @@ document.addEventListener('keydown', (e) => {
         terminal.open();
     }
     
-    // Ctrl + M: Toggle Audio
-    if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
-        e.preventDefault();
-        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
-            audioManager.stopBackgroundMusic();
-        } else {
-            audioManager.playBackgroundMusic(0.2);
-        }
-    }
+
     
     // Ctrl + /: Show Shortcuts
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
@@ -1636,28 +1774,162 @@ if ('PerformanceObserver' in window) {
 
 console.log('%c>> SYSTEM READY. AWAITING INPUT.', 'color: #39FF14; font-family: monospace;');
 
+// ========== DOCK MANAGER ==========
+class DockManager {
+    constructor() {
+        this.dock = null;
+        this.burger = null;
+        this.audioBtn = null;
+        this.langBtn = null;
+        this.isExpanded = false;
+    }
+
+    init() {
+        this.docks = document.querySelectorAll('.control-dock');
+
+        if (this.docks.length === 0) {
+            console.warn('>> DOCK ERROR: No .control-dock found');
+            return;
+        }
+
+        console.log(`>> DOCK SYSTEM: INITIALIZING ${this.docks.length} DOCKS...`);
+
+        this.docks.forEach(dock => {
+            // Toggle expansion on deco click
+            const deconStart = dock.querySelector('.dock-deco-start');
+            const decoEnd = dock.querySelector('.dock-deco-end');
+            [deconStart, decoEnd].forEach(el => {
+                if (el) {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleDock(dock);
+                    });
+                }
+            });            // Settings/Burger Button (toggles dock expand/collapse)
+            const burger = dock.querySelector('.settings-toggle-btn');
+            if (burger) {
+                burger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // burgerMenu (#burgerMenu) toggles the dock open/close
+                    if (burger.id === 'burgerMenu') {
+                        if (typeof burgerMenuManager !== 'undefined') {
+                            burgerMenuManager.toggleDock(dock);
+                        }
+                    } else {
+                        this.toggleDock(dock);
+                    }
+                });
+            }
+
+            // Config / Settings Panel Open Button
+            const configBtn = dock.querySelector('.config-open-btn');
+            if (configBtn) {
+                configBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof burgerMenuManager !== 'undefined') {
+                        burgerMenuManager.toggle();
+                    }
+                });
+            }
+
+
+
+
+
+            // Language Button
+            const langBtn = dock.querySelector('.lang-toggle-btn');
+            if (langBtn) {
+                langBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.handleLanguage(langBtn);
+                });
+            }
+
+            // Theme Button (Shared with ThemeManager but we add click here for sync)
+            const themeBtn = dock.querySelector('.theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof themeManager !== 'undefined') {
+                        themeManager.handleToggle(e);
+                        this.updateAllThemes();
+                    }
+                });
+            }
+        });
+        
+        devLog('DockManager initialized ✓');
+    }
+
+    toggleDock(dock) {
+        const isCurrentlyExpanded = dock.classList.contains('collapsed') === false;
+        const newState = !isCurrentlyExpanded;
+        
+        dock.classList.toggle('collapsed', !newState);
+        dock.setAttribute('data-expanded', newState);
+        
+        if (typeof audioManager !== 'undefined') audioManager.playClick();
+        
+        const label = dock.querySelector('.dock-label-min');
+        if (label && typeof triggerGlitch === 'function') triggerGlitch(label);
+    }
+
+    handleLanguage(btn) {
+        const langText = btn.querySelector('.lang-text');
+        if (!langText) return;
+        
+        const currentLang = langText.textContent.trim();
+        const newLang = currentLang === 'ES' ? 'EN' : 'ES';
+        
+        // Update all docks
+        document.querySelectorAll('.lang-toggle-btn .lang-text').forEach(el => {
+            el.textContent = newLang;
+            if (typeof triggerGlitch === 'function') triggerGlitch(el);
+        });
+        
+        if (typeof i18nManager !== 'undefined') {
+            i18nManager.setLanguage(newLang.toLowerCase());
+        }
+        
+        if (typeof audioManager !== 'undefined') audioManager.playClick();
+    }
+
+    updateAllThemes() {
+        const isDark = document.body.classList.contains('theme-dark');
+        document.querySelectorAll('.theme-toggle-btn i').forEach(icon => {
+            icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
+        });
+    }
+}
+
+const dockManager = new DockManager();
+
 // ========== THEME TOGGLE SYSTEM ==========
 class ThemeManager {
     constructor() {
         this.theme = localStorage.getItem('theme') || 'dark';
         this.colorTheme = localStorage.getItem('colorTheme') || 'default';
         this.toggleButton = null;
+        this.toggleButtons = null;
         this.toggleLabel = null;
         this.overlay = null;
     }
 
     init() {
-        this.toggleButton = document.getElementById('themeToggle');
+        this.toggleButtons = document.querySelectorAll('.theme-toggle-btn');
         this.toggleLabel = document.getElementById('toggleLabel');
         
         // Apply saved theme
-        this.applyTheme(this.theme, false);
+        this.applyTheme(this.theme);
         this.setColorTheme(this.colorTheme, false);
         
-        // Add event listener only if button exists
-        if (this.toggleButton) {
-            this.toggleButton.addEventListener('click', (e) => this.handleToggle(e));
-        }
+        // Add event listeners to all buttons
+        this.toggleButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleToggle(e);
+            });
+        });
 
         // Initialize color buttons
         this.initColorButtons();
@@ -1794,10 +2066,11 @@ class ThemeManager {
 
 const themeManager = new ThemeManager();
 
-// Initialize theme after page load
+// Initialize theme and dock after page load
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         themeManager.init();
+        dockManager.init(); // Add this line
     }, 100);
 });
 
@@ -1819,6 +2092,7 @@ class CursorManager {
         this.logicalWidth = 0;
         this.logicalHeight = 0;
 
+        // PERF: Bind animate to prevent closure creation in RAF loop
         this.animate = this.animate.bind(this);
     }
 
@@ -1931,9 +2205,10 @@ class CursorManager {
         // Use cached RGB instead of calling getComputedStyle every frame
         const { r, g, b } = this.rgb;
         
-        // Draw trail - Iterate ring buffer from oldest to newest
+        // PERF: Set base color once to avoid repeated string concatenation/parsing
         this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
 
+        // Draw trail - Iterate ring buffer from oldest to newest
         for (let i = 0; i < this.maxTrail; i++) {
             const idx = (this.head + i) % this.maxTrail;
             const point = this.trail[idx];
@@ -1942,14 +2217,14 @@ class CursorManager {
                 point.life -= 0.05;
                 if (point.life > 0) {
                     const size = 3 * point.life;
-                    // Optimization: Use globalAlpha instead of allocating new color strings
+                    // PERF: Modulate alpha instead of reconstructing rgba string
                     this.ctx.globalAlpha = point.life * 0.5;
                     this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
                 }
             }
         }
         
-        // Reset alpha for crosshair
+        // PERF: Reset globalAlpha for subsequent drawing operations
         this.ctx.globalAlpha = 1.0;
 
         // Draw crosshair
@@ -2001,36 +2276,7 @@ class CursorManager {
 }
 
 // ========== VOLUME CONTROL SYSTEM ==========
-class VolumeController {
-    constructor() {
-        this.slider = null;
-        this.value = null;
-        this.icon = null;
-    }
 
-    init() {
-        this.slider = document.getElementById('volumeSlider');
-        this.value = document.getElementById('volumeValue');
-        this.icon = document.getElementById('volumeIcon');
-        
-        if (!this.slider) return;
-        
-        this.slider.addEventListener('input', (e) => {
-            const volume = parseInt(e.target.value);
-            this.value.textContent = volume + '%';
-            audioManager.setVolume(volume / 100);
-            
-            this.icon.textContent = volume === 0 ? '🔇' : volume < 50 ? '🔉' : '🔊';
-        });
-        
-        this.icon.addEventListener('click', () => {
-            const current = parseInt(this.slider.value);
-            this.slider.value = current > 0 ? (this.slider.dataset.lastVolume = current, 0) : (this.slider.dataset.lastVolume || 20);
-            this.slider.dispatchEvent(new Event('input'));
-            audioManager.playClick();
-        });
-    }
-}
 
 // ========== TERMINAL SYSTEM ==========
 class Terminal {
@@ -2064,7 +2310,6 @@ class Terminal {
             exit: () => this.close(),
             quit: () => this.close(),
             theme: (arg) => this.toggleTheme(arg),
-            audio: (arg) => this.audioControl(arg),
             matrix: () => this.toggleMatrix(),
             parallax: () => this.toggleParallaxEffect(),
             cursor: () => this.toggleCursorEffect(),
@@ -2179,7 +2424,6 @@ Available commands:<br/>
 • projects - Show recent projects<br/>
 • contact - Contact information<br/>
 • theme [dark/light] - Switch theme<br/>
-• audio [play/stop/test] - Control background music<br/>
 <br/>
 <span style="color: #00FFFF;">VISUAL EFFECTS:</span><br/>
 • matrix - Toggle Matrix rain effect<br/>
@@ -2289,28 +2533,7 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
         }
     }
 
-    audioControl(arg) {
-        if (arg === 'play') {
-            audioManager.playBackgroundMusic(0.3);
-            this.addOutput(`<span style="color: #39FF14;">♫ Background music started (30% volume)</span>`);
-        } else if (arg === 'stop') {
-            audioManager.stopBackgroundMusic();
-            this.addOutput(`<span style="color: #FF6B6B;">⏹ Background music stopped</span>`);
-        } else if (arg === 'test') {
-            this.addOutput(`<span style="color: #00FFFF;">Testing audio system...</span>`);
-            this.addOutput(`Audio Context: ${audioManager.audioContext ? '✓ Active' : '✗ Inactive'}`);
-            this.addOutput(`Background Music: ${audioManager.bgMusic ? '✓ Loaded' : '✗ Not loaded'}`);
-            if (audioManager.bgMusic) {
-                this.addOutput(`  - Duration: ${audioManager.bgMusic.duration.toFixed(2)}s`);
-                this.addOutput(`  - Paused: ${audioManager.bgMusic.paused}`);
-                this.addOutput(`  - Volume: ${(audioManager.bgMusic.volume * 100).toFixed(0)}%`);
-                this.addOutput(`  - Current Time: ${audioManager.bgMusic.currentTime.toFixed(2)}s`);
-            }
-            this.addOutput(`Analyser Node: ${audioManager.analyserNode ? '✓ Connected' : '✗ Not connected'}`);
-        } else {
-            this.addOutput(`Usage: audio [play/stop/test]<br>  play - Start background music<br>  stop - Stop background music<br>  test - Show audio system status`);
-        }
-    }
+
 
     toggleMatrix() {
         const isActive = matrixRain.toggle();
@@ -2585,7 +2808,6 @@ let konamiIndex = 0;
 
 // Initialize all managers
 const cursorManager = new CursorManager();
-const volumeController = new VolumeController();
 const terminal = new Terminal();
 const shortcutsManager = new ShortcutsManager();
 
@@ -2740,7 +2962,7 @@ class AwardsManager {
                 color: '#FFD700'
             },
             {
-                title: 'CREHA BITAT',
+                title: 'CREHABITAT',
                 event: 'SOCIAL IMPACT JAM 2024',
                 rank: '2ND PLACE',
                 description: 'Recognition for social impact and educational value in video games.',
@@ -2905,252 +3127,101 @@ class NotificationManager {
 }
 
 // ========== AUDIO VISUALIZER ==========
-class AudioVisualizer {
-    constructor() {
-        this.canvas = null;
-        this.ctx = null;
-        this.analyser = null;
-        this.dataArray = null;
-        this.bufferLength = 0;
-        this.active = false;
-        this.animationId = null;
-        this.gradientCache = [];
-        this.lastHeight = 0;
-        this.logicalWidth = 0;
-        this.logicalHeight = 0;
 
-        // Bind for RAF optimization
-        this.draw = this.draw.bind(this);
-    }
-
-    init(audioManager) {
-        this.canvas = document.getElementById('audioVisualizer');
-        if (!this.canvas) return;
-        
-        this.ctx = this.canvas.getContext('2d');
-        
-        this.logicalWidth = this.canvas.width;
-        this.logicalHeight = this.canvas.height;
-
-        // Setup visibility observer to stop render loop when off-screen
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && this.analyser) {
-                    this.start();
-                } else {
-                    this.stop(false); // Don't reset UI status, just stop rendering
-                }
-            });
-        });
-        this.observer.observe(this.canvas);
-
-        // Use the already-created analyser node
-        if (audioManager && audioManager.analyserNode) {
-            this.analyser = audioManager.analyserNode;
-            this.bufferLength = this.analyser.frequencyBinCount;
-            this.dataArray = new Uint8Array(this.bufferLength);
-            
-            // Only start if visible (IntersectionObserver will handle it, but we set initial state)
-            // this.active = true;
-            // this.draw();
-            
-            const statusEl = document.getElementById('visualizerStatus');
-            if (statusEl) statusEl.textContent = 'ACTIVE';
-        } else {
-            this.drawStandby();
-        }
-    }
-
-    start() {
-        if (this.active) return;
-        if (!this.analyser) return; // Cannot start if not initialized
-        this.active = true;
-        this.draw();
-        const statusEl = document.getElementById('visualizerStatus');
-        if (statusEl) statusEl.textContent = 'ACTIVE';
-    }
-
-    stop(updateUI = true) {
-        this.active = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-
-        if (updateUI) {
-            const statusEl = document.getElementById('visualizerStatus');
-            if (statusEl) statusEl.textContent = 'STANDBY';
-            this.drawStandby();
-        }
-    }
-
-    draw() {
-        if (!this.active) return;
-        
-        this.animationId = requestAnimationFrame(this.draw);
-        
-        this.analyser.getByteFrequencyData(this.dataArray);
-        
-        const ctx = this.ctx;
-        /**
-         * ⚡ Bolt Performance Optimization
-         * 💡 What: Cached canvas dimensions as `this.logicalWidth` and `this.logicalHeight` to prevent reading DOM properties `this.canvas.width` and `this.canvas.height` on every frame.
-         * 🎯 Why: Accessing DOM properties inside a 60fps `requestAnimationFrame` loop forces synchronous JS-to-C++ boundary crossings, causing performance overhead.
-         * 📊 Impact: Eliminates DOM reads during the animation loop, reducing CPU usage.
-         */
-        const width = this.logicalWidth;
-        const height = this.logicalHeight;
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(0, 0, width, height);
-
-        // Clear cache if height changed
-        if (height !== this.lastHeight) {
-            this.gradientCache = [];
-            this.lastHeight = height;
-        }
-        
-        const barWidth = (width / this.bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-        
-        for (let i = 0; i < this.bufferLength; i++) {
-            const value = this.dataArray[i];
-
-            // Optimization: Skip 0 values
-            if (value === 0) {
-                x += barWidth + 1;
-                continue;
-            }
-
-            barHeight = (value / 255) * height;
-            
-            // Optimization: Cache gradients
-            if (!this.gradientCache[value]) {
-                const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-                gradient.addColorStop(0, '#39FF14');
-                gradient.addColorStop(0.5, '#00FFFF');
-                gradient.addColorStop(1, '#FF00FF');
-                this.gradientCache[value] = gradient;
-            }
-            
-            ctx.fillStyle = this.gradientCache[value];
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
-            
-            x += barWidth + 1;
-        }
-    }
-
-    drawStandby() {
-        if (!this.canvas || !this.ctx) return;
-        const ctx = this.ctx;
-        const width = this.logicalWidth || this.canvas.width;
-        const height = this.logicalHeight || this.canvas.height;
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, width, height);
-        
-        ctx.strokeStyle = '#39FF14';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        
-        for (let x = 0; x < width; x += 5) {
-            ctx.lineTo(x, height / 2 + Math.sin(x * 0.05) * 10);
-        }
-        
-        ctx.stroke();
-    }
-}
 
 // ========== TIMELINE MANAGER ==========
 class TimelineManager {
     constructor() {
         this.experiences = [
             {
-                date: 'OCT 2025 - PRESENT',
-                title: 'Desarrollador Unity',
-                company: 'IST (Instituto de Seguridad del Trabajo)',
-                description: 'Desarrollo de proyectos de Realidad Virtual y creación de Experiencias Inmersivas.'
+                date: { es: 'OCT 2025 - PRESENTE', en: 'OCT 2025 - PRESENT' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'IST (Instituto de Seguridad del Trabajo)', en: 'IST (Work Safety Institute)' },
+                description: { es: 'Desarrollo de proyectos de Realidad Virtual y creación de Experiencias Inmersivas.', en: 'Development of Virtual Reality projects and creation of Immersive Experiences.' }
             },
             {
-                date: 'AGO 2025 - AGO 2025',
-                title: 'Diseñador de Videojuegos',
-                company: 'SANDA (SANDA GAME JAM)',
-                description: 'Desarrollo de NOVA. 1er Lugar Mejor Atmósfera/Narrativa. Menciones honoríficas en UI y Equipo Inclusivo.'
+                date: { es: 'AGO 2025 - AGO 2025', en: 'AUG 2025 - AUG 2025' },
+                title: { es: 'Diseñador de Videojuegos', en: 'Game Designer' },
+                company: { es: 'SANDA (SANDA GAME JAM)', en: 'SANDA (SANDA GAME JAM)' },
+                description: { es: 'Desarrollo de NOVA. 1er Lugar Mejor Atmósfera/Narrativa. Menciones honoríficas en UI y Equipo Inclusivo.', en: 'Development of NOVA. 1st Place Best Atmosphere/Narrative. Honorable mentions in UI and Inclusive Team.' }
             },
             {
-                date: 'AGO 2025 - AGO 2025',
-                title: 'Programador Informático',
-                company: 'WOMEN GAME JAM CHILE',
-                description: 'Desarrollo de "Be The Hero" en 48 horas. Exploración de dilemas éticos y trabajo colaborativo.'
+                date: { es: 'AGO 2025 - AGO 2025', en: 'AUG 2025 - AUG 2025' },
+                title: { es: 'Programador Informático', en: 'Software Programmer' },
+                company: { es: 'WOMEN GAME JAM CHILE', en: 'WOMEN GAME JAM CHILE' },
+                description: { es: 'Desarrollo de "Be The Hero" en 48 horas. Exploración de dilemas éticos y trabajo colaborativo.', en: 'Development of "Be The Hero" in 48 hours. Exploration of ethical dilemmas and collaborative work.' }
             },
             {
-                date: 'FEB 2025 - JUN 2025',
-                title: 'Unity VR Dev & Animation',
-                company: 'STAFFY LTDA.',
-                description: 'Frameworks VR para MetaQuest 3. Optimización técnica, modelado 3D (Blender) y liderazgo de proyectos.'
+                date: { es: 'FEB 2025 - JUN 2025', en: 'FEB 2025 - JUN 2025' },
+                title: { es: 'Unity VR Dev & Animación', en: 'Unity VR Dev & Animation' },
+                company: { es: 'STAFFY LTDA.', en: 'STAFFY LTDA.' },
+                description: { es: 'Frameworks VR para MetaQuest 3. Optimización técnica, modelado 3D (Blender) y liderazgo de proyectos.', en: 'VR Frameworks for MetaQuest 3. Technical optimization, 3D modeling (Blender) and project leadership.' }
             },
             {
-                date: 'MAR 2021 - DIC 2025',
-                title: 'Licenciatura en Artes y Tecnologías',
-                company: 'UNIACC',
-                description: 'Comunicador Digital: Diseño y Desarrollo de Videojuegos. Formación en arte, tecnologías y gestión de proyectos.'
+                date: { es: 'MAR 2021 - DIC 2025', en: 'MAR 2021 - DEC 2025' },
+                title: { es: 'Licenciatura en Artes y Tecnologías', en: 'Bachelor in Arts and Technologies' },
+                company: { es: 'UNIACC', en: 'UNIACC' },
+                description: { es: 'Comunicador Digital: Diseño y Desarrollo de Videojuegos. Formación en arte, tecnologías y gestión de proyectos.', en: 'Digital Communicator: Game Design and Development. Training in art, technologies, and project management.' }
             },
             {
-                date: 'JUL 2024 - OCT 2024',
-                title: 'Unity Developer',
-                company: 'DREAMS OF HEAVEN',
-                description: 'Desarrollo multiplataforma, C#, herramientas de editor y plugins personalizados para optimización de flujos.'
+                date: { es: 'JUL 2024 - OCT 2024', en: 'JUL 2024 - OCT 2024' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'DREAMS OF HEAVEN', en: 'DREAMS OF HEAVEN' },
+                description: { es: 'Desarrollo multiplataforma, C#, herramientas de editor y plugins personalizados para optimización de flujos.', en: 'Cross-platform development, C#, editor tools and custom plugins for workflow optimization.' }
             },
             {
-                date: 'MAY 2024 - MAY 2024',
-                title: 'Desarrollador de Videojuegos',
-                company: 'KUWALA',
-                description: 'Desarrollo de "Creha Bitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.'
+                date: { es: 'MAY 2024 - MAY 2024', en: 'MAY 2024 - MAY 2024' },
+                title: { es: 'Desarrollador de Videojuegos', en: 'Game Developer' },
+                company: { es: 'KUWALA', en: 'KUWALA' },
+                description: { es: 'Desarrollo de "Crehabitat", ganador del 2º Lugar en la Social Impact Game Jam 2024.', en: 'Development of "Crehabitat", 2nd Place winner at Social Impact Game Jam 2024.' }
             },
             {
-                date: 'ABR 2022 - ABR 2024',
-                title: 'Técnico Informático',
-                company: 'DUST2.GG',
-                description: 'Distribución de componentes gaming y soluciones tecnológicas. Soporte y hardware.'
+                date: { es: 'ABR 2022 - ABR 2024', en: 'APR 2022 - APR 2024' },
+                title: { es: 'Técnico Informático', en: 'IT Technician' },
+                company: { es: 'DUST2.GG', en: 'DUST2.GG' },
+                description: { es: 'Distribución de componentes gaming y soluciones tecnológicas. Soporte y hardware.', en: 'Distribution of gaming components and technological solutions. Hardware and support.' }
             },
             {
-                date: 'ENE 2021 - NOV 2021',
-                title: 'Barista',
-                company: 'TAVELLI',
-                description: 'Gestión de comandas y atención al cliente. Coordinación multidisciplinaria.'
+                date: { es: 'ENE 2021 - NOV 2021', en: 'JAN 2021 - NOV 2021' },
+                title: { es: 'Barista', en: 'Barista' },
+                company: { es: 'TAVELLI', en: 'TAVELLI' },
+                description: { es: 'Gestión de comandas y atención al cliente. Coordinación multidisciplinaria.', en: 'Order management and customer service. Multidisciplinary coordination.' }
             },
              {
-                date: 'SEP 2020 - SEP 2020',
-                title: 'Desarrollador Unity',
-                company: 'FFSTUDIOS SPA',
-                description: 'Desarrollo de "Shape Kisser", 2º Lugar en Game Jam Online 2020. Mecánicas de puzzle inclusivas.'
+                date: { es: 'SEP 2020 - SEP 2020', en: 'SEP 2020 - SEP 2020' },
+                title: { es: 'Desarrollador Unity', en: 'Unity Developer' },
+                company: { es: 'FFSTUDIOS SPA', en: 'FFSTUDIOS SPA' },
+                description: { es: 'Desarrollo de "Shape Kisser", 2º Lugar en Game Jam Online 2020. Mecánicas de puzzle inclusivas.', en: 'Development of "Shape Kisser", 2nd Place at Game Jam Online 2020. Inclusive puzzle mechanics.' }
             },
             {
-                date: 'DIC 2021 - DIC 2022',
-                title: 'Informática y Comunicaciones',
-                company: 'DESAFÍO LATAM',
-                description: 'Associate\'s degree. Fundamentos de desarrollo web y flujos de trabajo.'
+                date: { es: 'DIC 2021 - DIC 2022', en: 'DEC 2021 - DEC 2022' },
+                title: { es: 'Informática y Comunicaciones', en: 'IT and Communications' },
+                company: { es: 'DESAFÍO LATAM', en: 'DESAFÍO LATAM' },
+                description: { es: 'Associate\'s degree. Fundamentos de desarrollo web y flujos de trabajo.', en: 'Associate\'s degree. Web development fundamentals and workflows.' }
             }
         ];
     }
 
     init() {
         this.render();
+        document.addEventListener('languageChanged', () => this.render());
     }
 
     render() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
         
+        const lang = typeof languageManager !== 'undefined' ? languageManager.currentLang : 'es';
+
         container.innerHTML = this.experiences.map(exp => `
             <div class="timeline-item" style="opacity: 0; transform: translateX(-20px);">
                 <div class="timeline-dot"></div>
-                <div class="timeline-date">${exp.date}</div>
-                <div class="timeline-title">${exp.title}</div>
-                <div class="timeline-company">${exp.company}</div>
-                <div class="timeline-description">${exp.description}</div>
+                <div class="timeline-date">${exp.date[lang] || exp.date.es}</div>
+                <div class="timeline-content">
+                    <h3 class="timeline-title">${exp.title[lang] || exp.title.es}</h3>
+                    <div class="timeline-company">${exp.company[lang] || exp.company.es}</div>
+                    <p class="timeline-desc">${exp.description[lang] || exp.description.es}</p>
+                </div>
             </div>
         `).join('');
 
@@ -3224,14 +3295,18 @@ class MatrixRain {
     resize() {
         // Optimize resolution for mobile/low-end
         const preset = performanceManager.currentPreset;
+        const tier = performanceManager.hardware.tier;
+        // Determine effective low mode (explicit low OR auto+low tier)
+        const isLow = preset === 'low' || (preset === 'auto' && tier === 'low');
+
         let scale = 1;
 
-        if (preset === 'low') {
+        if (isLow) {
             scale = 0.5; // Reduce resolution by half for low performance mode
         } else if (performanceManager.hardware.isMobile) {
             scale = 1;
         } else {
-            scale = Math.min(window.devicePixelRatio, 2);
+            scale = Math.min(window.devicePixelRatio, 1.5);
         }
 
         this.logicalWidth = window.innerWidth;
@@ -3423,6 +3498,8 @@ class ParallaxManager {
 }
 
 // ========== CONTACT FORM MANAGER ==========
+const SUBMIT_COOLDOWN_MS = 30000;
+
 class ContactFormManager {
     constructor() {
         this.form = null;
@@ -3431,6 +3508,7 @@ class ContactFormManager {
         this.messageInput = null;
         this.submitBtn = null;
         this.statusDiv = null;
+        this.lastSubmitTime = 0;
     }
 
     init() {
@@ -3440,6 +3518,7 @@ class ContactFormManager {
         this.nameInput = document.getElementById('contactName');
         this.emailInput = document.getElementById('contactEmail');
         this.messageInput = document.getElementById('contactMessage');
+        this.honeypotInput = document.getElementById('contactWebsite');
         this.submitBtn = document.getElementById('submitBtn');
         this.statusDiv = document.getElementById('formStatus');
 
@@ -3507,10 +3586,26 @@ class ContactFormManager {
     async handleSubmit(e) {
         e.preventDefault();
 
+        // Anti-spam: honeypot check
+        if (this.honeypotInput && this.honeypotInput.value) {
+            this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
+            this.form.reset();
+            return;
+        }
+
+        // Rate limiting: 30 seconds between submissions
+        const now = Date.now();
+        if (now - this.lastSubmitTime < SUBMIT_COOLDOWN_MS) {
+            this.showStatus('RATE_LIMIT: WAIT BEFORE RETRANSMITTING', 'error');
+            return;
+        }
+
         if (!this.validateAll()) {
             this.showStatus('VALIDATION_ERROR: CHECK ALL FIELDS', 'error');
             return;
         }
+
+        this.lastSubmitTime = now;
 
         this.submitBtn.disabled = true;
         this.submitBtn.classList.add('transmitting');
@@ -3566,109 +3661,90 @@ class ContactFormManager {
 // ========== BURGER MENU MANAGER ==========
 class BurgerMenuManager {
     constructor() {
-        this.burgerBtn = null;
         this.panel = null;
         this.closeBtn = null;
-        this.dock = null;
+        this.docks = [];
         this.isOpen = false;
-        this.isDockExpanded = false;
     }
 
     init() {
-        this.burgerBtn = document.getElementById('burgerMenu');
         this.panel = document.getElementById('settingsPanel');
         this.closeBtn = document.getElementById('settingsClose');
-        this.dock = document.querySelector('.control-dock');
+        this.docks = document.querySelectorAll('.control-dock');
 
-        if (!this.burgerBtn || !this.panel || !this.dock) return;
+        if (!this.panel || this.docks.length === 0) return;        this.docks.forEach(dock => {
+            // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
+            // to avoid double-firing. BurgerMenuManager.toggleDock() is called from DockManager.
 
-        this.burgerBtn.addEventListener('click', (e) => this.handleBurgerClick(e));
-        this.closeBtn.addEventListener('click', () => this.close());
-
-        // Toggle dock on hover (optional, for better UX)
-        this.dock.addEventListener('mouseenter', () => {
-            if (!this.isDockExpanded && !this.isOpen) {
-                this.expandDock();
-            }
+            // Toggle dock on click on dock background (not a button)
+            dock.addEventListener('click', (e) => {
+                if (e.target.closest('.dock-btn')) return;
+                this.toggleDock(dock);
+            });
         });
 
-        this.dock.addEventListener('mouseleave', () => {
-            if (this.isDockExpanded && !this.isOpen) {
-                this.collapseDock();
-            }
-        });
+        if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
 
-        // Close on ESC key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.close();
-            }
-        });
-
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if (this.isOpen && 
-                !this.panel.contains(e.target) && 
-                !this.burgerBtn.contains(e.target)) {
+            if (e.key === 'Escape' && this.isOpen) this.close();
+        });        document.addEventListener('click', (e) => {
+            if (this.isOpen && !this.panel.contains(e.target) && !e.target.closest('.settings-toggle-btn') && !e.target.closest('.config-open-btn')) {
                 this.close();
             }
         });
     }
 
-    handleBurgerClick(e) {
+    handleBurgerClick(e, dock) {
         e.stopPropagation();
+        const isCollapsed = dock.classList.contains('collapsed');
         
-        // Si el panel está cerrado, primero expandir el dock si está colapsado
-        if (!this.isOpen && !this.isDockExpanded) {
-            this.toggleDock();
+        if (!this.isOpen && isCollapsed) {
+            this.expandDock(dock);
         } else {
-            // Si el dock ya está expandido o el panel está abierto, toggle del panel
             this.toggle();
         }
-    }
-
-    toggleDock() {
-        if (this.isDockExpanded) {
-            this.collapseDock();
+    }    toggleDock(dock) {
+        if (dock.classList.contains('collapsed')) {
+            this.expandDock(dock);
         } else {
-            this.expandDock();
+            // If settings panel is open, close it first
+            if (this.isOpen) this.close();
+            this.collapseDock(dock);
         }
     }
 
-    expandDock() {
-        this.dock.classList.remove('collapsed');
-        this.dock.dataset.expanded = 'true';
-        this.isDockExpanded = true;
+    expandDock(dock) {
+        dock.classList.remove('collapsed');
+        dock.dataset.expanded = 'true';
         audioManager.playSound('click');
     }
 
-    collapseDock() {
+    collapseDock(dock) {
         if (!this.isOpen) {
-            this.dock.classList.add('collapsed');
-            this.dock.dataset.expanded = 'false';
-            this.isDockExpanded = false;
+            dock.classList.add('collapsed');
+            dock.dataset.expanded = 'false';
             audioManager.playSound('click');
         }
     }
 
     toggle() {
-        if (this.isOpen) {
-            this.close();
-        } else {
-            this.open();
-        }
-    }
-
-    open() {
-        this.expandDock(); // Asegurar que el dock esté expandido
+        if (this.isOpen) this.close();
+        else this.open();
+    }    open() {
+        this.docks.forEach(dock => this.expandDock(dock));
         this.panel.classList.add('active');
-        this.burgerBtn.classList.add('active');
-        this.burgerBtn.setAttribute('aria-expanded', 'true');
+        document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+        });
+        document.querySelectorAll('.config-open-btn').forEach(btn => {
+            btn.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+        });
         this.isOpen = true;
         
-        // Ocultar el dock cuando se abre el panel
         setTimeout(() => {
-            this.dock.classList.add('hidden');
+            this.docks.forEach(dock => dock.classList.add('hidden'));
         }, 100);
         
         audioManager.playSound('click');
@@ -3676,48 +3752,100 @@ class BurgerMenuManager {
 
     close() {
         this.panel.classList.remove('active');
-        this.burgerBtn.classList.remove('active');
-        this.burgerBtn.setAttribute('aria-expanded', 'false');
+        document.querySelectorAll('.settings-toggle-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        });
+        document.querySelectorAll('.config-open-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        });
         this.isOpen = false;
-        
-        // Mostrar el dock cuando se cierra el panel
-        this.dock.classList.remove('hidden');
-        
+        this.docks.forEach(dock => dock.classList.remove('hidden'));
         audioManager.playSound('click');
     }
 }
 
 // ========== LANGUAGE MANAGER ==========
+const translations = {
+    es: {
+        "header.subtitle": "VR DEVELOPER // TECH ARTIST // EGRESADO EN ARTES Y TECNOLOGÍAS DE LA COMUNICACIÓN",
+        "stats.projects": "PROYECTOS",
+        "stats.colabs": "COLAB",
+        "stats.hours": "HORAS_XR",
+        "info.label": "INFO_SISTEMA",
+        "info.text": "Desarrollador y artista técnico especializado en realidad virtual (VR) y experiencias inmersivas interactivas, con más de 3 años de experiencia profesional en el uso de Unity para proyectos de carácter educativo y de investigación.",
+        "link.portfolio": "PORTAFOLIO",
+        "link.code": "CÓDIGO_FUENTE",
+        "link.vr": "PROYECTOS_VR",
+        "projects.label": "PROYECTOS_ACTIVOS",
+        "filters.all": "TODOS",
+        "skills.label": "MATRIZ_HABILIDADES",
+        "timeline.label": "REGISTRO_EXP",
+        "contact.label": "FORM_CONTACTO",
+        "contact.name": "ID_NOMBRE:",
+        "placeholder.name": "Juan_Perez",
+        "contact.email": "DIRECCION_EMAIL:",
+        "placeholder.email": "usuario@dominio.ext",
+        "contact.message": "CARGA_MENSAJE:",
+        "placeholder.message": "Ingresa transmisión...",
+        "contact.submit": "TRANSMITIR_DATOS",
+        "footer.sync": "SINC:"
+    },
+    en: {
+        "header.subtitle": "VR DEVELOPER // TECH ARTIST // GRADUATE IN COMMUNICATION ARTS AND TECHNOLOGIES",
+        "stats.projects": "PROJECTS",
+        "stats.colabs": "COLABS",
+        "stats.hours": "XR_HOURS",
+        "info.label": "SYSTEM_INFO",
+        "info.text": "Developer and technical artist specialized in virtual reality (VR) and interactive immersive experiences, with over 3 years of professional experience using Unity for educational and research projects.",
+        "link.portfolio": "PORTFOLIO",
+        "link.code": "SOURCE_CODE",
+        "link.vr": "VR_PROJECTS",
+        "projects.label": "ACTIVE_PROJECTS",
+        "filters.all": "ALL",
+        "skills.label": "SKILLS_MATRIX",
+        "timeline.label": "EXPERIENCE_LOG",
+        "contact.label": "CONTACT_FORM",
+        "contact.name": "NAME_IDENTIFIER:",
+        "placeholder.name": "John_Doe",
+        "contact.email": "EMAIL_ADDRESS:",
+        "placeholder.email": "user@domain.ext",
+        "contact.message": "MESSAGE_PAYLOAD:",
+        "placeholder.message": "Enter transmission...",
+        "contact.submit": "TRANSMIT_DATA",
+        "footer.sync": "SYNC:"
+    }
+};
+
 class LanguageManager {
     constructor() {
         this.currentLang = 'es';
-        this.langBtn = null;
     }
 
     init() {
-        // Botón del dock
-        this.langBtn = document.getElementById('langToggleBtn');
-        
-        if (this.langBtn) {
-            this.langBtn.addEventListener('click', () => {
+        // Dock buttons
+        document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const newLang = this.currentLang === 'es' ? 'en' : 'es';
                 this.switchLanguage(newLang);
             });
-        }
+        });
 
-        // Botones del settings panel (si existen)
-        const buttons = document.querySelectorAll('.lang-toggle');
-        buttons.forEach(btn => {
+        // Settings panel buttons
+        document.querySelectorAll('.lang-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
-                const lang = btn.dataset.lang;
-                this.switchLanguage(lang);
+                this.switchLanguage(btn.dataset.lang);
             });
         });
 
-        // Load saved language
         const saved = localStorage.getItem('language');
         if (saved) {
             this.switchLanguage(saved);
+        } else {
+            // Run initially for default language
+            this.updateInterface();
         }
     }
 
@@ -3725,54 +3853,60 @@ class LanguageManager {
         this.currentLang = lang;
         localStorage.setItem('language', lang);
 
-        // Update dock button
-        if (this.langBtn) {
-            const langText = this.langBtn.querySelector('.lang-text');
-            if (langText) {
-                langText.textContent = lang.toUpperCase();
-            }
-        }
+        document.querySelectorAll('.lang-toggle-btn .lang-text').forEach(el => {
+            el.textContent = lang.toUpperCase();
+        });
 
-        // Update buttons in settings panel
         document.querySelectorAll('.lang-toggle').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
 
-        // Update translatable elements
-        document.querySelectorAll('[data-en]').forEach(el => {
-            el.textContent = el.dataset[lang] || el.dataset.en;
+        this.updateInterface();
+
+        if(typeof audioManager !== 'undefined') {
+            audioManager.playSound('click');
+        }
+    }
+
+    updateInterface() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(!translations[this.currentLang] || !translations[this.currentLang][key]) return;
+
+            const translation = translations[this.currentLang][key];
+
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.setAttribute('placeholder', translation);
+            } else {
+                el.innerHTML = translation;
+            }
         });
 
-        audioManager.playSound('click');
-        console.log('Language switched to:', lang);
+        document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
+    }
+    
+    // Helper to get translated string for JS dynamic content
+    get(key) {
+        return translations[this.currentLang] ? (translations[this.currentLang][key] || key) : key;
     }
 }
 
 // ========== SETTINGS MANAGER ==========
 class SettingsManager {
     constructor() {
-        this.themeBtn = null;
-        this.audioBtn = null;
-    }
+        // No need for these properties anymore as we query all buttons directly
+    }    init() {
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleTheme();
+            });
+        });
 
-    init() {
-        // Botones del dock
-        this.themeBtn = document.getElementById('themeToggleBtn');
-        this.audioBtn = document.getElementById('audioToggleBtn');
-
-        // Theme button
-        if (this.themeBtn) {
-            this.themeBtn.addEventListener('click', () => this.toggleTheme());
-        }
+        // Audio buttons are handled exclusively by DockManager to prevent double-fire.
+        // SettingsManager only updates the button UI state.
         
         this.updateThemeButton();
-
-        // Audio button
-        if (this.audioBtn) {
-            this.audioBtn.addEventListener('click', () => this.toggleAudio());
-        }
-        
-        this.updateAudioButton();
     }
 
     toggleTheme() {
@@ -3783,51 +3917,12 @@ class SettingsManager {
 
     updateThemeButton() {
         const isDark = themeManager.theme === 'dark';
-        
-        // Actualizar botón del dock
-        if (this.themeBtn) {
-            const dockIcon = this.themeBtn.querySelector('.theme-icon') || this.themeBtn.querySelector('i');
-            if (dockIcon) {
-                if (dockIcon.tagName === 'I') {
-                    // Font Awesome icon
-                    dockIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-                } else {
-                    dockIcon.textContent = isDark ? '☀' : '🌙';
-                }
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            const icon = btn.querySelector('.theme-icon') || btn.querySelector('i');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
             }
-        }
-    }    toggleAudio() {
-        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
-            audioManager.stopBackgroundMusic();
-            this.updateAudioButton(false);
-        } else {
-            audioManager.playBackgroundMusic(0.3);
-            this.updateAudioButton(true);
-        }
-        audioManager.playSound('click');
-    }
-
-    updateAudioButton(isPlaying = null) {
-        const playing = isPlaying !== null ? isPlaying : (audioManager.bgMusic && !audioManager.bgMusic.paused);
-        
-        // Actualizar botón del dock
-        if (this.audioBtn) {
-            const dockIcon = this.audioBtn.querySelector('.audio-icon') || this.audioBtn.querySelector('i');
-            if (dockIcon) {
-                if (dockIcon.tagName === 'I') {
-                    // Font Awesome icon - cambiar según el estado
-                    dockIcon.className = playing ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
-                } else {
-                    dockIcon.textContent = playing ? '🔊' : '🔇';
-                }
-            }
-            
-            if (playing) {
-                this.audioBtn.classList.add('active');
-            } else {
-                this.audioBtn.classList.remove('active');
-            }
-        }
+        });
     }
 }
 
@@ -3851,10 +3946,15 @@ class ProjectLightboxManager {
             if (e.target === this.lightbox) this.close();
         });
 
-        // Add click handlers to project images
+        // Add click handlers to project images and overlays
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('project-image')) {
                 this.open(e.target.src);
+            } else if (e.target.classList.contains('project-overlay')) {
+                const img = e.target.previousElementSibling;
+                if (img && img.classList.contains('project-image')) {
+                    this.open(img.src);
+                }
             }
         });
     }
@@ -3877,10 +3977,10 @@ class ProjectLightboxManager {
 const projectsData = [
     {
         id: '01',
-        title: 'CREHA_BITACORA',
+        title: 'CREHABITAT',
         category: 'unity',
-        description: 'Juego educativo sobre corredores biologicos',
-        image: 'assets/projects/crehabitat.webp',
+        description: { es: 'Juego educativo sobre corredores biológicos.', en: 'Educational game about biological corridors.' },
+        image: ASSET_PATH + 'projects/crehabitat.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/crehabitat'
     },
@@ -3888,8 +3988,8 @@ const projectsData = [
         id: '02',
         title: 'CANDY_PARTY',
         category: 'unity',
-        description: 'Juego de fiesta con temática de dulces.',
-        image: 'assets/projects/candyparty.webp',
+        description: { es: 'Juego de fiesta multijugador asimétrico.', en: 'Asymmetrical multiplayer party game.' },
+        image: ASSET_PATH + 'projects/candyparty.webp',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/candy-party'
     },
@@ -3897,7 +3997,7 @@ const projectsData = [
         id: '03',
         title: 'SHAPE_KISSER',
         category: 'unity',
-        description: 'Juego de puzzle con temática de formas geométricas.',
+        description: { es: 'Juego de puzzle con temática de formas geométricas.', en: 'Puzzle game with geometric shapes theme.' },
         image: 'https://img.itch.zone/aW1nLzQyMzU1MDUucG5n/347x500/SM7ekS.png',
         tech: ['UNITY', 'C#', 'MOBILE'],
         link: 'https://kaitoartz.itch.io/shapekisser'
@@ -3906,55 +4006,28 @@ const projectsData = [
         id: '04',
         title: 'DETECTOR_CAMERA',
         category: 'web',
-        description: 'Detector de postura con Mediapipe.',
-        image: 'assets/projects/mediapipe.webp',
+        description: { es: 'Detector de postura con Mediapipe en tiempo real.', en: 'Real-time posture detector using Mediapipe.' },
+        image: ASSET_PATH + 'projects/mediapipe.webp',
         tech: ['HTML', 'CSS', 'JS', 'MEDIAPIPE'],
         link: 'https://desarrolladorvr.github.io/'
     },
     {
         id: '04',
-        title: 'PORTAL_JUEGOS',
+        title: 'PORTAL_GAMES',
         category: 'web',
-        description: 'Portal Web de Juegos Educativos.',
-        image: 'assets/projects/IstGames.webp',
+        description: { es: 'Portal Web de Juegos Educativos.', en: 'Educational Games Web Portal.' },
+        image: ASSET_PATH + 'projects/IstGames.webp',
         tech: ['HTML', 'CSS', 'JS'],
         link: 'https://istgames.netlify.app/'
     },
     {
         id: '05',
-        title: 'METAVERSE_AVATAR',
-        category: '3d',
-        description: 'High-fidelity avatar system with facial tracking.',
-        image: 'https://placehold.co/600x400/111/39FF14?text=METAVERSE',
-        tech: ['BLENDER', 'UNITY', 'LIP_SYNC'],
-        link: '#'
-    },
-    {
-        id: '06',
-        title: 'WEBGL_PORTFOLIO',
-        category: 'web',
-        description: 'Immersive 3D portfolio using Three.js.',
-        image: 'https://placehold.co/600x400/111/39FF14?text=WEBGL',
-        tech: ['THREE.JS', 'REACT', 'WEBGL'],
-        link: '#'
-    },
-    {
-        id: '07',
         title: 'DARALI_DEVEL',
         category: 'unreal',
-        description: 'Horror game development project.',
+        description: { es: 'Proyecto de desarrollo de juego de terror.', en: 'Horror game development project.' },
         image: 'https://img.itch.zone/aW1hZ2UvMzEzNzgyMi8xOTA2NjM0OC5qcGc=/original/%2Bw3lwe.jpg',
         tech: ['UNREAL_ENGINE', 'C++', 'HORROR'],
         link: 'https://corejeux.itch.io/darali-devel'
-    },
-    {
-        id: '08',
-        title: 'UNITY_OPTIMIZER',
-        category: '3d',
-        description: 'Suite Open Source para gestión de assets. Reduce tiempos de importación en un 40%. Valoración 4.8/5.',
-        image: 'https://placehold.co/600x400/111/39FF14?text=TOOLS',
-        tech: ['TOOLING', 'C#', 'EDITOR_SCRIPTING'],
-        link: 'https://github.com/kaitoartz'
     }
 ];
 
@@ -3971,6 +4044,15 @@ class ProjectManager {
         // Render all projects initially
         this.renderProjects(projectsData);
 
+        // Re-render when language changes
+        document.addEventListener('languageChanged', () => {
+            if (this.activeFilter === 'all') {
+                this.renderProjects(projectsData);
+            } else {
+                this.renderProjects(projectsData.filter(p => p.category === this.activeFilter));
+            }
+        });
+
         // Setup Filters
         this.filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -3981,12 +4063,14 @@ class ProjectManager {
                 this.filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                audioManager.playClick();
+                if(typeof audioManager !== 'undefined') audioManager.playClick();
             });
         });
     }
 
     renderProjects(projects) {
+        const lang = typeof languageManager !== 'undefined' ? languageManager.currentLang : 'es';
+
         this.container.innerHTML = projects.map((proj, index) => `
             <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
                 <div class="project-image-container">
@@ -3997,7 +4081,7 @@ class ProjectManager {
                          decoding="async"
                          onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
-                        <button class="view-project-btn" onclick="audioManager.playClick(); window.open('${proj.link}', '_blank')">VIEW_DATA</button>
+                        <a href="${proj.link !== '#' ? proj.link : 'javascript:void(0)'}" target="${proj.link !== '#' ? '_blank' : '_self'}" class="view-project-btn" style="text-decoration: none; display: inline-block;">VIEW_DATA</a>
                     </div>
                 </div>
                 <div class="project-info">
@@ -4006,13 +4090,23 @@ class ProjectManager {
                         <span class="project-category">${proj.category.toUpperCase()}</span>
                     </div>
                     <h3 class="project-title">${proj.title}</h3>
-                    <p class="project-desc">${proj.description}</p>
+                    <p class="project-desc">${typeof proj.description === 'string' ? proj.description : (proj.description[lang] || proj.description.es)}</p>
                     <div class="project-tech">
                         ${proj.tech.map(t => `<span>${t}</span>`).join('')}
                     </div>
                 </div>
             </div>
         `).join('');
+
+        // Attach click handlers properly instead of inline 'onclick'
+        this.container.querySelectorAll('.view-project-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Avoid triggering lightbox immediately
+                if(typeof audioManager !== 'undefined') {
+                    audioManager.playClick();
+                }
+            });
+        });
     }
 
     setFilter(filter) {
@@ -4037,7 +4131,7 @@ class VideoManager {
     constructor() {
         this.modal = null;
         this.iframe = null;
-        this.videoId = '1157471071'; 
+        this.videoId = '1169926700'; 
         this.videoHash = 'c3e7f59c16';
     }
 
@@ -4142,7 +4236,6 @@ class ScrollRevealManager {
 const skillsManager = new SkillsManager();
 const projectManager = new ProjectManager(); // Fixed name
 const notificationManager = new NotificationManager();
-const audioVisualizer = new AudioVisualizer();
 const timelineManager = new TimelineManager();
 const matrixRain = new MatrixRain();
 const parallaxManager = new ParallaxManager();
@@ -4172,7 +4265,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const initDeferredSystems = () => {
         try {
             // UI Interactive elements
-            volumeController.init();
             terminal.init();
             shortcutsManager.init();
             awardsManager.init();
@@ -4224,4 +4316,52 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         setTimeout(initDeferredSystems, 200);
     }
+});
+
+
+// ========== NAVIGATION & SCROLL TO TOP ==========
+document.addEventListener('DOMContentLoaded', () => {
+    // Scroll to Top Button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    if (scrollTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
+                scrollManager.lenis.scrollTo(0);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Nav Links Smooth Scroll
+    document.querySelectorAll('a.nav-btn').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
+                    scrollManager.lenis.scrollTo(targetElement);
+                } else {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Close dock if open
+                const dock = this.closest('.control-dock');
+                if (dock && !dock.classList.contains('collapsed')) {
+                    dock.classList.add('collapsed');
+                    dock.setAttribute('data-expanded', 'false');
+                }
+            }
+        });
+    });
 });
