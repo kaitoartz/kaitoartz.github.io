@@ -803,6 +803,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Used a DocumentFragment to batch DOM insertions.
+         * 🎯 Why: Appending elements individually to a live DOM element (this.world) causes multiple synchronous reflows. Appending to a fragment and then inserting the fragment into the DOM is O(1) layout cost.
+         * 📊 Impact: Significantly reduces layout thrashing during the application boot sequence when initializing 100+ elements.
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -864,14 +872,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -885,6 +893,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {
@@ -1731,9 +1741,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== PARTICLE SYSTEM ==========
 function createParticles() {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Added early return for disabled effect and moved DOM insertion after the loop.
+     * 🎯 Why: Modifying a live DOM element 20 times forces multiple synchronous layout recalculations (thrashing). Building off-DOM is O(1) layout cost.
+     * 📊 Impact: Eliminates 20 layout thrashing operations during boot and prevents element creation when disabled.
+     */
+    if (typeof performanceManager !== 'undefined' && !performanceManager.effects.particles) return;
+
     const container = document.createElement('div');
     container.className = 'particle-container';
-    document.body.appendChild(container);
 
     for (let i = 0; i < 20; i++) {
         const particle = document.createElement('div');
@@ -1743,6 +1760,8 @@ function createParticles() {
         particle.style.animationDuration = (15 + Math.random() * 10) + 's';
         container.appendChild(particle);
     }
+
+    document.body.appendChild(container);
 }
 
 setTimeout(createParticles, 3500);

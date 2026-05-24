@@ -62,3 +62,7 @@
 ## 2025-05-21 - Caching DOM lookups in periodic loops
 **Learning:** Calling `document.querySelector` inside an unconditionally firing periodic function (like `setInterval` or `requestAnimationFrame` loops) wastes CPU cycles on repeated DOM lookups, even if the result is static (like the `.boot-overlay` element in `FrameRateMonitor`).
 **Action:** Always cache the queried DOM element locally on the class/instance (e.g. `this.bootOverlay`) and reuse it instead of querying the DOM on every loop iteration.
+
+## 2025-05-24 - Layout Thrashing on Boot via Multiple Live DOM Insertions
+**Learning:** Appending hundreds of elements individually to a live DOM container (like `this.world` or `document.body`) during a boot sequence forces the browser to synchronously recalculate layout and trigger layout thrashing per insertion.
+**Action:** Always construct complex subtrees by appending to a `DocumentFragment` or an unattached parent element first, and append the fully constructed subtree to the live DOM exactly once to maintain O(1) layout cost.
