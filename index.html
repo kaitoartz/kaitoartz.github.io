@@ -126,8 +126,42 @@
 
 
     <div id="body-content">
-        <!-- MAIN SITE DOCK -->
-        <div class="control-dock main-dock collapsed" data-expanded="false">
+        <!-- MAIN SITE NAVIGATION DOCK -->
+        <div class="control-dock main-dock nav-dock" id="navDock">
+            <div class="dock-deco-start">
+                <div class="dock-lines">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            
+            <a href="#main-content" class="dock-btn nav-btn" data-tooltip="HOME" aria-label="Go to Home">
+                <i class="fa-solid fa-house"></i>
+                <span class="nav-tooltip">HOME</span>
+            </a>
+            <a href="#projects-section" class="dock-btn nav-btn" data-tooltip="PROJECTS" aria-label="Go to Projects">
+                <i class="fa-solid fa-folder-open"></i>
+                <span class="nav-tooltip">PROJECTS</span>
+            </a>
+            <a href="#skillsGrid" class="dock-btn nav-btn" data-tooltip="SKILLS" aria-label="Go to Skills">
+                <i class="fa-solid fa-microchip"></i>
+                <span class="nav-tooltip">SKILLS</span>
+            </a>
+            <a href="#timelineContainer" class="dock-btn nav-btn" data-tooltip="EXPERIENCE" aria-label="Go to Experience">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span class="nav-tooltip">EXPERIENCE</span>
+            </a>
+            <a href="#contactForm" class="dock-btn nav-btn" data-tooltip="CONTACT" aria-label="Go to Contact">
+                <i class="fa-solid fa-envelope"></i>
+                <span class="nav-tooltip">CONTACT</span>
+            </a>
+
+            <div class="dock-deco-end">
+                <span class="dock-label-min">NAV</span>
+            </div>
+        </div>
+
+        <!-- MAIN SITE SETTINGS DOCK -->
+        <div class="control-dock main-dock settings-dock collapsed" id="settingsDock" data-expanded="false">
             <div class="dock-deco-start">
                 <div class="dock-lines">
                     <span></span><span></span><span></span>
@@ -139,23 +173,6 @@
             <button class="dock-btn lang-toggle-btn" title="Language / Idioma" aria-label="Toggle Language">
                 <span class="lang-text">ES</span>
             </button>
-            <div class="dock-separator"></div>
-            
-            <a href="#main-content" class="dock-btn nav-btn" title="Home" aria-label="Go to Home">
-                <i class="fa-solid fa-house"></i>
-            </a>
-            <a href="#projects-section" class="dock-btn nav-btn" title="Projects" aria-label="Go to Projects">
-                <i class="fa-solid fa-folder-open"></i>
-            </a>
-            <a href="#skillsGrid" class="dock-btn nav-btn" title="Skills" aria-label="Go to Skills">
-                <i class="fa-solid fa-microchip"></i>
-            </a>
-            <a href="#timelineContainer" class="dock-btn nav-btn" title="Experience" aria-label="Go to Experience">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </a>
-            <a href="#contactForm" class="dock-btn nav-btn" title="Contact" aria-label="Go to Contact">
-                <i class="fa-solid fa-envelope"></i>
-            </a>
             <div class="dock-separator"></div>
 
             <button class="dock-btn config-open-btn" id="configOpenBtn" title="Open Settings Panel" aria-label="Open Settings Panel" aria-expanded="false">

@@ -3372,8 +3372,8 @@ body.perf-low .tech-gps-tag {
 
     .terminal-button {
       bottom: 60px;
-      right: 20px;
-      left: auto;
+      left: 20px;
+      right: auto;
       padding: 10px 14px;
     }
 }
@@ -4268,7 +4268,6 @@ body.system-ready .main-dock {
     
     .dock-btn#burgerMenu {
         border-color: var(--toxic-green);
-        background: rgba(226, 255, 0, 0.1);
 }
 
 .dock-btn#burgerMenu.active {
@@ -7011,8 +7010,8 @@ html.no-scroll::-webkit-scrollbar {
     
     .terminal-button {
         bottom: 15px;
-        left: auto;
-        right: 15px;
+        left: 15px;
+        right: auto;
         padding: 8px 12px;
     }
     
@@ -7221,3 +7220,155 @@ body.light-theme .modal-close {
     color: var(--bg-primary);
     box-shadow: 0 0 20px var(--shadow-color);
 }
+
+/* ========== NAVIGATION DOCK & SETTINGS DOCK REPOSITIONING ========== */
+.nav-dock {
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 20px !important;
+}
+
+.settings-dock {
+    right: 20px !important;
+    left: auto !important;
+    top: 20px !important;
+}
+
+@media (max-width: 768px) {
+    .nav-dock {
+        top: 10px !important;
+    }
+    .settings-dock {
+        top: 10px !important;
+        right: 10px !important;
+    }
+}
+
+
+/* ========== GLOBAL TERMINAL BUTTON VISIBILITY OVERRIDE ========== */
+body.system-ready .terminal-button {
+    opacity: 1 !important;
+    pointer-events: all !important;
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+/* ========== NAV DOCK RICH INTERACTION ========== */
+
+/* --- Tooltip --- */
+.nav-dock .nav-btn {
+    position: relative;
+    overflow: visible;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-tooltip {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    background: rgba(5, 5, 5, 0.95);
+    color: var(--toxic-green);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border: 1px solid var(--toxic-green);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 8px var(--shadow-color);
+}
+
+.nav-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 4px;
+    background: var(--toxic-green);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.nav-dock .nav-btn:hover .nav-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* --- Hover glow + lift --- */
+.nav-dock .nav-btn:hover {
+    background: var(--toxic-green);
+    color: #000;
+    border-color: var(--toxic-green);
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 0 16px var(--toxic-green), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.nav-dock .nav-btn:hover i {
+    animation: navIconBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* --- Click pulse ripple --- */
+.nav-dock .nav-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--toxic-green);
+    border-radius: 2px;
+    opacity: 0;
+    transform: scale(1);
+    pointer-events: none;
+}
+
+.nav-dock .nav-btn.nav-clicked::after {
+    animation: navPulseRipple 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* --- Active section indicator --- */
+.nav-dock .nav-btn.nav-active {
+    border-color: var(--toxic-green);
+}
+
+.nav-dock .nav-btn.nav-active::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    background: var(--toxic-green);
+    box-shadow: 0 0 6px var(--toxic-green);
+    border-radius: 1px;
+}
+
+/* --- Keyframes --- */
+@keyframes navIconBounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25) rotate(-6deg); }
+    70% { transform: scale(0.95) rotate(2deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes navPulseRipple {
+    0% { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 0; transform: scale(2.5); }
+}
+
+/* --- Mobile tooltip position (avoid cut off) --- */
+@media (max-width: 768px) {
+    .nav-tooltip {
+        font-size: 0.55rem;
+        padding: 3px 8px;
+        letter-spacing: 1.5px;
+    }
+}
+

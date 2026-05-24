@@ -1785,7 +1785,7 @@ class DockManager {
     }
 
     init() {
-        this.docks = document.querySelectorAll('.control-dock');
+        this.docks = document.querySelectorAll('.control-dock:not(.nav-dock)');
 
         if (this.docks.length === 0) {
             console.warn('>> DOCK ERROR: No .control-dock found');
@@ -3670,7 +3670,7 @@ class BurgerMenuManager {
     init() {
         this.panel = document.getElementById('settingsPanel');
         this.closeBtn = document.getElementById('settingsClose');
-        this.docks = document.querySelectorAll('.control-dock');
+        this.docks = document.querySelectorAll('.control-dock:not(.nav-dock)');
 
         if (!this.panel || this.docks.length === 0) return;        this.docks.forEach(dock => {
             // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
@@ -4321,6 +4321,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== NAVIGATION & SCROLL TO TOP ==========
 document.addEventListener('DOMContentLoaded', () => {
+    // Custom Smooth Scroll helper (Cubic Easing)
+    function smoothScrollTo(targetY, duration = 800) {
+        const startY = window.pageYOffset || window.scrollY;
+        const difference = targetY - startY;
+        let startTime = null;
+
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = timestamp - startTime;
+            const percent = Math.min(progress / duration, 1);
+            
+            // Easing: easeOutCubic
+            const ease = 1 - Math.pow(1 - percent, 3);
+            
+            window.scrollTo(0, startY + difference * ease);
+
+            if (progress < duration) {
+                window.requestAnimationFrame(step);
+            }
+        }
+
+        window.requestAnimationFrame(step);
+    }
+
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
@@ -4333,35 +4357,98 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         scrollTopBtn.addEventListener('click', () => {
-            if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
-                scrollManager.lenis.scrollTo(0);
+            if (typeof audioManager !== 'undefined') audioManager.playClick();
+            if (typeof hyperIntro !== 'undefined' && hyperIntro.lenis) {
+                hyperIntro.lenis.scrollTo(0);
             } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                smoothScrollTo(0, 800);
             }
         });
     }
 
-    // Nav Links Smooth Scroll
-    document.querySelectorAll('a.nav-btn').forEach(anchor => {
+    // --- Nav Links: Rich Click Feedback ---
+    const navBtns = document.querySelectorAll('.nav-dock .nav-btn');
+    
+    navBtns.forEach(anchor => {
+        // Hover sound
+        anchor.addEventListener('mouseenter', () => {
+            if (typeof audioManager !== 'undefined') audioManager.playHover();
+        });
+
+        // Click: sound + ripple + scroll
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
+            
+            // Sound feedback
+            if (typeof audioManager !== 'undefined') audioManager.playClick();
+            
+            // Pulse ripple animation
+            this.classList.remove('nav-clicked');
+            void this.offsetWidth; // Force reflow to restart animation
+            this.classList.add('nav-clicked');
+            setTimeout(() => this.classList.remove('nav-clicked'), 500);
+            
+            // Set active state visually
+            navBtns.forEach(b => b.classList.remove('nav-active'));
+            this.classList.add('nav-active');
+            
+            // Smooth scroll to target
             const targetId = this.getAttribute('href');
             const targetElement = document.querySelector(targetId);
             
             if (targetElement) {
-                if (typeof scrollManager !== 'undefined' && scrollManager.lenis) {
-                    scrollManager.lenis.scrollTo(targetElement);
+                const elementTop = targetElement.getBoundingClientRect().top + window.scrollY;
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                const targetY = Math.min(Math.max(0, elementTop - 80), maxScroll);
+
+                if (typeof hyperIntro !== 'undefined' && hyperIntro.lenis) {
+                    hyperIntro.lenis.scrollTo(targetElement, { offset: -80, duration: 1.2 });
                 } else {
-                    targetElement.scrollIntoView({ behavior: 'smooth' });
-                }
-                
-                // Close dock if open
-                const dock = this.closest('.control-dock');
-                if (dock && !dock.classList.contains('collapsed')) {
-                    dock.classList.add('collapsed');
-                    dock.setAttribute('data-expanded', 'false');
+                    smoothScrollTo(targetY, 800);
                 }
             }
         });
     });
+
+    // --- Active section tracking on scroll ---
+    const navSections = [];
+    navBtns.forEach(btn => {
+        const id = btn.getAttribute('href');
+        const el = document.querySelector(id);
+        if (el) navSections.push({ btn, el });
+    });
+
+    if (navSections.length > 0) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const scrollPos = window.scrollY + 120; // 120px offset to detect active section slightly before it hits the top
+                const scrollHeight = document.documentElement.scrollHeight;
+                const clientHeight = document.documentElement.clientHeight;
+                
+                let activeBtn = navSections[0].btn;
+                
+                // If near bottom of the page, activate the last section
+                if (window.scrollY + clientHeight >= scrollHeight - 50) {
+                    activeBtn = navSections[navSections.length - 1].btn;
+                } else {
+                    for (let i = navSections.length - 1; i >= 0; i--) {
+                        const el = navSections[i].el;
+                        const elTop = el.getBoundingClientRect().top + window.scrollY;
+                        if (elTop <= scrollPos) {
+                            activeBtn = navSections[i].btn;
+                            break;
+                        }
+                    }
+                }
+                
+                navBtns.forEach(b => b.classList.remove('nav-active'));
+                activeBtn.classList.add('nav-active');
+                ticking = false;
+            });
+        }, { passive: true });
+    }
 });
+
