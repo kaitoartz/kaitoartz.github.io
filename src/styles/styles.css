@@ -2932,7 +2932,7 @@ body.perf-low .tech-gps-tag {
 @media (min-width: 1200px) {
     .header-block {
         grid-column: span 2;
-        grid-row: span 2;
+        /*grid-row: span 2;*/
     }
 }
 
@@ -2986,27 +2986,6 @@ body.perf-low .tech-gps-tag {
     color: var(--gray-mid);
     margin-bottom: 30px;
 }
-
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: auto;
-}
-
-.stat-box {
-    border: var(--border) solid var(--border-color);
-    padding: 12px;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.stat-box:hover {
-    background: var(--bg-secondary);
-        border-color: var(--toxic-green);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px var(--shadow-color);
-    }
     
     /* ========== SPECIAL BLOCK SIZING ========== */
     
@@ -3366,7 +3345,6 @@ body.perf-low .tech-gps-tag {
     .header-block,
     .skills-block,
     .projects-block,
-    .visualizer-block,
     .timeline-block,
     .contact-block,
     .console-block,
@@ -4020,39 +3998,7 @@ a, button, .link-block, .stat-box {
     transform: translateY(-2px);
 }
 
-/* ========== AUDIO VISUALIZER ========== */
-.visualizer-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    height: 180px;
-        grid-column: span 2;
-        order: 6;
-        /* Full width bottom */
-    }
-    
-    @media (min-width: 1200px) {
-        .visualizer-block {
-            grid-column: span 4;
-            /* Full width */
-        }
-}
 
-#audioVisualizer {
-    width: 100%;
-    max-width: 400px;
-    height: 120px;
-    border: var(--border) solid var(--border-color);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-.visualizer-status {
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    color: var(--accent-color);
-}
 
 /* ========== TIMELINE ========== */
 .timeline-block {
@@ -5829,14 +5775,7 @@ body.performance-mode-low .skill-card-tech {
         height: 280px;
     }
 
-    .visualizer-block {
-        padding: 15px !important;
-    }
 
-    #audioVisualizer {
-        width: 100%;
-        height: 80px;
-    }
 
     .timeline-block {
         grid-column: span 1;
@@ -6325,7 +6264,6 @@ body.light-theme .loader-bar-fill {
 .social-actions {
     display: flex;
     gap: 15px;
-    margin-top: 25px;
     flex-wrap: wrap;
 }
 

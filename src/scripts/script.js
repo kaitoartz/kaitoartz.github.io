@@ -589,19 +589,7 @@ class AudioManager {
         this.audioContext = null;
         this.enabled = false;
         this.sounds = {};
-        this.bgMusic = null;
-        this.mediaSource = null;
-        this.analyserNode = null;
-        
-
-
-        // Audio file paths
-        this.audioFiles = {
-            background: ASSET_PATH + 'audio/background.mp3'
-        };
-        
-        // Safety for async race conditions
-        this.playPromise = null;
+        this.audioFiles = {};
     }
 
     async init() {
@@ -670,93 +658,7 @@ class AudioManager {
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
 
-    async playBackgroundMusic(volume = 0.3) {
-        if (!this.audioContext) await this.init();
-        
-        if (!this.enabled) {
-            console.log('%c>> MUSIC: System disabled', 'color: #FF6B6B; font-family: monospace;');
-            return;
-        }
-        
-        const streamUrl = this.audioFiles.background;
-        
-        console.log('%c>> MUSIC: Creating audio element...', 'color: #00FFFF; font-family: monospace;');
-        
-        if (!this.bgMusic) {
-            this.bgMusic = new Audio();
-            this.bgMusic.crossOrigin = "anonymous";
-            
-            // Setup analyser for visualizer (only once)
-            if (!this.mediaSource && this.audioContext) {
-                try {
-                    this.mediaSource = this.audioContext.createMediaElementSource(this.bgMusic);
-                    this.analyserNode = this.audioContext.createAnalyser();
-                    this.analyserNode.fftSize = 512;
-                    
-                    this.mediaSource.connect(this.analyserNode);
-                    this.analyserNode.connect(this.audioContext.destination);
-                    console.log('%c>> AUDIO: Visualizer connected ✓', 'color: #39FF14; font-family: monospace;');
 
-                    // Ensure visualizer is initialized with this analyser if visualizer exists and DOM is ready
-                    try {
-                        if (typeof audioVisualizer !== 'undefined' && audioVisualizer && typeof audioVisualizer.init === 'function') {
-                            audioVisualizer.init(this);
-                        }
-                    } catch (e) {
-                        console.warn('>> AUDIO: audioVisualizer.init() failed:', e);
-                    }
-                } catch (error) {
-                    console.log('%c>> AUDIO: Visualizer error: ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-                }
-            }
-        } else {
-            this.bgMusic.pause();
-        }
-        
-        this.bgMusic.src = streamUrl;
-        this.bgMusic.volume = volume;
-        this.bgMusic.loop = true;
-        this.bgMusic.preload = 'auto';
-        // Add event listeners for debugging
-        this.bgMusic.addEventListener('loadeddata', () => {
-            console.log('%c>> MUSIC: Audio loaded (duration: ' + this.bgMusic.duration + 's)', 'color: #39FF14; font-family: monospace;');
-        });
-        
-        this.bgMusic.addEventListener('error', (e) => {
-            console.log('%c>> MUSIC: Load error - ' + e.target.error.message, 'color: #FF6B6B; font-family: monospace;');
-        });
-        
-        // Attempt to play
-        console.log('%c>> MUSIC: Attempting to play...', 'color: #00FFFF; font-family: monospace;');
-        this.playPromise = this.bgMusic.play();
-        
-        if (this.playPromise !== undefined) {
-            this.playPromise.then(() => {
-                this.playPromise = null;
-                console.log('%c>> MUSIC: ♫ Playing! Volume: ' + (volume * 100).toFixed(0) + '%', 'color: #39FF14; font-family: monospace;');
-            }).catch(error => {
-                this.playPromise = null;
-                console.log('%c>> MUSIC: Play blocked - ' + error.message, 'color: #FF6B6B; font-family: monospace;');
-            });
-        }
-    }
-
-    async stopBackgroundMusic() {
-        if (this.playPromise) {
-            await this.playPromise;
-        }
-        if (this.bgMusic) {
-            this.bgMusic.pause();
-            this.bgMusic.currentTime = 0;
-            console.log('%c>> MUSIC: Stopped', 'color: #FF6B6B; font-family: monospace;');
-        }
-    }
-    
-    setVolume(volume) {
-        if (this.bgMusic) {
-            this.bgMusic.volume = Math.max(0, Math.min(1, volume));
-        }
-    }
 
     // Shortcut methods
     playClick() { this.playSound('click', 0.5); }
@@ -1138,7 +1040,6 @@ class HyperScrollIntro {
         
         await audioManager.init();
         audioManager.playBoot();
-        audioManager.playBackgroundMusic();
         
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
@@ -1686,15 +1587,7 @@ document.addEventListener('keydown', (e) => {
         terminal.open();
     }
     
-    // Ctrl + M: Toggle Audio
-    if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
-        e.preventDefault();
-        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
-            audioManager.stopBackgroundMusic();
-        } else {
-            audioManager.playBackgroundMusic(0.2);
-        }
-    }
+
     
     // Ctrl + /: Show Shortcuts
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
@@ -1932,14 +1825,7 @@ class DockManager {
                 });
             }
 
-            // Audio Button (Radio Toggle)
-            const audioBtn = dock.querySelector('.audio-toggle-btn');
-            if (audioBtn) {
-                audioBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.handleAudio(audioBtn);
-                });
-            }
+
 
 
 
@@ -1979,23 +1865,6 @@ class DockManager {
         
         const label = dock.querySelector('.dock-label-min');
         if (label && typeof triggerGlitch === 'function') triggerGlitch(label);
-    }    handleAudio(btn) {
-        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
-            audioManager.stopBackgroundMusic();
-        } else {
-            audioManager.playBackgroundMusic(0.2);
-        }
-        this.updateAllAudioIcons();
-        // Note: playClick is intentionally skipped here to avoid audio feedback during mute/unmute
-    }
-
-    updateAllAudioIcons() {
-        const isPlaying = audioManager.bgMusic && !audioManager.bgMusic.paused;
-        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
-            const icon = btn.querySelector('.audio-icon') || btn.querySelector('i');
-            if (icon) icon.className = isPlaying ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
-            btn.classList.toggle('active', isPlaying);
-        });
     }
 
     handleLanguage(btn) {
@@ -2400,36 +2269,7 @@ class CursorManager {
 }
 
 // ========== VOLUME CONTROL SYSTEM ==========
-class VolumeController {
-    constructor() {
-        this.slider = null;
-        this.value = null;
-        this.icon = null;
-    }
 
-    init() {
-        this.slider = document.getElementById('volumeSlider');
-        this.value = document.getElementById('volumeValue');
-        this.icon = document.getElementById('volumeIcon');
-        
-        if (!this.slider) return;
-        
-        this.slider.addEventListener('input', (e) => {
-            const volume = parseInt(e.target.value);
-            this.value.textContent = volume + '%';
-            audioManager.setVolume(volume / 100);
-            
-            this.icon.textContent = volume === 0 ? '🔇' : volume < 50 ? '🔉' : '🔊';
-        });
-        
-        this.icon.addEventListener('click', () => {
-            const current = parseInt(this.slider.value);
-            this.slider.value = current > 0 ? (this.slider.dataset.lastVolume = current, 0) : (this.slider.dataset.lastVolume || 20);
-            this.slider.dispatchEvent(new Event('input'));
-            audioManager.playClick();
-        });
-    }
-}
 
 // ========== TERMINAL SYSTEM ==========
 class Terminal {
@@ -2463,7 +2303,6 @@ class Terminal {
             exit: () => this.close(),
             quit: () => this.close(),
             theme: (arg) => this.toggleTheme(arg),
-            audio: (arg) => this.audioControl(arg),
             matrix: () => this.toggleMatrix(),
             parallax: () => this.toggleParallaxEffect(),
             cursor: () => this.toggleCursorEffect(),
@@ -2578,7 +2417,6 @@ Available commands:<br/>
 • projects - Show recent projects<br/>
 • contact - Contact information<br/>
 • theme [dark/light] - Switch theme<br/>
-• audio [play/stop/test] - Control background music<br/>
 <br/>
 <span style="color: #00FFFF;">VISUAL EFFECTS:</span><br/>
 • matrix - Toggle Matrix rain effect<br/>
@@ -2688,28 +2526,7 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
         }
     }
 
-    audioControl(arg) {
-        if (arg === 'play') {
-            audioManager.playBackgroundMusic(0.3);
-            this.addOutput(`<span style="color: #39FF14;">♫ Background music started (30% volume)</span>`);
-        } else if (arg === 'stop') {
-            audioManager.stopBackgroundMusic();
-            this.addOutput(`<span style="color: #FF6B6B;">⏹ Background music stopped</span>`);
-        } else if (arg === 'test') {
-            this.addOutput(`<span style="color: #00FFFF;">Testing audio system...</span>`);
-            this.addOutput(`Audio Context: ${audioManager.audioContext ? '✓ Active' : '✗ Inactive'}`);
-            this.addOutput(`Background Music: ${audioManager.bgMusic ? '✓ Loaded' : '✗ Not loaded'}`);
-            if (audioManager.bgMusic) {
-                this.addOutput(`  - Duration: ${audioManager.bgMusic.duration.toFixed(2)}s`);
-                this.addOutput(`  - Paused: ${audioManager.bgMusic.paused}`);
-                this.addOutput(`  - Volume: ${(audioManager.bgMusic.volume * 100).toFixed(0)}%`);
-                this.addOutput(`  - Current Time: ${audioManager.bgMusic.currentTime.toFixed(2)}s`);
-            }
-            this.addOutput(`Analyser Node: ${audioManager.analyserNode ? '✓ Connected' : '✗ Not connected'}`);
-        } else {
-            this.addOutput(`Usage: audio [play/stop/test]<br>  play - Start background music<br>  stop - Stop background music<br>  test - Show audio system status`);
-        }
-    }
+
 
     toggleMatrix() {
         const isActive = matrixRain.toggle();
@@ -2984,7 +2801,6 @@ let konamiIndex = 0;
 
 // Initialize all managers
 const cursorManager = new CursorManager();
-const volumeController = new VolumeController();
 const terminal = new Terminal();
 const shortcutsManager = new ShortcutsManager();
 
@@ -3304,175 +3120,7 @@ class NotificationManager {
 }
 
 // ========== AUDIO VISUALIZER ==========
-class AudioVisualizer {
-    constructor() {
-        this.canvas = null;
-        this.ctx = null;
-        this.analyser = null;
-        this.dataArray = null;
-        this.bufferLength = 0;
-        this.active = false;
-        this.animationId = null;
-        this.gradientCache = [];
-        this.lastHeight = 0;
-        this.logicalWidth = 0;
-        this.logicalHeight = 0;
 
-        // Bind for RAF optimization
-        this.draw = this.draw.bind(this);
-    }
-
-    init(audioManager) {
-        this.canvas = document.getElementById('audioVisualizer');
-        if (!this.canvas) return;
-        
-        this.ctx = this.canvas.getContext('2d');
-        
-        this.logicalWidth = this.canvas.width;
-        this.logicalHeight = this.canvas.height;
-        // In this case, we'll just read them once in init, but if canvas resizes we might need a resize listener.
-        // The canvas doesn't seem to resize dynamically based on JS, it's 400x120 hardcoded in HTML.
-
-        // Setup visibility observer to stop render loop when off-screen
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && this.analyser) {
-                    this.start();
-                } else {
-                    this.stop(false); // Don't reset UI status, just stop rendering
-                }
-            });
-        });
-        this.observer.observe(this.canvas);
-
-        // Use the already-created analyser node
-        if (audioManager && audioManager.analyserNode) {
-            this.analyser = audioManager.analyserNode;
-            this.bufferLength = this.analyser.frequencyBinCount;
-            this.dataArray = new Uint8Array(this.bufferLength);
-            
-            // Only start if visible (IntersectionObserver will handle it, but we set initial state)
-            // this.active = true;
-            // this.draw();
-            
-            const statusEl = document.getElementById('visualizerStatus');
-            if (statusEl) statusEl.textContent = 'ACTIVE';
-        } else {
-            this.drawStandby();
-        }
-    }
-
-    start() {
-        if (this.active) return;
-        if (!this.analyser) return; // Cannot start if not initialized
-        this.active = true;
-        this.draw();
-        const statusEl = document.getElementById('visualizerStatus');
-        if (statusEl) statusEl.textContent = 'ACTIVE';
-    }
-
-    stop(updateUI = true) {
-        this.active = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-
-        if (updateUI) {
-            const statusEl = document.getElementById('visualizerStatus');
-            if (statusEl) statusEl.textContent = 'STANDBY';
-            this.drawStandby();
-        }
-    }
-
-    draw() {
-        if (!this.active) return;
-        
-        this.animationId = requestAnimationFrame(this.draw);
-        
-        this.analyser.getByteFrequencyData(this.dataArray);
-
-        // Skip rendering when there is no audio data (silence)
-        let hasAudio = false;
-        for (let i = 0; i < this.bufferLength; i++) {
-            if (this.dataArray[i] > 0) {
-                hasAudio = true;
-                break;
-            }
-        }
-        if (!hasAudio) return;
-        
-        const ctx = this.ctx;
-        /**
-         * ⚡ Bolt Performance Optimization
-         * 💡 What: Cached canvas dimensions as `this.logicalWidth` and `this.logicalHeight` to prevent reading DOM properties `this.canvas.width` and `this.canvas.height` on every frame.
-         * 🎯 Why: Accessing DOM properties inside a 60fps `requestAnimationFrame` loop forces synchronous JS-to-C++ boundary crossings, causing performance overhead.
-         * 📊 Impact: Eliminates DOM reads during the animation loop, reducing CPU usage.
-         */
-        const width = this.logicalWidth;
-        const height = this.logicalHeight;
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(0, 0, width, height);
-
-        // Clear cache if height changed
-        if (height !== this.lastHeight) {
-            this.gradientCache = [];
-            this.lastHeight = height;
-        }
-        
-        const barWidth = (width / this.bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-        
-        for (let i = 0; i < this.bufferLength; i++) {
-            const value = this.dataArray[i];
-
-            // Optimization: Skip 0 values
-            if (value === 0) {
-                x += barWidth + 1;
-                continue;
-            }
-
-            barHeight = (value / 255) * height;
-            
-            // Optimization: Cache gradients
-            if (!this.gradientCache[value]) {
-                const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-                gradient.addColorStop(0, '#39FF14');
-                gradient.addColorStop(0.5, '#00FFFF');
-                gradient.addColorStop(1, '#FF00FF');
-                this.gradientCache[value] = gradient;
-            }
-            
-            ctx.fillStyle = this.gradientCache[value];
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
-            
-            x += barWidth + 1;
-        }
-    }
-
-    drawStandby() {
-        if (!this.canvas || !this.ctx) return;
-        const ctx = this.ctx;
-        const width = this.logicalWidth || this.canvas.width;
-        const height = this.logicalHeight || this.canvas.height;
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, width, height);
-        
-        ctx.strokeStyle = '#39FF14';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        
-        for (let x = 0; x < width; x += 5) {
-            ctx.lineTo(x, height / 2 + Math.sin(x * 0.05) * 10);
-        }
-        
-        ctx.stroke();
-    }
-}
 
 // ========== TIMELINE MANAGER ==========
 class TimelineManager {
@@ -4252,7 +3900,6 @@ class SettingsManager {
         // SettingsManager only updates the button UI state.
         
         this.updateThemeButton();
-        this.updateAudioButton();
     }
 
     toggleTheme() {
@@ -4268,28 +3915,6 @@ class SettingsManager {
             if (icon) {
                 icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
             }
-        });
-    }
-
-    async toggleAudio() {
-        if (audioManager.bgMusic && !audioManager.bgMusic.paused) {
-            audioManager.stopBackgroundMusic();
-            this.updateAudioButton(false);
-        } else {
-            await audioManager.playBackgroundMusic(0.3);
-            this.updateAudioButton(true);
-        }
-        audioManager.playSound('click');
-    }
-
-    updateAudioButton(isPlaying = null) {
-        const playing = isPlaying !== null ? isPlaying : (audioManager.bgMusic && !audioManager.bgMusic.paused);
-        document.querySelectorAll('.audio-toggle-btn').forEach(btn => {
-            const icon = btn.querySelector('.audio-icon') || btn.querySelector('i');
-            if (icon) {
-                icon.className = playing ? 'fa-solid fa-volume-high audio-icon' : 'fa-solid fa-volume-xmark audio-icon';
-            }
-            btn.classList.toggle('active', playing);
         });
     }
 }
@@ -4604,7 +4229,6 @@ class ScrollRevealManager {
 const skillsManager = new SkillsManager();
 const projectManager = new ProjectManager(); // Fixed name
 const notificationManager = new NotificationManager();
-const audioVisualizer = new AudioVisualizer();
 const timelineManager = new TimelineManager();
 const matrixRain = new MatrixRain();
 const parallaxManager = new ParallaxManager();
@@ -4634,7 +4258,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const initDeferredSystems = () => {
         try {
             // UI Interactive elements
-            volumeController.init();
             terminal.init();
             shortcutsManager.init();
             awardsManager.init();
