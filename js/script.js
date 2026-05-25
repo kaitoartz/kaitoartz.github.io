@@ -751,7 +751,8 @@ class HyperScrollIntro {
             targetMouseY: 0,
             active: true,
             warping: false,
-            fading: false
+            fading: false,
+            lastInteractionTime: performance.now()
         };
 
         this.items = [];
@@ -938,6 +939,7 @@ class HyperScrollIntro {
                 if (!this.state.active) return;
                 this.state.targetMouseX = (e.clientX / this.winW - 0.5) * 2;
                 this.state.targetMouseY = (e.clientY / this.winH - 0.5) * 2;
+                this.state.lastInteractionTime = performance.now();
             };
             window.addEventListener('mousemove', this.handleMouseMove, { passive: true });
 
@@ -946,6 +948,7 @@ class HyperScrollIntro {
                 const touch = e.touches[0];
                 this.state.targetMouseX = (touch.clientX / this.winW - 0.5) * 2;
                 this.state.targetMouseY = (touch.clientY / this.winH - 0.5) * 2;
+                this.state.lastInteractionTime = performance.now();
             };
             window.addEventListener('touchstart', this.handleTouch, { passive: true });
             window.addEventListener('touchmove', this.handleTouch, { passive: true });
@@ -954,55 +957,18 @@ class HyperScrollIntro {
             const resetPos = () => {
                 this.state.targetMouseX = 0;
                 this.state.targetMouseY = 0;
+                this.state.lastInteractionTime = performance.now();
             };
             window.addEventListener('touchend', resetPos, { passive: true });
             window.addEventListener('touchcancel', resetPos, { passive: true });
             window.addEventListener('mouseleave', resetPos, { passive: true });
         } else {
-            // Mobile Gyroscope tilt controls
-            this.handleDeviceOrientation = (e) => {
-                if (!this.state.active) return;
-                // Guard against undefined/null gyro values to prevent NaN lock
-                if (e.beta === null || e.beta === undefined || e.gamma === null || e.gamma === undefined) return;
-                
-                let beta = e.beta;
-                let gamma = e.gamma;
-
-                // Calibrate tilt: center holding position at 50 degrees
-                const targetBeta = (beta - 50) / 25;
-                const targetGamma = gamma / 25;
-
-                this.state.targetMouseX = Math.max(-1, Math.min(1, targetGamma));
-                this.state.targetMouseY = Math.max(-1, Math.min(1, targetBeta));
-            };
-
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS / Safari: require user gesture (touchend/click) + permission request
-                const requestGyro = () => {
-                    DeviceOrientationEvent.requestPermission()
-                        .then(permissionState => {
-                            if (permissionState === 'granted') {
-                                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
-                            }
-                            window.removeEventListener('click', requestGyro);
-                            window.removeEventListener('touchend', requestGyro);
-                        })
-                        .catch(err => {
-                            console.error('Gyroscope request failed:', err);
-                        });
-                };
-                window.addEventListener('click', requestGyro);
-                window.addEventListener('touchend', requestGyro);
-            } else {
-                // Android / Other: bind immediately on load
-                window.addEventListener('deviceorientation', this.handleDeviceOrientation);
-            }
-
             // Mobile touch swipe scrolling
             let lastTouchY = 0;
             this.handleTouchStart = (e) => {
                 if (!this.state.active || !e.touches.length) return;
                 lastTouchY = e.touches[0].clientY;
+                this.state.lastInteractionTime = performance.now();
             };
             this.handleTouchMove = (e) => {
                 if (!this.state.active || !e.touches.length || this.state.warping) return;
@@ -1014,6 +980,7 @@ class HyperScrollIntro {
 
                 this.state.targetSpeed += deltaY * 1.5;
                 this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
+                this.state.lastInteractionTime = performance.now();
             };
             window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
             window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
@@ -1125,9 +1092,25 @@ class HyperScrollIntro {
             // Smooth Velocity (0.1 weight as requested by user)
             this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.1;
             
+            // Auto-sway animation when user is inactive (no interaction for >1.5s)
+            let effectiveTargetX = this.state.targetMouseX;
+            let effectiveTargetY = this.state.targetMouseY;
+            
+            const timeSinceInteraction = time - this.state.lastInteractionTime;
+            if (timeSinceInteraction > 1500) {
+                const elapsed = (timeSinceInteraction - 1500) / 1000;
+                const blend = Math.min(elapsed, 1.0);
+                // Beautiful figure-8 sway using different sine/cosine frequencies
+                const autoX = Math.sin(time * 0.001) * 0.45;
+                const autoY = Math.cos(time * 0.0015) * 0.35;
+                
+                effectiveTargetX = this.state.targetMouseX * (1 - blend) + autoX * blend;
+                effectiveTargetY = this.state.targetMouseY * (1 - blend) + autoY * blend;
+            }
+
             // Smooth Camera Movement (Lerp)
-            this.state.mouseX += (this.state.targetMouseX - this.state.mouseX) * 0.08;
-            this.state.mouseY += (this.state.targetMouseY - this.state.mouseY) * 0.08;
+            this.state.mouseX += (effectiveTargetX - this.state.mouseX) * 0.08;
+            this.state.mouseY += (effectiveTargetY - this.state.mouseY) * 0.08;
 
             // Apply decay in Virtual Mode so it eventually stops
             if (this.isVirtualMode) {
@@ -1306,7 +1289,6 @@ class HyperScrollIntro {
         }
         if (this.handleTouchStart) window.removeEventListener('touchstart', this.handleTouchStart);
         if (this.handleTouchMove) window.removeEventListener('touchmove', this.handleTouchMove);
-        if (this.handleDeviceOrientation) window.removeEventListener('deviceorientation', this.handleDeviceOrientation);
         if (this.handleResize) window.removeEventListener('resize', this.handleResize);
         if (this.handleWheel) window.removeEventListener('wheel', this.handleWheel);
     }
