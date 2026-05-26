@@ -4397,39 +4397,65 @@ document.addEventListener('DOMContentLoaded', () => {
     navBtns.forEach(btn => {
         const id = btn.getAttribute('href');
         const el = document.querySelector(id);
-        if (el) navSections.push({ btn, el });
+        if (el) navSections.push({ btn, el, offsetTop: 0 });
     });
 
     if (navSections.length > 0) {
         let ticking = false;
+
+        // Cache offsetTops
+        const updateOffsets = () => {
+            for (let i = 0; i < navSections.length; i++) {
+                const section = navSections[i];
+                section.offsetTop = section.el.getBoundingClientRect().top + window.scrollY;
+            }
+        };
+
+        // Initial calc
+        updateOffsets();
+
+        // Update on resize (debounced)
+        window.addEventListener('resize', debounce(updateOffsets, 200), { passive: true });
+
+        const updateActiveSection = () => {
+            /**
+             * ⚡ Bolt Performance Optimization
+             * 💡 What: Cached section offsets and avoided creating anonymous functions inside requestAnimationFrame. Replaced forEach with a standard for loop.
+             * 🎯 Why: Calling getBoundingClientRect() inside a scroll event loop forces synchronous layout recalculation (thrashing). Anonymous functions create GC pressure.
+             * 📊 Impact: Eliminates layout thrashing during scroll, ensuring butter-smooth navigation updates and reducing CPU overhead.
+             */
+            const scrollPos = window.scrollY + 120; // 120px offset to detect active section slightly before it hits the top
+            const scrollHeight = document.documentElement.scrollHeight;
+            const clientHeight = document.documentElement.clientHeight;
+
+            let activeBtn = navSections[0].btn;
+
+            // If near bottom of the page, activate the last section
+            if (window.scrollY + clientHeight >= scrollHeight - 50) {
+                activeBtn = navSections[navSections.length - 1].btn;
+            } else {
+                for (let i = navSections.length - 1; i >= 0; i--) {
+                    if (navSections[i].offsetTop <= scrollPos) {
+                        activeBtn = navSections[i].btn;
+                        break;
+                    }
+                }
+            }
+
+            for (let i = 0; i < navBtns.length; i++) {
+                 if (navBtns[i] === activeBtn) {
+                     navBtns[i].classList.add('nav-active');
+                 } else {
+                     navBtns[i].classList.remove('nav-active');
+                 }
+            }
+            ticking = false;
+        };
+
         window.addEventListener('scroll', () => {
             if (ticking) return;
             ticking = true;
-            requestAnimationFrame(() => {
-                const scrollPos = window.scrollY + 120; // 120px offset to detect active section slightly before it hits the top
-                const scrollHeight = document.documentElement.scrollHeight;
-                const clientHeight = document.documentElement.clientHeight;
-                
-                let activeBtn = navSections[0].btn;
-                
-                // If near bottom of the page, activate the last section
-                if (window.scrollY + clientHeight >= scrollHeight - 50) {
-                    activeBtn = navSections[navSections.length - 1].btn;
-                } else {
-                    for (let i = navSections.length - 1; i >= 0; i--) {
-                        const el = navSections[i].el;
-                        const elTop = el.getBoundingClientRect().top + window.scrollY;
-                        if (elTop <= scrollPos) {
-                            activeBtn = navSections[i].btn;
-                            break;
-                        }
-                    }
-                }
-                
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
-                ticking = false;
-            });
+            requestAnimationFrame(updateActiveSection);
         }, { passive: true });
     }
 });

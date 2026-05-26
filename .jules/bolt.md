@@ -62,3 +62,7 @@
 ## 2025-05-21 - Caching DOM lookups in periodic loops
 **Learning:** Calling `document.querySelector` inside an unconditionally firing periodic function (like `setInterval` or `requestAnimationFrame` loops) wastes CPU cycles on repeated DOM lookups, even if the result is static (like the `.boot-overlay` element in `FrameRateMonitor`).
 **Action:** Always cache the queried DOM element locally on the class/instance (e.g. `this.bootOverlay`) and reuse it instead of querying the DOM on every loop iteration.
+
+## 2025-05-22 - Layout Thrashing in Scroll Listeners
+**Learning:** Using `getBoundingClientRect` mixed with `.classList` mutations inside a scroll event listener—even when throttled by `requestAnimationFrame`—causes synchronous layout recalculations (layout thrashing) because the browser must update the layout to calculate the element's position before modifying styles in the same frame.
+**Action:** Always pre-calculate and cache expensive layout metrics like `offsetTop` on initialization and update them via a debounced `resize` listener. This eliminates the need to measure the DOM during high-frequency events like scrolling.
