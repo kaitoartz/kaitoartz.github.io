@@ -216,6 +216,13 @@ class PerformanceManager {
         } else {
              document.body.classList.remove('mobile-low-perf');
         }
+
+        const isVeryLowEndPC = !isMobile && (preset === 'low' || (preset === 'auto' && this.hardware.tier === 'low'));
+        if (isVeryLowEndPC) {
+             document.body.classList.add('pc-very-low-perf');
+        } else {
+             document.body.classList.remove('pc-very-low-perf');
+        }
         
         const presets = {
             auto: this.hardware.tier,
@@ -1784,21 +1791,33 @@ class DockManager {
                 if (el) {
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        this.toggleDock(dock);
+                        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        if (isMobileDevice) {
+                            this.toggleDock(dock);
+                        }
                     });
                 }
-            });            // Settings/Burger Button (toggles dock expand/collapse)
+            });
+
+            // Settings/Burger Button (toggles dock expand/collapse)
             const burger = dock.querySelector('.settings-toggle-btn');
             if (burger) {
                 burger.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                     // burgerMenu (#burgerMenu) toggles the dock open/close
                     if (burger.id === 'burgerMenu') {
                         if (typeof burgerMenuManager !== 'undefined') {
-                            burgerMenuManager.toggleDock(dock);
+                            if (!isMobileDevice) {
+                                burgerMenuManager.toggle();
+                            } else {
+                                burgerMenuManager.toggleDock(dock);
+                            }
                         }
                     } else {
-                        this.toggleDock(dock);
+                        if (isMobileDevice) {
+                            this.toggleDock(dock);
+                        }
                     }
                 });
             }
@@ -3654,15 +3673,34 @@ class BurgerMenuManager {
         this.closeBtn = document.getElementById('settingsClose');
         this.docks = document.querySelectorAll('.control-dock:not(.nav-dock)');
 
-        if (!this.panel || this.docks.length === 0) return;        this.docks.forEach(dock => {
+        if (!this.panel || this.docks.length === 0) return;
+        
+        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        this.docks.forEach(dock => {
             // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
             // to avoid double-firing. BurgerMenuManager.toggleDock() is called from DockManager.
 
-            // Toggle dock on click on dock background (not a button)
-            dock.addEventListener('click', (e) => {
-                if (e.target.closest('.dock-btn')) return;
-                this.toggleDock(dock);
-            });
+            if (!isMobileDevice) {
+                // PC: Expand on hover
+                dock.addEventListener('mouseenter', () => {
+                    if (dock.classList.contains('collapsed')) {
+                        this.expandDock(dock);
+                    }
+                });
+                // PC: Collapse on mouse leave
+                dock.addEventListener('mouseleave', () => {
+                    if (!dock.classList.contains('collapsed')) {
+                        this.collapseDock(dock);
+                    }
+                });
+            } else {
+                // Mobile: Toggle dock on click on dock background (not a button)
+                dock.addEventListener('click', (e) => {
+                    if (e.target.closest('.dock-btn')) return;
+                    this.toggleDock(dock);
+                });
+            }
         });
 
         if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
@@ -3908,52 +3946,7 @@ class SettingsManager {
     }
 }
 
-// ========== PROJECT LIGHTBOX MANAGER ==========
-class ProjectLightboxManager {
-    constructor() {
-        this.lightbox = null;
-        this.image = null;
-        this.closeBtn = null;
-    }
 
-    init() {
-        this.lightbox = document.getElementById('projectLightbox');
-        this.image = document.getElementById('lightboxImage');
-        this.closeBtn = document.getElementById('lightboxClose');
-
-        if (!this.lightbox) return;
-
-        this.closeBtn.addEventListener('click', () => this.close());
-        this.lightbox.addEventListener('click', (e) => {
-            if (e.target === this.lightbox) this.close();
-        });
-
-        // Add click handlers to project images and overlays
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('project-image')) {
-                this.open(e.target.src);
-            } else if (e.target.classList.contains('project-overlay')) {
-                const img = e.target.previousElementSibling;
-                if (img && img.classList.contains('project-image')) {
-                    this.open(img.src);
-                }
-            }
-        });
-    }
-
-    open(src) {
-        this.image.src = src;
-        this.lightbox.classList.add('active');
-        document.body.classList.add('no-scroll');
-        audioManager.playSound('click');
-    }
-
-    close() {
-        this.lightbox.classList.remove('active');
-        document.body.classList.remove('no-scroll');
-        audioManager.playSound('click');
-    }
-}
 
 // ========== PROJECT DATA MANAGER ==========
 const projectsData = [
@@ -4083,7 +4076,6 @@ class ProjectManager {
         // Attach click handlers properly instead of inline 'onclick'
         this.container.querySelectorAll('.view-project-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Avoid triggering lightbox immediately
                 if(typeof audioManager !== 'undefined') {
                     audioManager.playClick();
                 }
@@ -4225,7 +4217,6 @@ const contactFormManager = new ContactFormManager();
 const burgerMenuManager = new BurgerMenuManager();
 const languageManager = new LanguageManager();
 const settingsManager = new SettingsManager();
-const projectLightboxManager = new ProjectLightboxManager();
 // const projectFiltersManager = new ProjectFiltersManager(); // Removed
 const scrollRevealManager = new ScrollRevealManager();
 
@@ -4251,7 +4242,6 @@ document.addEventListener('DOMContentLoaded', () => {
             shortcutsManager.init();
             awardsManager.init();
             videoManager.init();
-            projectLightboxManager.init();
             notificationManager.init();
             timelineManager.init();
             skillsManager.init();
@@ -4349,7 +4339,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Nav Links: Rich Click Feedback ---
-    const navBtns = document.querySelectorAll('.nav-dock .nav-btn');
+    let navBtns = document.querySelectorAll('.nav-dock .nav-btn');
+    
+    // PC-specific: Hide and filter out skills button
+    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobileDevice) {
+        const skillsBtn = document.querySelector('.nav-dock .nav-btn[href="#skillsGrid"]');
+        if (skillsBtn) skillsBtn.style.display = 'none';
+        navBtns = document.querySelectorAll('.nav-dock .nav-btn:not([href="#skillsGrid"])');
+    }
     
     navBtns.forEach(anchor => {
         // Hover sound
