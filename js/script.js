@@ -99,20 +99,13 @@ fpsMonitor.update();
 class PerformanceManager {
     constructor() {
         this.effects = {
-            matrixRain: true,
-            parallax: true,
-            cursorTrail: true,
             scanlines: true,
             glitch: true,
             particles: true,
-            grid3d: true,
             decorations: true,
             visualizer: true
         };
         this.currentPreset = 'auto'; // auto, ultra, high, medium, low
-        this.matrixRainInstance = null;
-        this.parallaxInstance = null;
-        this.cursorInstance = null;
         this.terminalInstance = null;
         // Fix: Store the result of detectHardware in this.hardware
         this.hardware = this.detectHardware();
@@ -227,46 +220,30 @@ class PerformanceManager {
         const presets = {
             auto: this.hardware.tier,
             ultra: {
-                matrixRain: true,
-                parallax: true,
-                cursorTrail: true,
                 scanlines: true,
                 glitch: true,
                 particles: true,
-                grid3d: true,
                 decorations: true,
                 visualizer: true
             },
             high: {
-                matrixRain: true,
-                parallax: true,
-                cursorTrail: false, 
                 scanlines: true,
                 glitch: false, 
                 particles: false,
-                grid3d: true,
                 decorations: true,
                 visualizer: true
             },
             medium: {
-                matrixRain: !this.hardware.isMobile,
-                parallax: true,
-                cursorTrail: false,
                 scanlines: true,
                 glitch: false,
                 particles: false,
-                grid3d: true,
                 decorations: false,
                 visualizer: true
             },
             low: {
-                matrixRain: false,
-                parallax: false,
-                cursorTrail: false,
                 scanlines: false,
                 glitch: false,
                 particles: false,
-                grid3d: false,
                 decorations: false,
                 visualizer: false
             }
@@ -302,15 +279,6 @@ class PerformanceManager {
         this.effects[effectName] = newState;
         
         switch(effectName) {
-            case 'matrixRain':
-                this.toggleMatrixRain(newState);
-                break;
-            case 'parallax':
-                this.toggleParallax(newState);
-                break;
-            case 'cursorTrail':
-                this.toggleCursorTrail(newState);
-                break;
             case 'scanlines':
                 this.toggleScanlines(newState);
                 break;
@@ -319,9 +287,6 @@ class PerformanceManager {
                 break;
             case 'particles':
                 this.toggleParticles(newState);
-                break;
-            case 'grid3d':
-                this.toggleGrid3D(newState);
                 break;
             case 'decorations':
                 this.toggleDecorations(newState);
@@ -333,52 +298,6 @@ class PerformanceManager {
         
         if (save) this.savePreferences();
         this.updateUI(effectName, newState);
-    }
-
-    toggleMatrixRain(enable) {
-        if (enable && this.matrixRainInstance) {
-            this.matrixRainInstance.start();
-        } else if (!enable && this.matrixRainInstance) {
-            this.matrixRainInstance.stop();
-        }
-    }
-
-    toggleParallax(enable) {
-        const layers = document.querySelectorAll('.parallax-layer');
-        layers.forEach(layer => {
-            layer.style.display = enable ? 'block' : 'none';
-        });
-
-        if (enable && this.parallaxInstance) {
-            this.parallaxInstance.requestTick();
-        }
-    }
-
-    toggleCursorTrail(enable) {
-        const canvas = document.getElementById('cursorCanvas');
-        if (canvas) {
-            canvas.style.display = enable ? 'block' : 'none';
-        }
-        
-        if (this.cursorInstance) {
-            if (enable) this.cursorInstance.start();
-            else this.cursorInstance.stop();
-        }
-
-        if (!enable) {
-            document.body.style.cursor = 'auto';
-            // Forzamos cursor pointer en elementos interactivos
-            document.documentElement.style.setProperty('--cursor-type', 'auto');
-            // Agrega esto a tu CSS global: a, button { cursor: pointer !important; } cuando esté desactivado
-            const style = document.createElement('style');
-            style.id = 'cursor-fix';
-            style.innerHTML = `* { cursor: auto !important; } a, button, .link-block { cursor: pointer !important; }`;
-            if(!document.getElementById('cursor-fix')) document.head.appendChild(style);
-        } else {
-            document.body.style.cursor = 'none';
-            const fix = document.getElementById('cursor-fix');
-            if(fix) fix.remove();
-        }
     }
 
     toggleScanlines(enable) {
@@ -394,14 +313,6 @@ class PerformanceManager {
         particles.forEach(particle => {
             particle.style.display = enable ? 'block' : 'none';
         });
-    }
-
-
-    toggleGrid3D(enable) {
-        const grid = document.querySelector('.grid-3d');
-        if (grid) {
-            grid.style.display = enable ? 'block' : 'none';
-        }
     }
 
     toggleDecorations(enable) {
@@ -1281,9 +1192,7 @@ class HyperScrollIntro {
                     main.style.animation = isFast ? "fadeIn 0.4s ease forwards" : "fadeIn 1s ease forwards";
                 }
 
-                if (typeof matrixRain !== 'undefined' && performanceManager.effects.matrixRain) {
-                     matrixRain.start(true);
-                }
+
             }, waitTime);
         }
     }
@@ -1399,11 +1308,7 @@ function startBootSequence() {
             dashboard.classList.add('visible');
             bootOverlay.style.display = 'none';
 
-            // Mostrar matrix rain después del boot
-            const matrixCanvas = document.getElementById('matrixCanvas');
-            if (matrixCanvas) {
-                matrixCanvas.style.display = 'block';
-            }
+
 
             // Desbloquear scroll cuando el dashboard esté listo
             setTimeout(() => {
@@ -2075,206 +1980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
 });
 
-// ========== CUSTOM CURSOR SYSTEM ==========
-// ========== CURSOR MANAGER ==========
-class CursorManager {
-    constructor() {
-        this.canvas = null;
-        this.ctx = null;
-        this.cursor = { x: 0, y: 0 };
-        this.maxTrail = 20;
-        // Pre-allocate array and objects to avoid GC
-        this.trail = new Array(this.maxTrail).fill(null).map(() => ({ x: 0, y: 0, life: 0 }));
-        this.head = 0; // Ring buffer pointer
-        this.running = false;
-        this.looping = false; // Tracks active RAF loop
-        this.animationId = null;
-        this.rgb = { r: 57, g: 255, b: 20 }; // Default toxic green
-        this.logicalWidth = 0;
-        this.logicalHeight = 0;
 
-        // PERF: Bind animate to prevent closure creation in RAF loop
-        this.animate = this.animate.bind(this);
-    }
-
-    init() {
-        this.canvas = document.getElementById('cursorCanvas');
-        if (!this.canvas) return;
-        
-        this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        this.updateColor(); // Initial color fetch
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!this.running) return;
-            // Update cursor position in place
-            this.cursor.x = e.clientX;
-            this.cursor.y = e.clientY;
-
-            // Update trail ring buffer
-            const point = this.trail[this.head];
-            point.x = e.clientX;
-            point.y = e.clientY;
-            point.life = 1;
-
-            this.head = (this.head + 1) % this.maxTrail;
-
-            if (!this.looping) {
-                this.looping = true;
-                this.animate();
-            }
-        }, { passive: true });
-        
-        window.addEventListener('resize', debounce(() => this.resize(), 200), { passive: true });
-        
-        // Observer for theme changes (Performance Optimization: avoid getComputedStyle in loop)
-        const observer = new MutationObserver(() => {
-            this.updateColor();
-        });
-        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-        // Register with performance manager
-        if (typeof performanceManager !== 'undefined') {
-            performanceManager.registerEffect('cursor', this);
-            if (performanceManager.effects.cursorTrail) {
-                this.start();
-            }
-        } else {
-             this.start();
-        }
-    }
-
-    updateColor() {
-        // Use document.body to respect theme classes
-        const cursorColor = getComputedStyle(document.body).getPropertyValue('--toxic-green').trim();
-        if (cursorColor) {
-            this.rgb = this.hexToRgb(cursorColor);
-        }
-    }
-
-    resize() {
-        this.logicalWidth = window.innerWidth;
-        this.logicalHeight = window.innerHeight;
-        this.canvas.width = this.logicalWidth;
-        this.canvas.height = this.logicalHeight;
-        if (this.running && !this.looping) {
-            this.looping = true;
-            this.animate();
-        }
-    }
-
-    start() {
-        if (this.running) return;
-        this.running = true;
-        if (!this.looping) {
-            this.looping = true;
-            this.animate();
-        }
-    }
-
-    stop() {
-        this.running = false;
-        this.looping = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-        // Clear canvas when stopped
-        if (this.ctx && this.canvas) {
-            this.ctx.clearRect(0, 0, this.logicalWidth || this.canvas.width, this.logicalHeight || this.canvas.height);
-        }
-        // Reset trail without destroying objects
-        for (let i = 0; i < this.trail.length; i++) {
-            this.trail[i].life = 0;
-        }
-    }
-
-    /**
-     * ⚡ Bolt Performance Optimization
-     * 💡 What: Cached `this.logicalWidth` and `this.logicalHeight` and used them instead of reading `this.canvas.width` and `this.canvas.height`.
-     * 🎯 Why: Reading DOM properties like `canvas.width` inside a high-frequency `requestAnimationFrame` loop forces synchronous C++ boundary crossings which adds CPU overhead.
-     * 📊 Impact: Eliminates O(N) DOM reads per frame, ensuring smoother rendering.
-     */
-    animate() {
-        if (!this.running) {
-            this.looping = false;
-            return;
-        }
-        
-        this.ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
-        
-        // Use cached RGB instead of calling getComputedStyle every frame
-        const { r, g, b } = this.rgb;
-        
-        // PERF: Set base color once to avoid repeated string concatenation/parsing
-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-
-        // Draw trail - Iterate ring buffer from oldest to newest
-        for (let i = 0; i < this.maxTrail; i++) {
-            const idx = (this.head + i) % this.maxTrail;
-            const point = this.trail[idx];
-
-            if (point.life > 0) {
-                point.life -= 0.05;
-                if (point.life > 0) {
-                    const size = 3 * point.life;
-                    // PERF: Modulate alpha instead of reconstructing rgba string
-                    this.ctx.globalAlpha = point.life * 0.5;
-                    this.ctx.fillRect(point.x - size/2, point.y - size/2, size, size);
-                }
-            }
-        }
-        
-        // PERF: Reset globalAlpha for subsequent drawing operations
-        this.ctx.globalAlpha = 1.0;
-
-        // Draw crosshair
-        const { x, y } = this.cursor;
-        const size = 20;
-        this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-        this.ctx.lineWidth = 1;
-        
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, size/2, 0, Math.PI * 2);
-        this.ctx.moveTo(x - size, y);
-        this.ctx.lineTo(x + size, y);
-        this.ctx.moveTo(x, y - size);
-        this.ctx.lineTo(x, y + size);
-        this.ctx.stroke();
-        
-        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        this.ctx.fillRect(x - 1, y - 1, 2, 2);
-        
-        // Optimization: Stop loop if idle (no trails and static cursor)
-        let hasActiveTrails = false;
-        for (let i = 0; i < this.trail.length; i++) {
-            if (this.trail[i].life > 0) {
-                hasActiveTrails = true;
-                break;
-            }
-        }
-
-        if (!hasActiveTrails) {
-            this.looping = false;
-            this.animationId = null;
-            return;
-        }
-
-        this.animationId = requestAnimationFrame(this.animate);
-    }
-
-    hexToRgb(hex) {
-        // Handle empty or invalid hex
-        if (!hex) return { r: 57, g: 255, b: 20 };
-
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : { r: 57, g: 255, b: 20 };
-    }
-}
 
 // ========== VOLUME CONTROL SYSTEM ==========
 
@@ -2311,14 +2017,10 @@ class Terminal {
             exit: () => this.close(),
             quit: () => this.close(),
             theme: (arg) => this.toggleTheme(arg),
-            matrix: () => this.toggleMatrix(),
-            parallax: () => this.toggleParallaxEffect(),
-            cursor: () => this.toggleCursorEffect(),
             scanlines: () => this.toggleScanlinesEffect(),
             glitch: () => this.toggleGlitchEffect(),
             particles: () => this.toggleParticlesEffect(),
             performance: (arg) => this.setPerformance(arg),
-            fps: (arg) => this.setMatrixFPS(arg),
             konami: () => this.konamiCode(),
             hack: () => this.hackEffect(),
             time: () => this.showTime(),
@@ -2427,16 +2129,12 @@ Available commands:<br/>
 • theme [dark/light] - Switch theme<br/>
 <br/>
 <span style="color: #00FFFF;">VISUAL EFFECTS:</span><br/>
-• matrix - Toggle Matrix rain effect<br/>
-• parallax - Toggle parallax layers<br/>
-• cursor - Toggle cursor trail<br/>
 • scanlines - Toggle CRT scanlines<br/>
 • glitch - Toggle glitch effects<br/>
 • particles - Toggle particle effects<br/>
 <br/>
 <span style="color: #FFD700;">PERFORMANCE:</span><br/>
 • performance [ultra/high/medium/low] - Set performance preset<br/>
-• fps [number] - Set Matrix rain FPS (12-60)<br/>
 <br/>
 • time - Show current system time<br/>
 • whoami - Display user info<br/>
@@ -2536,40 +2234,7 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
 
 
 
-    toggleMatrix() {
-        const isActive = matrixRain.toggle();
-        if (isActive) {
-            this.addOutput(`<span style="color: #39FF14;">Matrix rain ACTIVATED ✓</span>`);
-            audioManager.playSound('success');
-        } else {
-            this.addOutput(`<span style="color: #FF6B6B;">Matrix rain DEACTIVATED</span>`);
-            audioManager.playSound('click');
-        }
-    }
 
-    toggleParallaxEffect() {
-        const currentState = performanceManager.effects.parallax;
-        performanceManager.toggleEffect('parallax', !currentState);
-        if (!currentState) {
-            this.addOutput(`<span style="color: #39FF14;">Parallax effect ACTIVATED ✓</span>`);
-            audioManager.playSound('success');
-        } else {
-            this.addOutput(`<span style="color: #FF6B6B;">Parallax effect DEACTIVATED</span>`);
-            audioManager.playSound('click');
-        }
-    }
-
-    toggleCursorEffect() {
-        const currentState = performanceManager.effects.cursorTrail;
-        performanceManager.toggleEffect('cursorTrail', !currentState);
-        if (!currentState) {
-            this.addOutput(`<span style="color: #39FF14;">Cursor trail ACTIVATED ✓</span>`);
-            audioManager.playSound('success');
-        } else {
-            this.addOutput(`<span style="color: #FF6B6B;">Cursor trail DEACTIVATED</span>`);
-            audioManager.playSound('click');
-        }
-    }
 
     toggleScanlinesEffect() {
         const currentState = performanceManager.effects.scanlines;
@@ -2631,9 +2296,6 @@ Current: <span style="color: #39FF14;">${performanceManager.currentPreset}</span
 <span style="color: #39FF14;">Performance preset changed to: ${preset.toUpperCase()}</span><br>
 <br>
 Effects status:<br>
-• Matrix Rain: ${performanceManager.effects.matrixRain ? '✓' : '✗'}<br>
-• Parallax: ${performanceManager.effects.parallax ? '✓' : '✗'}<br>
-• Cursor Trail: ${performanceManager.effects.cursorTrail ? '✓' : '✗'}<br>
 • Scanlines: ${performanceManager.effects.scanlines ? '✓' : '✗'}<br>
 • Glitch: ${performanceManager.effects.glitch ? '✓' : '✗'}<br>
 • Particles: ${performanceManager.effects.particles ? '✓' : '✗'}
@@ -2641,38 +2303,7 @@ Effects status:<br>
         audioManager.playSound('success');
     }
 
-    setMatrixFPS(value) {
-        if (!value) {
-            this.addOutput(`
-Usage: fps [number]<br>
-<br>
-Set Matrix rain frame rate (12-60 FPS)<br>
-Current FPS: <span style="color: #39FF14;">${matrixRain.fps}</span><br>
-<br>
-Recommendations:<br>
-• 12-18 FPS - Low-end systems<br>
-• 24 FPS - Balanced (default)<br>
-• 30 FPS - Smooth animation<br>
-• 60 FPS - High-end systems only
-            `);
-            return;
-        }
-        
-        const fps = parseInt(value);
-        if (isNaN(fps) || fps < 12 || fps > 60) {
-            this.addOutput(`<span style="color: #FF6B6B;">Error: FPS must be between 12 and 60</span>`);
-            return;
-        }
-        
-        matrixRain.fps = fps;
-        matrixRain.frameInterval = 1000 / fps;
-        
-        this.addOutput(`
-<span style="color: #39FF14;">Matrix rain FPS set to: ${fps}</span><br>
-Frame interval: ${matrixRain.frameInterval.toFixed(2)}ms
-        `);
-        audioManager.playSound('success');
-    }
+
 
     showTime() {
         const now = new Date();
@@ -2808,7 +2439,6 @@ const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft',
 let konamiIndex = 0;
 
 // Initialize all managers
-const cursorManager = new CursorManager();
 const terminal = new Terminal();
 const shortcutsManager = new ShortcutsManager();
 
@@ -3240,263 +2870,8 @@ class TimelineManager {
     }
 }
 
-// ========== MATRIX RAIN EFFECT ==========
-class MatrixRain {
-    constructor() {
-        this.canvas = null;
-        this.ctx = null;
-        this.columns = 0;
-        this.drops = [];
-        this.fontSize = 16; // Aumentado para menos columnas
-        this.characters = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        this.charLength = this.characters.length;
 
-        // Performance: Pre-calculate random indices and characters
-        this.charArray = this.characters.split(''); // Faster access
-        this.randomIndices = new Uint8Array(4096); // Buffer size power of 2
-        this.randomIndex = 0;
-        this.fillRandomBuffer();
 
-        this.animationId = null;
-        this.isActive = false;
-        this.fps = 24; // Limitado a 24fps para mejor rendimiento
-        this.lastFrameTime = 0;
-        this.frameInterval = 1000 / this.fps;
-
-        // Bind for RAF optimization
-        this.draw = this.draw.bind(this);
-    }
-
-    fillRandomBuffer() {
-        for (let i = 0; i < this.randomIndices.length; i++) {
-            this.randomIndices[i] = Math.floor(Math.random() * this.charLength);
-        }
-    }
-
-    init() {
-        this.canvas = document.getElementById('matrixCanvas');
-        if (!this.canvas) return;
-
-        this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        
-        window.addEventListener('resize', debounce(() => this.resize(), 200), { passive: true });
-        
-        // Register with performance manager
-        performanceManager.registerEffect('matrixRain', this);
-        
-        // Start based on performance settings
-        if (performanceManager.effects.matrixRain) {
-            this.start();
-        }
-        
-        devLog('Matrix Rain initialized');
-    }
-
-    resize() {
-        // Optimize resolution for mobile/low-end
-        const preset = performanceManager.currentPreset;
-        const tier = performanceManager.hardware.tier;
-        // Determine effective low mode (explicit low OR auto+low tier)
-        const isLow = preset === 'low' || (preset === 'auto' && tier === 'low');
-
-        let scale = 1;
-
-        if (isLow) {
-            scale = 0.5; // Reduce resolution by half for low performance mode
-        } else if (performanceManager.hardware.isMobile) {
-            scale = 1;
-        } else {
-            scale = Math.min(window.devicePixelRatio, 1.5);
-        }
-
-        this.logicalWidth = window.innerWidth;
-        this.logicalHeight = window.innerHeight;
-
-        this.canvas.width = this.logicalWidth * scale;
-        this.canvas.height = this.logicalHeight * scale;
-        this.ctx.scale(scale, scale);
-
-        // Adjust font size scaling if necessary, but here we keep it simple relative to logical pixels
-        // The scale() call above handles the drawing coordinate space
-
-        this.columns = Math.floor(this.logicalWidth / this.fontSize);
-        this.drops = Array(this.columns).fill(1);
-
-        // Optimize: Set font once on resize instead of every frame
-        this.ctx.font = `${this.fontSize}px monospace`;
-    }
-
-    draw(currentTime = 0) {
-        if (this.isActive) {
-            this.animationId = requestAnimationFrame(this.draw);
-        }
-        
-        // Control de FPS
-        const elapsed = currentTime - this.lastFrameTime;
-        if (elapsed < this.frameInterval) {
-            return;
-        }
-        this.lastFrameTime = currentTime - (elapsed % this.frameInterval);
-
-        // Semi-transparent black for trailing effect
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-        this.ctx.fillRect(0, 0, this.logicalWidth || window.innerWidth, this.logicalHeight || window.innerHeight);
-
-        // Green text
-        this.ctx.fillStyle = '#39FF14';
-        // Font is set in resize() to avoid parsing overhead every frame
-
-        // Dibujar solo cada segunda columna para mejor rendimiento (excepto en Ultra)
-        const step = (typeof performanceManager !== 'undefined' && performanceManager.currentPreset === 'ultra') ? 1 : 2;
-
-        for (let i = 0; i < this.drops.length; i += step) {
-            // Optimization: Use pre-calculated random buffer
-            const charIdx = this.randomIndices[this.randomIndex];
-            const text = this.charArray[charIdx];
-            this.randomIndex = (this.randomIndex + 1) & 4095; // Fast modulus
-
-            const x = i * this.fontSize;
-            const y = this.drops[i] * this.fontSize;
-
-            this.ctx.fillText(text, x, y);
-
-            /**
-             * ⚡ Bolt Performance Optimization
-             * 💡 What: Replaced \`this.canvas.height\` with \`this.logicalHeight\` inside the MatrixRain draw loop.
-             * 🎯 Why: Accessing DOM properties like \`canvas.height\` inside a high-frequency \`requestAnimationFrame\` loop forces synchronous C++ boundary crossings, which is slow.
-             * 📊 Impact: Eliminates O(N) DOM reads per frame, ensuring smoother 60fps rendering, and fixes a bug where drops reset prematurely on scaled down resolutions (e.g., mobile or 'low' preset).
-             */
-            // Reset drop to top randomly
-            if (y > this.logicalHeight && Math.random() > 0.975) {
-                this.drops[i] = 0;
-            }
-
-            this.drops[i]++;
-        }
-    }
-
-    start(force = false) {
-        // Optimization: Don't start if Intro is active to save resources
-        if (!force && typeof hyperIntro !== 'undefined' && hyperIntro.state.active) return;
-
-        if (this.isActive) return;
-        this.isActive = true;
-        this.canvas.style.opacity = '0.15';
-        this.draw();
-    }
-
-    stop() {
-        this.isActive = false;
-        this.canvas.style.opacity = '0';
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-    }
-
-    toggle() {
-        if (this.isActive) {
-            this.stop();
-            return false;
-        } else {
-            this.start();
-            return true;
-        }
-    }
-}
-
-// ========== PARALLAX MANAGER ==========
-class ParallaxManager {
-    constructor() {
-        this.layers = [];
-        this.lastScrollY = 0;
-        this.ticking = false;
-
-        // Bind for RAF optimization
-        this.update = this.update.bind(this);
-    }
-
-    init() {
-        const layers = document.querySelectorAll('.parallax-layer');
-        if (layers.length === 0) return;
-
-        // Optimization: Pre-calculate speed and cache elements to avoid DOM access in loop
-        this.items = Array.from(layers).map(layer => ({
-            el: layer,
-            speed: parseFloat(layer.dataset.speed) || 0.5,
-            isVisible: true, // Assume visible initially
-            lastYPos: undefined
-        }));
-
-        // Optimization: Use IntersectionObserver to skip DOM updates for off-screen layers
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const item = this.items.find(i => i.el === entry.target);
-                if (item) {
-                    item.isVisible = entry.isIntersecting;
-                    // Trigger an immediate update when an element becomes visible
-                    // to fix stale positions after sudden anchor jumps
-                    if (item.isVisible) {
-                        this.requestTick();
-                    }
-                }
-            });
-        }, { rootMargin: '100% 0px' }); // Margin to ensure it starts moving before entering viewport
-
-        this.items.forEach(item => this.observer.observe(item.el));
-
-        // Optimization: Use passive listener to prevent blocking scroll
-        window.addEventListener('scroll', () => this.requestTick(), { passive: true });
-        
-        // Register with performance manager
-        performanceManager.registerEffect('parallax', this);
-        
-        // Apply initial state
-        if (!performanceManager.effects.parallax) {
-            for (let i = 0; i < this.items.length; i++) {
-                this.items[i].el.style.display = 'none';
-            }
-        }
-        
-        devLog('Parallax initialized with', this.items.length, 'layers');
-    }
-
-    requestTick() {
-        // Optimization: Skip calculations if effect is disabled
-        if (!performanceManager.effects.parallax) return;
-
-        if (!this.ticking) {
-            window.requestAnimationFrame(this.update);
-            this.ticking = true;
-        }
-    }
-
-    update() {
-        this.lastScrollY = window.scrollY;
-        
-        for (let i = 0; i < this.items.length; i++) {
-            const item = this.items[i];
-
-            /**
-             * ⚡ Bolt Performance Optimization
-             * 💡 What: Implemented IntersectionObserver to skip off-screen elements and added dirty checking for sub-pixel changes.
-             * 🎯 Why: Modifying `style.transform` unconditionally on every scroll tick for off-screen elements or for imperceptible sub-pixel changes forces unnecessary layer compositing and CPU/GPU work.
-             * 📊 Impact: Eliminates DOM writes for off-screen parallax layers (saving O(N) operations) and prevents redundant sub-pixel layout thrashing.
-             */
-            if (!item.isVisible) continue;
-
-            const yPos = -(this.lastScrollY * item.speed);
-
-            if (item.lastYPos === undefined || Math.abs(item.lastYPos - yPos) > 0.5) {
-                item.el.style.transform = `translate3d(0, ${yPos}px, 0)`;
-                item.lastYPos = yPos;
-            }
-        }
-
-        this.ticking = false;
-    }
-}
 
 // ========== CONTACT FORM MANAGER ==========
 const SUBMIT_COOLDOWN_MS = 30000;
@@ -4211,8 +3586,6 @@ const skillsManager = new SkillsManager();
 const projectManager = new ProjectManager(); // Fixed name
 const notificationManager = new NotificationManager();
 const timelineManager = new TimelineManager();
-const matrixRain = new MatrixRain();
-const parallaxManager = new ParallaxManager();
 const contactFormManager = new ContactFormManager();
 const burgerMenuManager = new BurgerMenuManager();
 const languageManager = new LanguageManager();
@@ -4247,15 +3620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             skillsManager.init();
             scrollRevealManager.init();
 
-            // Heavy Visuals
-            if (window.innerWidth > 767) {
-                cursorManager.init();
-                performanceManager.registerEffect('cursor', cursorManager);
-            }
-            
             technicalBackground.init();
-            parallaxManager.init();
-            matrixRain.init();
             
             devLog('%c>> SYSTEM: Deferred modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
             
