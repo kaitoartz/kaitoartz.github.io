@@ -62,3 +62,6 @@
 ## 2025-05-21 - Caching DOM lookups in periodic loops
 **Learning:** Calling `document.querySelector` inside an unconditionally firing periodic function (like `setInterval` or `requestAnimationFrame` loops) wastes CPU cycles on repeated DOM lookups, even if the result is static (like the `.boot-overlay` element in `FrameRateMonitor`).
 **Action:** Always cache the queried DOM element locally on the class/instance (e.g. `this.bootOverlay`) and reuse it instead of querying the DOM on every loop iteration.
+## 2025-05-27 - DocumentFragment for batch DOM insertions
+**Learning:** Appending hundreds of individual elements (like particles or stars) directly to the live DOM inside a loop (`parentElement.appendChild()`) triggers synchronous layout recalculations and compositing work (layout thrashing) on every single iteration, which severely blocks the main thread during initialization.
+**Action:** Always use `document.createDocumentFragment()` or construct the full subtree in an unattached parent container off-DOM first. Append all child elements to this off-screen fragment/container during the loop, and then perform exactly one `.appendChild()` to the live DOM at the end.

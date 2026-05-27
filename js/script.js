@@ -722,6 +722,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced direct DOM appends with a DocumentFragment in createWorld.
+         * 🎯 Why: Appending hundreds of elements to the live DOM one by one causes layout thrashing and excessive browser recalculations.
+         * 📊 Impact: O(1) DOM insertion instead of O(N), significantly reducing initialization time and blocking on the main thread.
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -783,14 +791,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -804,6 +812,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {
@@ -1625,9 +1635,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== PARTICLE SYSTEM ==========
 function createParticles() {
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Moved document.body.appendChild(container) to the end of the function.
+     * 🎯 Why: Appending the container to the live DOM first, then appending particles to it in a loop causes unnecessary layout recalculations.
+     * 📊 Impact: Prevents multiple DOM reflows by building the entire DOM subtree off-screen and attaching it once.
+     */
     const container = document.createElement('div');
     container.className = 'particle-container';
-    document.body.appendChild(container);
 
     for (let i = 0; i < 20; i++) {
         const particle = document.createElement('div');
@@ -1637,6 +1652,8 @@ function createParticles() {
         particle.style.animationDuration = (15 + Math.random() * 10) + 's';
         container.appendChild(particle);
     }
+
+    document.body.appendChild(container);
 }
 
 setTimeout(createParticles, 3500);
