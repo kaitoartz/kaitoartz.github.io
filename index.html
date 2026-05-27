@@ -2,6 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://localhost:* http://localhost:*;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: https: http://localhost:*;
+        connect-src 'self' https: ws://localhost:* wss://localhost:* http://localhost:*;
+        object-src 'none';
+        frame-src 'self' https://player.vimeo.com https://www.youtube.com;
+    ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>KAITOARTZ // VR Developer & Tech Artist Portfolio</title>
     
@@ -16,7 +26,7 @@
     <meta property="og:url" content="https://kaitoartz.github.io/">
     <meta property="og:title" content="KAITOARTZ - VR Developer & Tech Artist">
     <meta property="og:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
-    <meta property="og:image" content="https://kaitoartz.github.io/public/assets/kaitoartz.webp">
+    <meta property="og:image" content="https://kaitoartz.github.io/public/assets/metadata/kaitoartz.webp">
     <meta property="og:image:type" content="image/webp">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -27,7 +37,7 @@
     <meta name="twitter:url" content="https://kaitoartz.github.io/">
     <meta name="twitter:title" content="KAITOARTZ - VR Developer & Tech Artist">
     <meta name="twitter:description" content="Portfolio cyberpunk de desarrollador VR/AR. Experiencias inmersivas, shaders y visualización en tiempo real.">
-    <meta name="twitter:image" content="https://kaitoartz.github.io/public/assets/kaitoartz.webp">
+    <meta name="twitter:image" content="https://kaitoartz.github.io/public/assets/metadata/kaitoartz.webp">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -61,17 +71,6 @@
     }
     </script>
 </head>
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://localhost:* http://localhost:*;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data: https: http://localhost:*;
-        connect-src 'self' https: ws://localhost:* wss://localhost:* http://localhost:*;
-        object-src 'none';
-        frame-src 'self' https://player.vimeo.com https://www.youtube.com;
-    ">
-    
 <body>
     
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
