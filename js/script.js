@@ -722,6 +722,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Used DocumentFragment to batch DOM insertions for Intro elements.
+         * 🎯 Why: Appending nodes one by one to the live DOM in a loop forces multiple synchronous layout recalculations.
+         * 📊 Impact: O(1) DOM reflow instead of O(N).
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -783,14 +791,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -804,6 +812,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {
@@ -1627,7 +1637,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function createParticles() {
     const container = document.createElement('div');
     container.className = 'particle-container';
-    document.body.appendChild(container);
+
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Used DocumentFragment to batch DOM insertions for particles.
+     * 🎯 Why: Appending nodes one by one to a container that is already attached to the DOM (or appending the container first) triggers multiple layout recalculations. Appending all particles to an unattached container before adding it to the DOM solves this.
+     * 📊 Impact: O(1) DOM reflow instead of O(N).
+     */
+    const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < 20; i++) {
         const particle = document.createElement('div');
@@ -1635,8 +1652,11 @@ function createParticles() {
         particle.style.left = Math.random() * 100 + '%';
         particle.style.animationDelay = Math.random() * 10 + 's';
         particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-        container.appendChild(particle);
+        fragment.appendChild(particle);
     }
+
+    container.appendChild(fragment);
+    document.body.appendChild(container);
 }
 
 setTimeout(createParticles, 3500);
