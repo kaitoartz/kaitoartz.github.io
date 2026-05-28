@@ -648,7 +648,7 @@ class HyperScrollIntro {
         this.config = {
             isLowSpec: isMobile || (isLowPerf && isMobile),
             itemCount: isMobile ? 8 : (isLowPerf ? 12 : 20), 
-            starCount: isMobile ? 0 : (isLowPerf ? 50 : 150),
+            starCount: isMobile ? 0 : (isLowPerf ? 25 : 60),
             zGap: 800,
             camSpeed: 2.5,
             loopSize: 0,
@@ -1629,7 +1629,7 @@ function createParticles() {
     container.className = 'particle-container';
     document.body.appendChild(container);
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 8; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.left = Math.random() * 100 + '%';

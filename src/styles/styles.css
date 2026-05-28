@@ -1,3 +1,12 @@
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Font Awesome 6 Brands';
+    font-display: swap;
+}
+
 :root {
     --white: #FFFFFF;
     --black: #000000;
@@ -6783,7 +6792,7 @@ body.light-theme {
     margin-top: auto;
     font-family: var(--font-code);
     font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.8);
     display: flex;
     justify-content: space-between;
 }
