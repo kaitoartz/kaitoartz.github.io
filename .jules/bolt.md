@@ -62,3 +62,6 @@
 ## 2025-05-21 - Caching DOM lookups in periodic loops
 **Learning:** Calling `document.querySelector` inside an unconditionally firing periodic function (like `setInterval` or `requestAnimationFrame` loops) wastes CPU cycles on repeated DOM lookups, even if the result is static (like the `.boot-overlay` element in `FrameRateMonitor`).
 **Action:** Always cache the queried DOM element locally on the class/instance (e.g. `this.bootOverlay`) and reuse it instead of querying the DOM on every loop iteration.
+## 2026-05-29 - Pre-calculate Section Offsets
+**Learning:** Calling `getBoundingClientRect()` inside a scroll event handler's `requestAnimationFrame` loop forces synchronous layout recalculations (reflows/layout thrashing), which kills scroll performance.
+**Action:** Pre-calculate and cache layout metrics (like absolute `top` offsets) on initialization, and update them via a debounced `resize` or `ResizeObserver` listener. Rely on `window.scrollY` during the high-frequency scroll event.
