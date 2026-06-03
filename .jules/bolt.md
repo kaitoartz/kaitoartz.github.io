@@ -65,3 +65,6 @@
 ## 2026-05-29 - Pre-calculate Section Offsets
 **Learning:** Calling `getBoundingClientRect()` inside a scroll event handler's `requestAnimationFrame` loop forces synchronous layout recalculations (reflows/layout thrashing), which kills scroll performance.
 **Action:** Pre-calculate and cache layout metrics (like absolute `top` offsets) on initialization, and update them via a debounced `resize` or `ResizeObserver` listener. Rely on `window.scrollY` during the high-frequency scroll event.
+## 2026-06-03 - Redundant regex evaluation on interactions
+**Learning:** Evaluating a regex (e.g. `navigator.userAgent`) and calling hardware detection logic inside high-frequency or interaction-based event listeners (like `click` or `resize`) introduces unnecessary processing overhead.
+**Action:** Detect hardware capabilities (like `isMobile`) once during application initialization, store the result centrally (e.g., in a `performanceManager.hardware` object), and reference this cached property in event listeners for an O(1) check.

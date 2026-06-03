@@ -637,8 +637,8 @@ document.addEventListener('DOMContentLoaded', () => {
 class HyperScrollIntro {
     constructor() {
         // Detect performance and device characteristics
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isMobile = performanceManager.detectHardware().isMobile || isMobileBrowser;
+
+        const isMobile = performanceManager.hardware.isMobile;
         const tier = performanceManager.hardware.tier;
         const isLowPerf = tier === 'low' || tier === 'medium';
         
@@ -807,16 +807,16 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         const tier = performanceManager.hardware.tier;
         
         // VIRTUAL MODE: PC or High-performance devices, OR Mobile Browser (now virtualized for touch swipe)
-        this.isVirtualMode = isMobileBrowser || (!isMobileBrowser && (tier === 'ultra' || tier === 'high'));
+        this.isVirtualMode = performanceManager.hardware.isMobile || (!performanceManager.hardware.isMobile && (tier === 'ultra' || tier === 'high'));
 
         if (!this.isVirtualMode) {
             // PHYSICAL MODE: USamos Lenis con scroll real
             // OPTIMIZATION: Disable Lenis on mobile for native performance
-            if (typeof Lenis !== 'undefined' && !isMobileBrowser) {
+            if (typeof Lenis !== 'undefined' && !performanceManager.hardware.isMobile) {
                 this.lenis = new Lenis({
                     smooth: true,
                     lerp: 0.08,
@@ -849,9 +849,9 @@ class HyperScrollIntro {
     }
 
     bindEvents() {
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        if (!isMobileBrowser) {
+
+        if (!performanceManager.hardware.isMobile) {
             // Desktop tilt controls
             this.handleMouseMove = (e) => {
                 if (!this.state.active) return;
@@ -905,7 +905,7 @@ class HyperScrollIntro {
         }
 
         // VIRTUAL SCROLL: Only for PC/High-end (and not mobile)
-        if (this.isVirtualMode && !isMobileBrowser) {
+        if (this.isVirtualMode && !performanceManager.hardware.isMobile) {
             this.handleWheel = (e) => {
                 if (!this.state.active || this.state.warping) return;
                 // Accumulate target speed based on wheel delta (Speed increased as requested)
@@ -1696,7 +1696,7 @@ class DockManager {
                 if (el) {
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        const isMobileDevice = performanceManager.hardware.isMobile;
                         if (isMobileDevice) {
                             this.toggleDock(dock);
                         }
@@ -1709,7 +1709,7 @@ class DockManager {
             if (burger) {
                 burger.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const isMobileDevice = performanceManager.hardware.isMobile;
                     // burgerMenu (#burgerMenu) toggles the dock open/close
                     if (burger.id === 'burgerMenu') {
                         if (typeof burgerMenuManager !== 'undefined') {
@@ -3050,7 +3050,7 @@ class BurgerMenuManager {
 
         if (!this.panel || this.docks.length === 0) return;
         
-        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobileDevice = performanceManager.hardware.isMobile;
 
         this.docks.forEach(dock => {
             // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
@@ -3707,7 +3707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let navBtns = document.querySelectorAll('.nav-dock .nav-btn');
     
     // PC-specific: Hide and filter out skills button
-    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobileDevice = performanceManager.hardware.isMobile;
     if (!isMobileDevice) {
         const skillsBtn = document.querySelector('.nav-dock .nav-btn[href="#skillsGrid"]');
         if (skillsBtn) skillsBtn.style.display = 'none';
