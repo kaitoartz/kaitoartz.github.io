@@ -65,3 +65,7 @@
 ## 2026-05-29 - Pre-calculate Section Offsets
 **Learning:** Calling `getBoundingClientRect()` inside a scroll event handler's `requestAnimationFrame` loop forces synchronous layout recalculations (reflows/layout thrashing), which kills scroll performance.
 **Action:** Pre-calculate and cache layout metrics (like absolute `top` offsets) on initialization, and update them via a debounced `resize` or `ResizeObserver` listener. Rely on `window.scrollY` during the high-frequency scroll event.
+
+## 2025-06-06 - Layout Thrashing in Initialization Loops
+**Learning:** Appending a parent container to the live DOM (`document.body.appendChild(container)`) *before* populating it with children inside a loop triggers a synchronous layout recalculation (reflow) for every single child added. This causes layout thrashing and blocks the main thread during initialization sequences.
+**Action:** Always construct the complete DOM subtree off-screen (in memory) first, and then append the fully populated container to the live DOM exactly once.

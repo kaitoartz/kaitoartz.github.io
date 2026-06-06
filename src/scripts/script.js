@@ -1624,10 +1624,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ========== PARTICLE SYSTEM ==========
+/**
+ * ⚡ Bolt Performance Optimization
+ * 💡 What: Moved `document.body.appendChild(container)` to the end of the `createParticles` function.
+ * 🎯 Why: Appending the container to the DOM before adding its children causes the browser to recalculate the layout (reflow) for every single particle appended in the loop. By building the entire DOM structure in memory first, we reduce N layout recalculations down to 1.
+ * 📊 Impact: Eliminates layout thrashing during the initialization phase, reducing main thread blocking time.
+ */
 function createParticles() {
     const container = document.createElement('div');
     container.className = 'particle-container';
-    document.body.appendChild(container);
 
     for (let i = 0; i < 8; i++) {
         const particle = document.createElement('div');
@@ -1637,6 +1642,8 @@ function createParticles() {
         particle.style.animationDuration = (15 + Math.random() * 10) + 's';
         container.appendChild(particle);
     }
+
+    document.body.appendChild(container);
 }
 
 setTimeout(createParticles, 3500);
