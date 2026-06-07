@@ -79,7 +79,7 @@ class FrameRateMonitor {
         // Gradual downgrade logic
         const tiers = ['ultra', 'high', 'medium', 'low'];
         const currentIndex = tiers.indexOf(performanceManager.currentPreset);
-        
+
         if (currentIndex < tiers.length - 1) {
             const nextTier = tiers[currentIndex + 1] || 'low'; // Fallback to medium if auto or unknown
             performanceManager.applyPreset(nextTier);
@@ -117,18 +117,18 @@ class PerformanceManager {
         const memory = navigator.deviceMemory || 4;
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const effectiveType = connection ? connection.effectiveType : '4g';
-        
+
         // Battery API (if available)
         let batteryLevel = 1;
         let isCharging = true;
-        
+
         if (navigator.getBattery) {
             navigator.getBattery().then(battery => {
                 batteryLevel = battery.level;
                 isCharging = battery.charging;
             });
         }
-        
+
         // Calculate performance score (0-100)
         let score = 40; // Reduced Base score (was 50) to be more conservative
 
@@ -150,11 +150,11 @@ class PerformanceManager {
         // RAM Scoring: 4GB is now minimum for smooth WebGL.
         // Increase weight slightly but cap logic remains
         score += Math.min(memory * 4, 20);
-        
+
         if (effectiveType === '4g') score += 10;
         else if (effectiveType === '3g') score -= 5; // Penalty for 3G
         else if (effectiveType === 'slow-2g' || effectiveType === '2g') score -= 20; // Heavy penalty
-        
+
         // Penalize iOS devices that report low cores due to privacy
         if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
             // Assume modern iOS is at least medium, but don't let it hit ultra easily due to thermal throttling concerns
@@ -164,7 +164,7 @@ class PerformanceManager {
         }
 
         score = Math.max(0, Math.min(100, score));
-        
+
         return {
             isMobile,
             cores,
@@ -180,7 +180,7 @@ class PerformanceManager {
 
     getPerformanceTier(score) {
         // Stricter thresholds for dynamic performance
-        if (score >= 85) return 'ultra'; 
+        if (score >= 85) return 'ultra';
         if (score >= 70) return 'high';  // Was 65
         if (score >= 55) return 'medium';// Was 45
         return 'low'; // < 55 is low (more inclusive for devices like A32)
@@ -198,7 +198,7 @@ class PerformanceManager {
         }
 
         this.currentPreset = preset;
-        
+
         // --- MOBILE OPTIMIZATION: DOUBLE IF LOGIC ---
         const isLowPerf = preset === 'low' || (preset === 'auto' && this.hardware.tier === 'low');
         const isMobile = this.hardware.isMobile;
@@ -216,7 +216,7 @@ class PerformanceManager {
         } else {
              document.body.classList.remove('pc-very-low-perf');
         }
-        
+
         const presets = {
             auto: this.hardware.tier,
             ultra: {
@@ -228,7 +228,7 @@ class PerformanceManager {
             },
             high: {
                 scanlines: true,
-                glitch: false, 
+                glitch: false,
                 particles: false,
                 decorations: true,
                 visualizer: true
@@ -252,32 +252,32 @@ class PerformanceManager {
         // LÓGICA NUEVA: Inyectar clase al body para control total CSS
         if (isLowPerf) {
             document.body.classList.add('performance-mode-low');
-            document.body.classList.add('no-scanlines'); 
-            document.body.classList.add('no-glitch'); 
-            this.toggleParticles(false); 
+            document.body.classList.add('no-scanlines');
+            document.body.classList.add('no-glitch');
+            this.toggleParticles(false);
         } else {
             document.body.classList.remove('performance-mode-low');
             document.body.classList.remove('no-scanlines');
             document.body.classList.remove('no-glitch');
         }
-        
+
         const targetPreset = preset === 'auto' ? presets[this.hardware.tier] : presets[preset];
-        
+
         Object.keys(targetPreset).forEach(effect => {
             this.effects[effect] = targetPreset[effect];
             this.toggleEffect(effect, targetPreset[effect], false);
         });
-        
+
         // Save to localStorage
         this.savePreferences();
-        
+
         devLog(`Performance preset applied: ${preset} (tier: ${this.hardware.tier})`);
     }
 
     toggleEffect(effectName, state = null, save = true) {
         const newState = state !== null ? state : !this.effects[effectName];
         this.effects[effectName] = newState;
-        
+
         switch(effectName) {
             case 'scanlines':
                 this.toggleScanlines(newState);
@@ -295,7 +295,7 @@ class PerformanceManager {
                 this.toggleVisualizer(newState);
                 break;
         }
-        
+
         if (save) this.savePreferences();
         this.updateUI(effectName, newState);
     }
@@ -330,7 +330,7 @@ class PerformanceManager {
         if (vizBlock) {
             vizBlock.style.display = enable ? 'flex' : 'none';
         }
-        
+
         // Find the visualizer instance (it's global 'audioVisualizer' or attached to manager)
         if (typeof audioVisualizer !== 'undefined') {
             if (enable) audioVisualizer.start();
@@ -351,13 +351,13 @@ class PerformanceManager {
             decorations: 'decorStatus',
             visualizer: 'vizStatus'
         };
-        
+
         const statusEl = document.getElementById(statusMap[effectName]);
         if (statusEl) {
             statusEl.textContent = state ? 'ON' : 'OFF';
             statusEl.classList.toggle('off', !state);
         }
-        
+
         const toggleBtn = document.querySelector(`[data-effect="${effectName}"]`);
         if (toggleBtn) {
             toggleBtn.setAttribute('data-state', state ? 'on' : 'off');
@@ -368,12 +368,12 @@ class PerformanceManager {
         Object.keys(this.effects).forEach(effect => {
             this.updateUI(effect, this.effects[effect]);
         });
-        
+
         // Update preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.preset === this.currentPreset);
         });
-        
+
         // Update hardware info
         this.updateHardwareInfo();
     }
@@ -410,11 +410,11 @@ class PerformanceManager {
     loadPreferences() {
         const savedPreset = localStorage.getItem('performancePreset');
         const savedEffects = localStorage.getItem('performanceEffects');
-        
+
         if (savedPreset) {
             this.currentPreset = savedPreset;
         }
-        
+
         if (savedEffects) {
             try {
                 const effects = JSON.parse(savedEffects);
@@ -434,8 +434,8 @@ class PerformanceManager {
             console.warn('>> PERF: Low-end device detected. Forcing LOW preset.');
             this.currentPreset = 'low';
             this.applyPreset('low');
-            // We do NOT save this forced preset to localStorage to avoid locking them forever if they upgrade device, 
-            // but for this session it is enforced. 
+            // We do NOT save this forced preset to localStorage to avoid locking them forever if they upgrade device,
+            // but for this session it is enforced.
             // Actually, for "obligatorily has to use", we just apply it.
         } else if (!localStorage.getItem('performancePreset')) {
              // If no saved preferences, apply auto preset
@@ -453,11 +453,11 @@ class PerformanceManager {
                 });
             }
         }
-        
+
         // Setup UI event listeners
         this.setupEventListeners();
         this.updateAllUI();
-        
+
         devLog('PerformanceManager initialized:', this.hardware);
     }
 
@@ -469,18 +469,18 @@ class PerformanceManager {
                 this.updateAllUI();
             });
         });
-        
+
         // Effect toggles
         document.querySelectorAll('.effect-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
                 const effect = btn.dataset.effect;
-                
+
                 // If we were in low mode, clean up restrictive classes
                 if (this.currentPreset === 'low' || document.body.classList.contains('performance-mode-low')) {
                     document.body.classList.remove('performance-mode-low');
                     document.body.classList.remove('no-scanlines');
                 }
-                
+
                 this.toggleEffect(effect);
                 this.currentPreset = 'custom';
                 this.savePreferences();
@@ -521,7 +521,7 @@ class AudioManager {
                 return;
             }
         }
-        
+
         if (this.audioContext && this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
             console.log('%c>> AUDIO SYSTEM: RESUMED ✓', 'color: #39FF14; font-family: monospace;');
@@ -532,7 +532,7 @@ class AudioManager {
         // Auto-init on first sound if possible (gesture required)
         if (!this.audioContext) this.init();
         if (!this.enabled) return;
-        
+
         // Para file:// usamos Audio directo en lugar de AudioBuffer
         try {
             const audio = new Audio(this.audioFiles[soundName]);
@@ -550,13 +550,13 @@ class AudioManager {
 
     synthesizeSound(soundName, volume) {
         if (!this.audioContext) return;
-        
+
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
-        
+
         // Different frequencies for different sounds
         const frequencies = {
             click: 800,
@@ -565,13 +565,13 @@ class AudioManager {
             glitch: 200,
             success: 1000
         };
-        
+
         oscillator.frequency.value = frequencies[soundName] || 500;
         oscillator.type = 'sine';
-        
+
         gainNode.gain.setValueAtTime(volume * 0.3, this.audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-        
+
         oscillator.start(this.audioContext.currentTime);
         oscillator.stop(this.audioContext.currentTime + 0.1);
     }
@@ -641,24 +641,24 @@ class HyperScrollIntro {
         const isMobile = performanceManager.detectHardware().isMobile || isMobileBrowser;
         const tier = performanceManager.hardware.tier;
         const isLowPerf = tier === 'low' || tier === 'medium';
-        
+
         // HYPER mode only for PC/High-end devices (Disabled on mobile)
         this.isHyperEnabled = !isMobile && (tier === 'ultra' || tier === 'high');
 
         this.config = {
             isLowSpec: isMobile || (isLowPerf && isMobile),
-            itemCount: isMobile ? 8 : (isLowPerf ? 12 : 20), 
-            starCount: isMobile ? 0 : (isLowPerf ? 25 : 60),
+            itemCount: isMobile ? 8 : (isLowPerf ? 12 : 20),
+            starCount: isMobile ? 0 : (isLowPerf ? 50 : 150),
             zGap: 800,
             camSpeed: 2.5,
             loopSize: 0,
             colors: ['#ff003c', '#00f3ff', '#ccff00', '#ffffff'] // User colors
         };
         this.config.loopSize = this.config.itemCount * this.config.zGap;
-        
+
         // Use user's preferred texts with a brand touch
         this.texts = ["KAITOARTZ", "IMPACT", "VELOCITY", "BRUTAL", "SYSTEM", "FUTURE", "DESIGN", "PIXEL", "HYPER", "NEON", "VOID"];
-        
+
         this.state = {
             scroll: 0,
             velocity: 0,
@@ -678,7 +678,7 @@ class HyperScrollIntro {
         this.frameCount = 0;
         this.lenis = null;
         this.perfMode = 0; // 0: Normal, 1: No Stars
-        
+
         // Performance: Cache dimensions
         this.winW = window.innerWidth;
         this.winH = window.innerHeight;
@@ -695,10 +695,10 @@ class HyperScrollIntro {
 
         this.world = document.getElementById('intro-world');
         this.viewport = document.getElementById('intro-viewport');
-        
+
         document.body.classList.add('no-scroll');
         document.documentElement.classList.add('no-scroll');
-        
+
         // VIRTUAL MODE: Hide the scroll proxy to remove scrollbar
         const proxy = layer.querySelector('.intro-scroll-proxy');
         if (proxy && this.isVirtualMode) {
@@ -708,27 +708,19 @@ class HyperScrollIntro {
         this.createWorld();
         this.initLenis();
         this.bindEvents();
-        
+
         // HUD Setup
         this.feedbackVel = document.getElementById('intro-vel-readout');
         this.feedbackFPS = document.getElementById('intro-fps');
         this.feedbackCoord = document.getElementById('intro-coord');
 
         this.startLoop();
-        
+
         console.log(`%c>> HYPER INTRO: SYSTEM ONLINE (HYPER: ${this.isHyperEnabled})`, 'color: #E2FF00; font-family: monospace;');
     }
 
     createWorld() {
         if (!this.world) return;
-        
-        /**
-         * ⚡ Bolt Performance Optimization
-         * 💡 What: Used a DocumentFragment to build the intro world elements off-DOM.
-         * 🎯 Why: Appending elements individually to a live DOM node (this.world) inside a loop triggers multiple synchronous layout recalculations and repaints.
-         * 📊 Impact: Reduces DOM insertions from O(N) to O(1), significantly speeding up the initialization of the hyper scroll sequence and preventing layout thrashing.
-         */
-        const fragment = document.createDocumentFragment();
 
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
@@ -791,14 +783,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            fragment.appendChild(el);
+            this.world.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            fragment.appendChild(el);
+            this.world.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -812,14 +804,12 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
-
-        this.world.appendChild(fragment);
     }
 
     initLenis() {
         const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const tier = performanceManager.hardware.tier;
-        
+
         // VIRTUAL MODE: PC or High-performance devices, OR Mobile Browser (now virtualized for touch swipe)
         this.isVirtualMode = isMobileBrowser || (!isMobileBrowser && (tier === 'ultra' || tier === 'high'));
 
@@ -880,7 +870,7 @@ class HyperScrollIntro {
             };
             window.addEventListener('touchstart', this.handleTouch, { passive: true });
             window.addEventListener('touchmove', this.handleTouch, { passive: true });
-            
+
             // Reset position on release for mobile/terminal feel
             const resetPos = () => {
                 this.state.targetMouseX = 0;
@@ -919,13 +909,13 @@ class HyperScrollIntro {
             this.handleWheel = (e) => {
                 if (!this.state.active || this.state.warping) return;
                 // Accumulate target speed based on wheel delta (Speed increased as requested)
-                this.state.targetSpeed += e.deltaY * 0.12; 
+                this.state.targetSpeed += e.deltaY * 0.12;
                 // Clamp target speed to prevent insane values
                 this.state.targetSpeed = Math.max(-150, Math.min(150, this.state.targetSpeed));
             };
             window.addEventListener('wheel', this.handleWheel, { passive: false });
         }
-        
+
         this.handleResize = debounce(() => {
             this.winW = window.innerWidth;
             this.winH = window.innerHeight;
@@ -939,10 +929,10 @@ class HyperScrollIntro {
     async warpAndEnter() {
         if (this.state.warping) return;
         this.state.warping = true;
-        
+
         await audioManager.init();
         audioManager.playBoot();
-        
+
         const btn = document.getElementById('enterSystemBtn');
         if(btn) {
             btn.textContent = "ACCESSING...";
@@ -954,7 +944,7 @@ class HyperScrollIntro {
         const bodyContent = document.getElementById('body-content');
         if (bodyContent) {
             document.body.classList.add('preparing-system');
-            void bodyContent.offsetHeight; 
+            void bodyContent.offsetHeight;
         }
     }
 
@@ -963,17 +953,17 @@ class HyperScrollIntro {
 
         const loop = (time) => {
             if (!this.state.active) return;
-            
+
             this.rafId = requestAnimationFrame(loop);
             this.frameCount++;
-            
+
             if (this.lenis) this.lenis.raf(time);
 
             const delta = time - lastTime;
             lastTime = time;
             // Use deterministic frame count instead of erratic time check
             const fps = Math.round(1000 / delta) || 60;
-            
+
             /**
              * ⚡ Bolt Performance Optimization
              * 💡 What: Replaced innerText with textContent in the RAF loop.
@@ -1019,11 +1009,11 @@ class HyperScrollIntro {
 
             // Smooth Velocity (0.1 weight as requested by user)
             this.state.velocity += (this.state.targetSpeed - this.state.velocity) * 0.1;
-            
+
             // Auto-sway animation when user is inactive (no interaction for >1.5s)
             let effectiveTargetX = this.state.targetMouseX;
             let effectiveTargetY = this.state.targetMouseY;
-            
+
             const timeSinceInteraction = time - this.state.lastInteractionTime;
             if (timeSinceInteraction > 1500) {
                 const elapsed = (timeSinceInteraction - 1500) / 1000;
@@ -1031,7 +1021,7 @@ class HyperScrollIntro {
                 // Beautiful figure-8 sway using different sine/cosine frequencies
                 const autoX = Math.sin(time * 0.001) * 0.45;
                 const autoY = Math.cos(time * 0.0015) * 0.35;
-                
+
                 effectiveTargetX = this.state.targetMouseX * (1 - blend) + autoX * blend;
                 effectiveTargetY = this.state.targetMouseY * (1 - blend) + autoY * blend;
             }
@@ -1050,9 +1040,9 @@ class HyperScrollIntro {
 
             // 1. Camera Tilt & Shake (Modified from User Snippet)
             if (this.world) {
-                const shake = this.state.velocity * 0.1; 
+                const shake = this.state.velocity * 0.1;
                 // Enable tilt for mobile too (Relaxed isHyperEnabled check)
-                const tiltScale = this.isHyperEnabled ? 5 : 4; 
+                const tiltScale = this.isHyperEnabled ? 5 : 4;
                 const tiltX = (this.state.mouseY * tiltScale - this.state.velocity * 0.2);
                 const tiltY = (this.state.mouseX * tiltScale);
 
@@ -1089,7 +1079,7 @@ class HyperScrollIntro {
                 else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
                 if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400);
                 if (alpha < 0) alpha = 0;
-                
+
                 if (Math.abs(item.currentAlpha - alpha) > 0.001) {
                     item.el.style.opacity = alpha;
                     item.currentAlpha = alpha;
@@ -1168,7 +1158,7 @@ class HyperScrollIntro {
                 }
             }
         };
-        
+
         requestAnimationFrame(loop);
     }
 
@@ -1181,14 +1171,14 @@ class HyperScrollIntro {
                 layer.style.opacity = 0;
                 if (!isLowSpec) layer.style.filter = "brightness(2) blur(10px)";
             }
-            
+
             const waitTime = isFast ? 250 : 800;
-            
+
             setTimeout(() => {
                 layer.style.display = 'none';
                 this.state.active = false;
                 if (this.lenis) this.lenis.destroy();
-                
+
                 this.cleanup();
 
                 document.body.classList.add('system-ready');
@@ -1196,7 +1186,7 @@ class HyperScrollIntro {
                 document.documentElement.classList.remove('no-scroll');
 
                 window.scrollTo(0, 0);
-                
+
                 const main = document.querySelector('main');
                 if(main) {
                     main.style.animation = isFast ? "fadeIn 0.4s ease forwards" : "fadeIn 1s ease forwards";
@@ -1233,18 +1223,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== BOOT SEQUENCE ==========
 function startBootSequence() {
     console.log('%c>> BOOT: Starting sequence', 'color: #00FFFF; font-family: monospace;');
-    
+
     const loadProgress = document.getElementById('loadProgress');
     const bootLoaderBar = document.getElementById('bootLoaderBar');
     const bootLog = document.getElementById('bootLog');
     const bootOverlay = document.querySelector('.boot-overlay');
     const dashboard = document.querySelector('.dashboard');
-    
+
     if (!loadProgress || !bootLoaderBar || !bootLog || !bootOverlay || !dashboard) {
         console.error('Boot elements not found!');
         return;
     }
-    
+
     // Boot Log Messages
     const bootLogs = [
         { text: '> INITIALIZING KERNEL...', type: 'system', delay: 100 },
@@ -1435,13 +1425,13 @@ function addConsoleLine() {
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
     const message = consoleMessages[Math.floor(Math.random() * consoleMessages.length)];
-    
+
     const line = document.createElement('div');
     line.className = 'console-line';
     line.innerHTML = `<span>${timeStamp}</span><span>${message}</span>`;
-    
+
     consoleFeed.prepend(line);
-    
+
     // Keep only last 5 lines
     while (consoleFeed.childNodes.length > 5) {
         consoleFeed.removeChild(consoleFeed.lastChild);
@@ -1491,27 +1481,27 @@ document.addEventListener('keydown', (e) => {
     } else {
         konamiIndex = 0;
     }
-    
+
     // Ctrl + K: Open Terminal
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         terminal.open();
     }
-    
 
-    
+
+
     // Ctrl + /: Show Shortcuts
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         shortcutsManager.open();
     }
-    
+
     // ESC: Close modals
     if (e.key === 'Escape') {
         terminal.close();
         shortcutsManager.close();
     }
-    
+
     // Press 'H' to scroll home (only if not in input)
     if ((e.key === 'h' || e.key === 'H') && e.target.tagName !== 'INPUT') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1639,7 +1629,7 @@ function createParticles() {
     container.className = 'particle-container';
     document.body.appendChild(container);
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 20; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.left = Math.random() * 100 + '%';
@@ -1773,19 +1763,19 @@ class DockManager {
                 });
             }
         });
-        
+
         devLog('DockManager initialized ✓');
     }
 
     toggleDock(dock) {
         const isCurrentlyExpanded = dock.classList.contains('collapsed') === false;
         const newState = !isCurrentlyExpanded;
-        
+
         dock.classList.toggle('collapsed', !newState);
         dock.setAttribute('data-expanded', newState);
-        
+
         if (typeof audioManager !== 'undefined') audioManager.playClick();
-        
+
         const label = dock.querySelector('.dock-label-min');
         if (label && typeof triggerGlitch === 'function') triggerGlitch(label);
     }
@@ -1793,20 +1783,20 @@ class DockManager {
     handleLanguage(btn) {
         const langText = btn.querySelector('.lang-text');
         if (!langText) return;
-        
+
         const currentLang = langText.textContent.trim();
         const newLang = currentLang === 'ES' ? 'EN' : 'ES';
-        
+
         // Update all docks
         document.querySelectorAll('.lang-toggle-btn .lang-text').forEach(el => {
             el.textContent = newLang;
             if (typeof triggerGlitch === 'function') triggerGlitch(el);
         });
-        
+
         if (typeof i18nManager !== 'undefined') {
             i18nManager.setLanguage(newLang.toLowerCase());
         }
-        
+
         if (typeof audioManager !== 'undefined') audioManager.playClick();
     }
 
@@ -1834,11 +1824,11 @@ class ThemeManager {
     init() {
         this.toggleButtons = document.querySelectorAll('.theme-toggle-btn');
         this.toggleLabel = document.getElementById('toggleLabel');
-        
+
         // Apply saved theme
         this.applyTheme(this.theme);
         this.setColorTheme(this.colorTheme, false);
-        
+
         // Add event listeners to all buttons
         this.toggleButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1894,24 +1884,24 @@ class ThemeManager {
     handleToggle(e) {
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
-        
+
         if (this.toggleButton) {
             const rect = this.toggleButton.getBoundingClientRect();
             x = rect.left + rect.width / 2;
             y = rect.top + rect.height / 2;
         }
-        
+
         // Play sound
         audioManager.playClick();
-        
+
         // Toggle theme
         this.theme = this.theme === 'dark' ? 'light' : 'dark';
-        
+
         // Animate transition
         this.animateTransition(x, y, () => {
             this.applyTheme(this.theme, true);
         });
-        
+
         // Save preference
         localStorage.setItem('theme', this.theme);
     }
@@ -1929,20 +1919,20 @@ class ThemeManager {
             pointer-events: none;
         `;
         document.body.appendChild(snapshot);
-        
+
         // Fade in overlay
         requestAnimationFrame(() => {
             snapshot.style.opacity = '1';
         });
-        
+
         // Change theme at peak opacity
         setTimeout(() => {
             if (callback) callback();
-            
+
             // Fade out overlay
             setTimeout(() => {
                 snapshot.style.opacity = '0';
-                
+
                 // Remove overlay after fade
                 setTimeout(() => {
                     snapshot.remove();
@@ -1960,7 +1950,7 @@ class ThemeManager {
             if (this.toggleLabel) {
                 this.toggleLabel.textContent = 'DAY_MODE';
             }
-            
+
             if (animate) {
                 console.log('%c>> THEME_SWITCH: DAY_MODE_ACTIVATED', 'color: #FFD700; font-family: monospace;');
             }
@@ -1972,7 +1962,7 @@ class ThemeManager {
             if (this.toggleLabel) {
                 this.toggleLabel.textContent = 'NIGHT_MODE';
             }
-            
+
             if (animate) {
                 console.log('%c>> THEME_SWITCH: NIGHT_MODE_ACTIVATED', 'color: #39FF14; font-family: monospace;');
             }
@@ -2016,7 +2006,7 @@ class Terminal {
         this.backdrop = null;
         this.history = [];
         this.historyIndex = -1;
-        
+
         this.commands = {
             help: () => this.showHelp(),
             about: () => this.showAbout(),
@@ -2044,18 +2034,18 @@ class Terminal {
         this.modal = document.getElementById('terminalModal');
         this.output = document.getElementById('terminalOutput');
         this.input = document.getElementById('terminalInput');
-        
+
         if (!this.modal) return;
-        
+
         // Create backdrop
         this.backdrop = document.createElement('div');
         this.backdrop.className = 'modal-backdrop';
         this.backdrop.addEventListener('click', () => this.close());
         document.body.appendChild(this.backdrop);
-        
+
         // Close button
         document.getElementById('terminalClose').addEventListener('click', () => this.close());
-        
+
         // Input handling
         this.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -2097,22 +2087,22 @@ class Terminal {
 
     executeCommand(cmd) {
         if (!cmd) return;
-        
+
         this.history.push(cmd);
         this.historyIndex = -1;
-        
+
         const [command, ...args] = cmd.split(' ');
         const arg = args.join(' ');
-        
+
         // Add command to output
         this.addOutput(`<span class="terminal-prompt">$ </span>${cmd}`, false);
-        
+
         if (this.commands[command.toLowerCase()]) {
             this.commands[command.toLowerCase()](arg);
         } else {
             this.addOutput(`Command not found: ${command}. Type 'help' for available commands.`);
         }
-        
+
         audioManager.playClick();
     }
 
@@ -2284,7 +2274,7 @@ STATUS: <span style="color: #00ff00;">ONLINE</span> | ACCEPTING_COLLABORATIONS
 
     setPerformance(preset) {
         const validPresets = ['ultra', 'high', 'medium', 'low', 'auto'];
-        
+
         if (!preset || !validPresets.includes(preset.toLowerCase())) {
             this.addOutput(`
 Usage: performance [preset]<br>
@@ -2300,7 +2290,7 @@ Current: <span style="color: #39FF14;">${performanceManager.currentPreset}</span
             `);
             return;
         }
-        
+
         performanceManager.applyPreset(preset.toLowerCase());
         this.addOutput(`
 <span style="color: #39FF14;">Performance preset changed to: ${preset.toUpperCase()}</span><br>
@@ -2384,7 +2374,7 @@ Achievement unlocked: Retro Gamer<br>
 
     hackEffect() {
         this.addOutput(`<span style="color: #ff0000;">Initiating hack sequence...</span>`);
-        
+
         const steps = [
             'Scanning network...',
             'Found 3 vulnerabilities',
@@ -2395,7 +2385,7 @@ Achievement unlocked: Retro Gamer<br>
             'Upload complete',
             '<span style="color: #00ff00;">ACCESS GRANTED</span>'
         ];
-        
+
         let delay = 0;
         steps.forEach(step => {
             setTimeout(() => {
@@ -2416,7 +2406,7 @@ class ShortcutsManager {
     init() {
         this.modal = document.getElementById('shortcutsModal');
         if (!this.modal) return;
-        
+
         document.getElementById('shortcutsClose').addEventListener('click', () => this.close());
     }
 
@@ -2427,7 +2417,7 @@ class ShortcutsManager {
             this.backdrop.addEventListener('click', () => this.close());
             document.body.appendChild(this.backdrop);
         }
-        
+
         this.modal.classList.add('active');
         this.backdrop.classList.add('active');
         document.body.classList.add('no-scroll');
@@ -2476,7 +2466,7 @@ class TechnicalBackground {
     init() {
         this.container = document.querySelector('.tech-background');
         if (!this.container) return;
-        
+
         this.timestampEl = document.getElementById('techTimestamp');
         this.uptimeEl = document.getElementById('uptimeCounter');
 
@@ -2491,7 +2481,7 @@ class TechnicalBackground {
         });
 
         observer.observe(this.container);
-        
+
         // Initial update
         this.updateTimestamp();
         this.updateUptime();
@@ -2562,15 +2552,15 @@ class SkillsManager {
             <div class="skill-card-tech" style="--skill-color: ${skill.color}; animation-delay: ${index * 100}ms">
                 <!-- Decorative Corner Cut -->
                 <div class="card-corner-cut"></div>
-                
+
                 <div class="skill-main-content">
                     <div class="skill-header-row">
                         <span class="skill-id">ID_0${index + 1} // ${skill.code}</span>
                         <i class="skill-icon-small ${skill.icon}"></i>
                     </div>
-                    
+
                     <div class="skill-name-large">${skill.name}</div>
-                    
+
                     <div class="skill-bar-complex">
                         <div class="skill-bar-track">
                             <div class="skill-bar-fill" style="width: ${skill.value}%"></div>
@@ -2670,7 +2660,7 @@ class AwardsManager {
         this.modal.classList.add('active');
         document.body.classList.add('no-scroll');
         audioManager.playSuccess();
-        
+
         // Close on click outside
         this.modal.onclick = (e) => {
             if (e.target === this.modal) this.close();
@@ -2710,12 +2700,12 @@ class NotificationManager {
 
     show(title, message, type = 'info', duration = 5000) {
         if (!this.container) return;
-        
+
         const id = Date.now();
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.dataset.id = id;
-        
+
         notification.innerHTML = `
             <div class="notification-header">
                 <div class="notification-title">${title}</div>
@@ -2723,26 +2713,26 @@ class NotificationManager {
             </div>
             <div class="notification-message">${message}</div>
         `;
-        
+
         this.container.appendChild(notification);
-        
+
         // Close button
         notification.querySelector('.notification-close').addEventListener('click', () => {
             this.remove(id);
         });
-        
+
         // Auto remove
         if (duration > 0) {
             setTimeout(() => this.remove(id), duration);
         }
-        
+
         this.notifications.push({ id, element: notification });
     }
 
     remove(id) {
         const notification = this.notifications.find(n => n.id === id);
         if (!notification) return;
-        
+
         notification.element.classList.add('removing');
         setTimeout(() => {
             notification.element.remove();
@@ -2851,7 +2841,7 @@ class TimelineManager {
     render() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
-        
+
         const lang = typeof languageManager !== 'undefined' ? languageManager.currentLang : 'es';
 
         container.innerHTML = this.experiences.map(exp => `
@@ -3017,12 +3007,12 @@ class ContactFormManager {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            
+
             this.showStatus('TRANSMISSION_SUCCESSFUL ✓', 'success');
             audioManager.playSound('success');
             notificationManager.show('Message transmitted successfully!', 'success');
             this.form.reset();
-            
+
         } catch (error) {
             console.error('Form submission error:', error);
             this.showStatus('TRANSMISSION_FAILED: TRY AGAIN', 'error');
@@ -3037,7 +3027,7 @@ class ContactFormManager {
     showStatus(message, type) {
         this.statusDiv.textContent = message;
         this.statusDiv.className = 'form-status show ' + type;
-        
+
         setTimeout(() => {
             this.statusDiv.classList.remove('show');
         }, 5000);
@@ -3059,7 +3049,7 @@ class BurgerMenuManager {
         this.docks = document.querySelectorAll('.control-dock:not(.nav-dock)');
 
         if (!this.panel || this.docks.length === 0) return;
-        
+
         const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         this.docks.forEach(dock => {
@@ -3102,7 +3092,7 @@ class BurgerMenuManager {
     handleBurgerClick(e, dock) {
         e.stopPropagation();
         const isCollapsed = dock.classList.contains('collapsed');
-        
+
         if (!this.isOpen && isCollapsed) {
             this.expandDock(dock);
         } else {
@@ -3147,11 +3137,11 @@ class BurgerMenuManager {
             btn.setAttribute('aria-expanded', 'true');
         });
         this.isOpen = true;
-        
+
         setTimeout(() => {
             this.docks.forEach(dock => dock.classList.add('hidden'));
         }, 100);
-        
+
         audioManager.playSound('click');
     }
 
@@ -3289,7 +3279,7 @@ class LanguageManager {
 
         document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
     }
-    
+
     // Helper to get translated string for JS dynamic content
     get(key) {
         return translations[this.currentLang] ? (translations[this.currentLang][key] || key) : key;
@@ -3310,7 +3300,7 @@ class SettingsManager {
 
         // Audio buttons are handled exclusively by DockManager to prevent double-fire.
         // SettingsManager only updates the button UI state.
-        
+
         this.updateThemeButton();
     }
 
@@ -3434,10 +3424,10 @@ class ProjectManager {
         this.container.innerHTML = projects.map((proj, index) => `
             <div class="project-card" data-category="${proj.category}" style="animation-delay: ${index * 100}ms">
                 <div class="project-image-container">
-                    <img src="${proj.image}" 
-                         alt="${proj.title}" 
-                         class="project-image" 
-                         loading="lazy" 
+                    <img src="${proj.image}"
+                         alt="${proj.title}"
+                         class="project-image"
+                         loading="lazy"
                          decoding="async"
                          onerror="this.src='https://placehold.co/600x400/111/39FF14?text=NO_IMG'">
                     <div class="project-overlay">
@@ -3490,7 +3480,7 @@ class VideoManager {
     constructor() {
         this.modal = null;
         this.iframe = null;
-        this.videoId = '1169926700'; 
+        this.videoId = '1169926700';
         this.videoHash = 'c3e7f59c16';
     }
 
@@ -3508,7 +3498,7 @@ class VideoManager {
         });
 
         if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-        
+
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) this.close();
         });
@@ -3518,10 +3508,10 @@ class VideoManager {
         this.modal.classList.add('active');
         document.body.classList.add('no-scroll');
         if (typeof audioManager !== 'undefined') audioManager.playSuccess();
-        
+
         const loader = document.getElementById('videoLoading');
         const statusText = document.getElementById('videoStatus');
-        
+
         // Reset Loader State
         if (loader) loader.style.display = 'flex';
         if (statusText) statusText.textContent = "INITIALIZING...";
@@ -3535,7 +3525,7 @@ class VideoManager {
 
         // Include the hash parameter for unlisted videos
         this.iframe.src = `https://player.vimeo.com/video/${this.videoId}?h=${this.videoHash}&autoplay=1&title=0&byline=0&portrait=0`;
-        
+
         // Timeout for slow connection feedback
         this.loadTimeout = setTimeout(() => {
             if (loader && loader.style.display !== 'none') {
@@ -3571,7 +3561,7 @@ class ScrollRevealManager {
 
     init() {
         this.elements = document.querySelectorAll('.grid-item');
-        
+
         const options = {
             root: null,
             rootMargin: '0px',
@@ -3605,11 +3595,11 @@ const scrollRevealManager = new ScrollRevealManager();
 
 document.addEventListener('DOMContentLoaded', () => {
     devLog('%c>> DOM: Ready', 'color: #39FF14; font-family: monospace;');
-    
+
     // Initialize Performance Manager first (Critical for deciding other inits)
     performanceManager.init();
     devLog('%c>> INIT: Performance Manager ✓', 'color: #39FF14; font-family: monospace;');
-    
+
     // Critical UI systems - Init immediately
     burgerMenuManager.init();
     settingsManager.init();
@@ -3631,9 +3621,9 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollRevealManager.init();
 
             technicalBackground.init();
-            
+
             devLog('%c>> SYSTEM: Deferred modules loaded ✓', 'color: #39FF14; font-weight: bold; font-family: monospace;');
-            
+
             // Terminal button
             const terminalButton = document.getElementById('terminalButton');
             if (terminalButton) {
@@ -3646,7 +3636,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const presetName = performanceManager.currentPreset.toUpperCase();
                     const tier = performanceManager.hardware.tier.toUpperCase();
                     notificationManager.success(
-                        'SYSTEM_ONLINE', 
+                        'SYSTEM_ONLINE',
                         `Performance preset: ${presetName} | Hardware tier: ${tier}`
                     );
                 }
@@ -3678,10 +3668,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!startTime) startTime = timestamp;
             const progress = timestamp - startTime;
             const percent = Math.min(progress / duration, 1);
-            
+
             // Easing: easeOutCubic
             const ease = 1 - Math.pow(1 - percent, 3);
-            
+
             window.scrollTo(0, startY + difference * ease);
 
             if (progress < duration) {
@@ -3715,7 +3705,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Nav Links: Rich Click Feedback ---
     let navBtns = document.querySelectorAll('.nav-dock .nav-btn');
-    
+
     // PC-specific: Hide and filter out skills button
     const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobileDevice) {
@@ -3723,7 +3713,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (skillsBtn) skillsBtn.style.display = 'none';
         navBtns = document.querySelectorAll('.nav-dock .nav-btn:not([href="#skillsGrid"])');
     }
-    
+
     navBtns.forEach(anchor => {
         // Hover sound
         anchor.addEventListener('mouseenter', () => {
@@ -3733,24 +3723,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Click: sound + ripple + scroll
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             // Sound feedback
             if (typeof audioManager !== 'undefined') audioManager.playClick();
-            
+
             // Pulse ripple animation
             this.classList.remove('nav-clicked');
             void this.offsetWidth; // Force reflow to restart animation
             this.classList.add('nav-clicked');
             setTimeout(() => this.classList.remove('nav-clicked'), 500);
-            
+
             // Set active state visually
             navBtns.forEach(b => b.classList.remove('nav-active'));
             this.classList.add('nav-active');
-            
+
             // Smooth scroll to target
             const targetId = this.getAttribute('href');
             const targetElement = document.querySelector(targetId);
-            
+
             if (targetElement) {
                 const elementTop = targetElement.getBoundingClientRect().top + window.scrollY;
                 const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -3804,9 +3794,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const scrollPos = window.scrollY + 120; // 120px offset to detect active section slightly before it hits the top
                 const scrollHeight = document.documentElement.scrollHeight;
                 const clientHeight = document.documentElement.clientHeight;
-                
+
                 let activeBtn = navSections[0].btn;
-                
+
                 // If near bottom of the page, activate the last section
                 if (window.scrollY + clientHeight >= scrollHeight - 50) {
                     activeBtn = navSections[navSections.length - 1].btn;
@@ -3818,7 +3808,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-                
+
                 navBtns.forEach(b => b.classList.remove('nav-active'));
                 activeBtn.classList.add('nav-active');
                 ticking = false;
@@ -3826,4 +3816,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: true });
     }
 });
-

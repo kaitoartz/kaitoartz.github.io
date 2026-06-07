@@ -722,6 +722,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Used a DocumentFragment to build the intro world elements off-DOM.
+         * 🎯 Why: Appending elements individually to a live DOM node (this.world) inside a loop triggers multiple synchronous layout recalculations and repaints.
+         * 📊 Impact: Reduces DOM insertions from O(N) to O(1), significantly speeding up the initialization of the hyper scroll sequence and preventing layout thrashing.
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -783,14 +791,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -804,6 +812,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {

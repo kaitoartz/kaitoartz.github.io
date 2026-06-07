@@ -65,3 +65,7 @@
 ## 2026-05-29 - Pre-calculate Section Offsets
 **Learning:** Calling `getBoundingClientRect()` inside a scroll event handler's `requestAnimationFrame` loop forces synchronous layout recalculations (reflows/layout thrashing), which kills scroll performance.
 **Action:** Pre-calculate and cache layout metrics (like absolute `top` offsets) on initialization, and update them via a debounced `resize` or `ResizeObserver` listener. Rely on `window.scrollY` during the high-frequency scroll event.
+
+## 2023-10-27 - Batch DOM Insertions with DocumentFragment
+**Learning:** Appending elements individually to a live DOM node inside a loop triggers multiple synchronous layout recalculations and repaints, severely impacting initialization performance, especially during intensive sequences like `HyperScrollIntro`.
+**Action:** Always batch DOM insertions off-DOM by creating a `DocumentFragment`, appending all children to it within the loop, and finally appending the fragment to the live DOM exactly once.
