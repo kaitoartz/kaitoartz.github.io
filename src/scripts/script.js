@@ -637,8 +637,13 @@ document.addEventListener('DOMContentLoaded', () => {
 class HyperScrollIntro {
     constructor() {
         // Detect performance and device characteristics
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isMobile = performanceManager.detectHardware().isMobile || isMobileBrowser;
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced regex `userAgent` checks and `detectHardware()` with cached `performanceManager.hardware.isMobile`.
+         * 🎯 Why: Re-evaluating regex and calling `detectHardware()` delays initialization and wastes CPU cycles.
+         * 📊 Impact: Faster instantiation of components relying on hardware detection.
+         */
+        const isMobile = performanceManager.hardware.isMobile;
         const tier = performanceManager.hardware.tier;
         const isLowPerf = tier === 'low' || tier === 'medium';
         
@@ -807,7 +812,13 @@ class HyperScrollIntro {
     }
 
     initLenis() {
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced regex `userAgent` checks and `detectHardware()` with `performanceManager.hardware.isMobile`.
+         * 🎯 Why: Re-evaluating regex and calling `detectHardware()` delays initialization and wastes CPU cycles.
+         * 📊 Impact: Faster instantiation of components relying on hardware detection.
+         */
+        const isMobileBrowser = performanceManager.hardware.isMobile;
         const tier = performanceManager.hardware.tier;
         
         // VIRTUAL MODE: PC or High-performance devices, OR Mobile Browser (now virtualized for touch swipe)
@@ -849,7 +860,13 @@ class HyperScrollIntro {
     }
 
     bindEvents() {
-        const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced regex `userAgent` checks and `detectHardware()` with `performanceManager.hardware.isMobile`.
+         * 🎯 Why: Re-evaluating regex and calling `detectHardware()` delays initialization and wastes CPU cycles.
+         * 📊 Impact: Faster instantiation of components relying on hardware detection.
+         */
+        const isMobileBrowser = performanceManager.hardware.isMobile;
 
         if (!isMobileBrowser) {
             // Desktop tilt controls
@@ -1696,7 +1713,13 @@ class DockManager {
                 if (el) {
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        /**
+                         * ⚡ Bolt Performance Optimization
+                         * 💡 What: Replaced expensive `detectHardware()` call and `userAgent` regex with cached `performanceManager.hardware.isMobile`.
+                         * 🎯 Why: `detectHardware()` executes regexes and creates Promises (via Battery API) on every call, causing GC overhead.
+                         * 📊 Impact: O(1) property lookup vs O(N) regex parsing and object/Promise allocation.
+                         */
+                        const isMobileDevice = performanceManager.hardware.isMobile;
                         if (isMobileDevice) {
                             this.toggleDock(dock);
                         }
@@ -1709,7 +1732,13 @@ class DockManager {
             if (burger) {
                 burger.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    /**
+                     * ⚡ Bolt Performance Optimization
+                     * 💡 What: Replaced expensive `detectHardware()` call and `userAgent` regex with cached `performanceManager.hardware.isMobile`.
+                     * 🎯 Why: `detectHardware()` executes regexes and creates Promises (via Battery API) on every call, causing GC overhead.
+                     * 📊 Impact: O(1) property lookup vs O(N) regex parsing and object/Promise allocation.
+                     */
+                    const isMobileDevice = performanceManager.hardware.isMobile;
                     // burgerMenu (#burgerMenu) toggles the dock open/close
                     if (burger.id === 'burgerMenu') {
                         if (typeof burgerMenuManager !== 'undefined') {
@@ -3050,7 +3079,13 @@ class BurgerMenuManager {
 
         if (!this.panel || this.docks.length === 0) return;
         
-        const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced expensive `detectHardware()` call and `userAgent` regex with cached `performanceManager.hardware.isMobile`.
+         * 🎯 Why: `detectHardware()` executes regexes and creates Promises (via Battery API) on every call, causing GC overhead.
+         * 📊 Impact: O(1) property lookup vs O(N) regex parsing and object/Promise allocation.
+         */
+        const isMobileDevice = performanceManager.hardware.isMobile;
 
         this.docks.forEach(dock => {
             // Note: .settings-toggle-btn and deco clicks are handled exclusively by DockManager
@@ -3707,7 +3742,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let navBtns = document.querySelectorAll('.nav-dock .nav-btn');
     
     // PC-specific: Hide and filter out skills button
-    const isMobileDevice = performanceManager.detectHardware().isMobile || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Replaced expensive `detectHardware()` call and `userAgent` regex with cached `performanceManager.hardware.isMobile`.
+     * 🎯 Why: `detectHardware()` executes regexes and creates Promises (via Battery API) on every call, causing GC overhead.
+     * 📊 Impact: O(1) property lookup vs O(N) regex parsing and object/Promise allocation.
+     */
+    const isMobileDevice = performanceManager.hardware.isMobile;
     if (!isMobileDevice) {
         const skillsBtn = document.querySelector('.nav-dock .nav-btn[href="#skillsGrid"]');
         if (skillsBtn) skillsBtn.style.display = 'none';
