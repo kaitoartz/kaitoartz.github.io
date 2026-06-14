@@ -1676,10 +1676,12 @@ class DockManager {
         this.audioBtn = null;
         this.langBtn = null;
         this.isExpanded = false;
+        this.themeIcons = null;
     }
 
     init() {
         this.docks = document.querySelectorAll('.control-dock:not(.nav-dock)');
+        this.themeIcons = document.querySelectorAll('.theme-toggle-btn i');
 
         if (this.docks.length === 0) {
             console.warn('>> DOCK ERROR: No .control-dock found');
@@ -1800,11 +1802,19 @@ class DockManager {
         if (typeof audioManager !== 'undefined') audioManager.playClick();
     }
 
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Cached the theme toggle icons (`this.themeIcons`) during initialization instead of querying the DOM every time a theme is updated.
+     * 🎯 Why: Querying the DOM via `document.querySelectorAll` inside a high-frequency UI interaction (like a theme toggle which may fire across multiple docks) forces unnecessary browser recalcs and wastes CPU cycles.
+     * 📊 Impact: Eliminates O(N) DOM queries on every theme update, avoiding redundant garbage collection and maintaining smooth interaction.
+     */
     updateAllThemes() {
         const isDark = document.body.classList.contains('theme-dark');
-        document.querySelectorAll('.theme-toggle-btn i').forEach(icon => {
-            icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
-        });
+        if (this.themeIcons) {
+            this.themeIcons.forEach(icon => {
+                icon.className = isDark ? 'fa-solid fa-moon theme-icon' : 'fa-solid fa-sun theme-icon';
+            });
+        }
     }
 }
 
