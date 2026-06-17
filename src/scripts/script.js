@@ -3685,14 +3685,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let scrollTicking = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (scrollTicking) return;
+            scrollTicking = true;
+            window.requestAnimationFrame(() => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+                scrollTicking = false;
+            });
+        }, { passive: true });
 
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Throttled Scroll-to-Top event listener with requestAnimationFrame and added `{ passive: true }`.
+         * 🎯 Why: `scroll` events fire at a high rate. Directly querying/mutating DOM properties in the handler causes layout thrashing and stutter. Wrapping updates in `requestAnimationFrame` limits execution to the browser's refresh rate, while `{ passive: true }` tells the browser we won't block scrolling, leading to smoother interactions.
+         * 📊 Impact: Prevents main-thread blocking during fast scrolling and reduces frame drops.
+         */
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
             if (typeof hyperIntro !== 'undefined' && hyperIntro.lenis) {
