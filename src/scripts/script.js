@@ -3685,13 +3685,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let isScrollTopVisible = false;
+        let tickingScrollTop = false;
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            if (!tickingScrollTop) {
+                window.requestAnimationFrame(() => {
+                    /**
+                     * ⚡ Bolt Performance Optimization
+                     * 💡 What: Throttled scroll listener using requestAnimationFrame and added `{ passive: true }`. Cached the visibility state `isScrollTopVisible`.
+                     * 🎯 Why: Unthrottled scroll listeners that perform DOM mutations (classList.add/remove) can cause layout thrashing and scroll jank.
+                     * 📊 Impact: Significantly smoother scrolling by ensuring DOM updates only happen once per frame and reducing unnecessary class mutations.
+                     */
+                    const shouldBeVisible = window.scrollY > 300;
+                    if (shouldBeVisible !== isScrollTopVisible) {
+                        isScrollTopVisible = shouldBeVisible;
+                        if (shouldBeVisible) {
+                            scrollTopBtn.classList.add('visible');
+                        } else {
+                            scrollTopBtn.classList.remove('visible');
+                        }
+                    }
+                    tickingScrollTop = false;
+                });
+                tickingScrollTop = true;
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
