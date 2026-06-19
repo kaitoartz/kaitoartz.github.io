@@ -3685,13 +3685,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Throttled the high-frequency 'scroll' event listener for the 'Scroll to Top' button using `requestAnimationFrame`, and added a boolean state variable `isScrollTopVisible` to prevent redundant DOM writes (`classList.add/remove`). Also added `{ passive: true }`.
+         * 🎯 Why: Synchronous DOM mutations (`classList`) inside an unthrottled `scroll` listener cause layout thrashing and severe performance degradation, especially on mobile devices.
+         * 📊 Impact: Eliminates redundant DOM writes and aligns execution with the display refresh rate, leading to smoother scrolling and improved frame rate.
+         */
+        let isScrollTopVisible = false;
+        let isTicking = false;
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            if (!isTicking) {
+                window.requestAnimationFrame(() => {
+                    const shouldBeVisible = window.scrollY > 300;
+
+                    if (shouldBeVisible && !isScrollTopVisible) {
+                        scrollTopBtn.classList.add('visible');
+                        isScrollTopVisible = true;
+                    } else if (!shouldBeVisible && isScrollTopVisible) {
+                        scrollTopBtn.classList.remove('visible');
+                        isScrollTopVisible = false;
+                    }
+                    isTicking = false;
+                });
+                isTicking = true;
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();

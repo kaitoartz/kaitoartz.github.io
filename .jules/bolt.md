@@ -65,3 +65,6 @@
 ## 2026-05-29 - Pre-calculate Section Offsets
 **Learning:** Calling `getBoundingClientRect()` inside a scroll event handler's `requestAnimationFrame` loop forces synchronous layout recalculations (reflows/layout thrashing), which kills scroll performance.
 **Action:** Pre-calculate and cache layout metrics (like absolute `top` offsets) on initialization, and update them via a debounced `resize` or `ResizeObserver` listener. Rely on `window.scrollY` during the high-frequency scroll event.
+## 2025-06-25 - Scroll Listener Throttling
+**Learning:** `scroll` event listeners fire synchronously at high frequencies during scroll actions. Direct DOM mutations inside these listeners without throttling can cause severe layout thrashing and drop frame rates drastically.
+**Action:** Always throttle DOM updates inside high-frequency event handlers (`scroll`, `resize`, `mousemove`) using `requestAnimationFrame`, and add a boolean visibility/ticking flag to ensure redundant DOM updates aren't pushed to the main thread.
