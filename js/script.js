@@ -3685,13 +3685,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let isScrollTopVisible = false;
+        let isScrollTopTicking = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (isScrollTopTicking) return;
+            isScrollTopTicking = true;
+            requestAnimationFrame(() => {
+                const shouldBeVisible = window.scrollY > 300;
+                if (shouldBeVisible !== isScrollTopVisible) {
+                    /*
+                     * ⚡ Bolt Performance Optimization
+                     * 💡 What: Throttled scroll-to-top visibility toggling using requestAnimationFrame, `{ passive: true }`, and boolean state tracking (`isScrollTopVisible`).
+                     * 🎯 Why: High-frequency scroll events can trigger redundant DOM API calls (`classList.add/remove`) multiple times per frame. Using RAF and state tracking eliminates unnecessary writes and potential layout thrashing.
+                     * 📊 Impact: Prevents redundant UI reflow calculations during scrolling, stabilizing 60fps performance on complex pages.
+                     */
+                    if (shouldBeVisible) {
+                        scrollTopBtn.classList.add('visible');
+                    } else {
+                        scrollTopBtn.classList.remove('visible');
+                    }
+                    isScrollTopVisible = shouldBeVisible;
+                }
+                isScrollTopTicking = false;
+            });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
