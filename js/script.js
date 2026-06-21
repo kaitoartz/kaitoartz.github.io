@@ -3685,13 +3685,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Throttled scrollTopBtn's scroll listener with requestAnimationFrame, added passive flag, and implemented state tracking to avoid redundant DOM writes.
+         * 🎯 Why: Unthrottled scroll listeners can fire many times per frame. Updating classList unnecessarily causes DOM layout recalculations. State tracking ensures we only write to the DOM when the visibility actually changes.
+         * 📊 Impact: Significantly reduces Main Thread work during scrolling, eliminating scroll-induced layout thrashing and improving frame rates.
+         */
+        let isScrollTopVisible = false;
+        let scrollTopTicking = false;
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            if (!scrollTopTicking) {
+                window.requestAnimationFrame(() => {
+                    const shouldBeVisible = window.scrollY > 300;
+                    if (shouldBeVisible !== isScrollTopVisible) {
+                        isScrollTopVisible = shouldBeVisible;
+                        if (shouldBeVisible) {
+                            scrollTopBtn.classList.add('visible');
+                        } else {
+                            scrollTopBtn.classList.remove('visible');
+                        }
+                    }
+                    scrollTopTicking = false;
+                });
+                scrollTopTicking = true;
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
