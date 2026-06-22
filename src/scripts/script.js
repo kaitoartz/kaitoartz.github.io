@@ -722,6 +722,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Use a DocumentFragment to construct the intro items and stars off-DOM.
+         * 🎯 Why: Appending hundreds of elements individually to the live DOM causes repeated layout thrashing (reflows) and repaints, increasing CPU/memory overhead during initialization.
+         * 📊 Impact: Batches DOM mutations into a single insertion, ensuring O(1) DOM operations instead of O(N), resulting in faster boot times and smoother frame rates.
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -783,14 +791,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -804,6 +812,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {
@@ -1627,7 +1637,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function createParticles() {
     const container = document.createElement('div');
     container.className = 'particle-container';
-    document.body.appendChild(container);
 
     for (let i = 0; i < 8; i++) {
         const particle = document.createElement('div');
@@ -1637,6 +1646,14 @@ function createParticles() {
         particle.style.animationDuration = (15 + Math.random() * 10) + 's';
         container.appendChild(particle);
     }
+
+    /**
+     * ⚡ Bolt Performance Optimization
+     * 💡 What: Append the particle container to the live DOM only after all particles have been constructed and appended to it.
+     * 🎯 Why: Appending the container to the DOM first and then adding particles one by one triggers synchronous layout calculations (reflows) for each particle.
+     * 📊 Impact: Eliminates repetitive layout thrashing, ensuring O(1) DOM operations instead of O(N) when generating particles.
+     */
+    document.body.appendChild(container);
 }
 
 setTimeout(createParticles, 3500);
