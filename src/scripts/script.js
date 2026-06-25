@@ -1412,14 +1412,24 @@ const consoleMessages = [
     'PHYSICS ENGINE // RUNNING'
 ];
 
+let isConsoleVisible = false;
+if (consoleFeed) {
+    const consoleObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            isConsoleVisible = entry.isIntersecting;
+        });
+    });
+    consoleObserver.observe(consoleFeed);
+}
+
 function addConsoleLine() {
     /**
      * ⚡ Bolt Performance Optimization
-     * 💡 What: Added early return when the document is hidden.
-     * 🎯 Why: setInterval runs in the background. Avoiding DOM element creation and DOM manipulation when the tab is hidden saves CPU/battery and prevents unnecessary reflows/garbage collection.
+     * 💡 What: Added early return when the document is hidden or the console is not visible.
+     * 🎯 Why: setInterval runs in the background. Avoiding DOM element creation and DOM manipulation when the tab is hidden or element is off-screen saves CPU/battery and prevents unnecessary reflows/garbage collection.
      * 📊 Impact: Zero execution overhead for console feed updates when off-screen.
      */
-    if (document.hidden) return;
+    if (document.hidden || !isConsoleVisible) return;
 
     const now = new Date();
     const timeStamp = now.toTimeString().split(' ')[0];
