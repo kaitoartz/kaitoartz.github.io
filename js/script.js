@@ -1333,16 +1333,17 @@ function startBootSequence() {
 }
 
 // ========== SYSTEM TIME ==========
+let systemTimeEl = null;
 const updateSystemTime = () => {
     /**
      * ⚡ Bolt Performance Optimization
-     * 💡 What: Added early return when the document is hidden.
-     * 🎯 Why: setInterval runs in the background. Avoiding DOM queries and string manipulation when the tab is hidden saves CPU/battery.
-     * 📊 Impact: Zero execution overhead for system time updates when off-screen.
+     * 💡 What: Cached the DOM element and added early return when the document is hidden.
+     * 🎯 Why: setInterval runs in the background. Avoiding DOM queries via `getElementById` on every second and string manipulation when the tab is hidden saves CPU/battery.
+     * 📊 Impact: Zero execution overhead for system time updates when off-screen and O(1) DOM query instead of O(N) over time.
      */
     if (document.hidden) return;
-    const el = document.getElementById('systemTime');
-    if (el) el.textContent = new Date().toTimeString().split(' ')[0];
+    if (!systemTimeEl) systemTimeEl = document.getElementById('systemTime');
+    if (systemTimeEl) systemTimeEl.textContent = new Date().toTimeString().split(' ')[0];
 };
 
 // Start time updates after DOM is ready
@@ -3684,13 +3685,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Added state tracking using `classList.contains` and `{ passive: true }` to the scroll event listener.
+         * 🎯 Why: Invoking `classList.add`/`remove` on every frame forces unnecessary DOM manipulation. State tracking ensures it only fires when crossing the threshold. `passive: true` prevents scroll blocking.
+         * 📊 Impact: Eliminates redundant DOM writes and layout thrashing during scroll events.
+         */
+        let isScrollTopVisible = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            const shouldBeVisible = window.scrollY > 300;
+            if (shouldBeVisible !== isScrollTopVisible) {
+                if (shouldBeVisible) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+                isScrollTopVisible = shouldBeVisible;
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
@@ -3786,6 +3798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeObserver.observe(document.body);
 
         let ticking = false;
+        let currentActiveBtn = null;
         window.addEventListener('scroll', () => {
             if (ticking) return;
             ticking = true;
@@ -3808,8 +3821,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                if (activeBtn !== currentActiveBtn) {
+                    if (currentActiveBtn) {
+                        currentActiveBtn.classList.remove('nav-active');
+                    } else {
+                        // Cleanup on first run just in case
+                        navBtns.forEach(b => b.classList.remove('nav-active'));
+                    }
+                    activeBtn.classList.add('nav-active');
+                    currentActiveBtn = activeBtn;
+                }
+
                 ticking = false;
             });
         }, { passive: true });
