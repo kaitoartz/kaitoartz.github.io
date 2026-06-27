@@ -3684,11 +3684,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let isScrollTopVisible = false;
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            const shouldBeVisible = window.scrollY > 300;
+            if (shouldBeVisible !== isScrollTopVisible) {
+                if (shouldBeVisible) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+                isScrollTopVisible = shouldBeVisible;
             }
         });
 
@@ -3769,9 +3775,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navSections.length > 0) {
         /**
          * ⚡ Bolt Performance Optimization
-         * 💡 What: Pre-calculated and cached section offsets (`el.offsetTop` equivalent) instead of calling `getBoundingClientRect().top` inside the scroll's `requestAnimationFrame` loop. Added a debounced `resize` listener to update these cached values.
-         * 🎯 Why: Calling `getBoundingClientRect()` forces the browser to synchronously recalculate the layout (reflow) on every frame during scrolling, especially when mixed with DOM writes (`classList.add`).
-         * 📊 Impact: Eliminates layout thrashing during scroll events, drastically improving scroll performance and achieving a steady 60fps.
+         * 💡 What: Pre-calculated and cached section offsets (`el.offsetTop` equivalent) instead of calling `getBoundingClientRect().top` inside the scroll's `requestAnimationFrame` loop. Added a debounced `resize` listener to update these cached values. Implemented state tracking (`currentActiveBtn`) for navigation buttons.
+         * 🎯 Why: Calling `getBoundingClientRect()` forces the browser to synchronously recalculate the layout (reflow) on every frame during scrolling. Modifying the DOM (adding/removing classes) unconditionally on every frame adds unnecessary CPU overhead and layout thrashing.
+         * 📊 Impact: Eliminates layout thrashing during scroll events, drastically improving scroll performance and achieving a steady 60fps, and drastically reduces DOM writes by updating classes only when the state changes.
          */
         const updateSectionOffsets = () => {
             navSections.forEach(section => {
@@ -3786,6 +3792,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeObserver.observe(document.body);
 
         let ticking = false;
+        // Initialize currentActiveBtn to the one that currently has the class (if any)
+        let currentActiveBtn = Array.from(navBtns).find(btn => btn.classList.contains('nav-active')) || null;
+
         window.addEventListener('scroll', () => {
             if (ticking) return;
             ticking = true;
@@ -3808,8 +3817,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                // Only write to the DOM if the active section has changed
+                if (currentActiveBtn !== activeBtn) {
+                    // Ensure we clear out all previous active classes in case of initial HTML state
+                    navBtns.forEach(b => b.classList.remove('nav-active'));
+                    activeBtn.classList.add('nav-active');
+                    currentActiveBtn = activeBtn;
+                }
+
                 ticking = false;
             });
         }, { passive: true });

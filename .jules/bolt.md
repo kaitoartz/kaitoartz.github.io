@@ -69,3 +69,11 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+
+## 2026-06-27 - Pre-calculate Section Offsets with ResizeObserver
+**Learning:** `src/scripts/script.js` was reading layout properties (`scrollHeight` and `clientHeight`) inside the `scroll` event's `requestAnimationFrame` callback. Reading these properties forced layout recalculation (reflow) on every scroll frame.
+**Action:** Always pre-calculate and cache layout properties (`scrollHeight` and `clientHeight`) inside low-frequency event handlers like a `ResizeObserver` or debounced window `resize` event, and reference those cached variables inside high-frequency scroll or animation loops.
+
+## 2026-06-27 - DOM state tracking in scroll handlers
+**Learning:** `src/scripts/script.js` was unconditionally modifying the DOM by calling `classList.remove` and `classList.add` on navigation buttons during every `scroll` frame, even when the active section had not actually changed.
+**Action:** Always implement a state tracking variable (e.g., `currentActiveBtn` or `isScrollTopVisible`) to determine if a state transition actually occurred, and only perform DOM manipulations when a true state change is detected.
