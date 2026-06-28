@@ -3684,13 +3684,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Throttled scroll event listener using requestAnimationFrame and state caching.
+         * 🎯 Why: Scroll events fire at a high rate, and calling classList on every event causes layout thrashing even when the class isn't changing.
+         * 📊 Impact: Prevents unnecessary style recalculations and main-thread blocking during scrolling.
+         */
+        let isScrollTopVisible = false;
+        let scrollTicking = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (scrollTicking) return;
+            scrollTicking = true;
+            window.requestAnimationFrame(() => {
+                const shouldBeVisible = window.scrollY > 300;
+                if (shouldBeVisible !== isScrollTopVisible) {
+                    isScrollTopVisible = shouldBeVisible;
+                    if (isScrollTopVisible) {
+                        scrollTopBtn.classList.add('visible');
+                    } else {
+                        scrollTopBtn.classList.remove('visible');
+                    }
+                }
+                scrollTicking = false;
+            });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
@@ -3808,8 +3825,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                // Only update DOM if the active button has actually changed
+                if (!activeBtn.classList.contains('nav-active')) {
+                    navBtns.forEach(b => b.classList.remove('nav-active'));
+                    activeBtn.classList.add('nav-active');
+                }
                 ticking = false;
             });
         }, { passive: true });
