@@ -721,6 +721,14 @@ class HyperScrollIntro {
     createWorld() {
         if (!this.world) return;
         
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Replaced direct DOM append operations within loops with a DocumentFragment.
+         * 🎯 Why: Appending elements to a live DOM node inside a loop triggers expensive layout reflows per element. Using a DocumentFragment batches the insertions.
+         * 📊 Impact: Reduces layout reflows from O(N) to O(1) during the intensive initialization of HyperScrollIntro, improving load time and preventing stutter.
+         */
+        const fragment = document.createDocumentFragment();
+
         // Create Items (Logic from User)
         for (let i = 0; i < this.config.itemCount; i++) {
             const el = document.createElement('div');
@@ -782,14 +790,14 @@ class HyperScrollIntro {
                     lastOffset: -1
                 });
             }
-            this.world.appendChild(el);
+            fragment.appendChild(el);
         }
 
         // Create Stars
         for (let i = 0; i < this.config.starCount; i++) {
             const el = document.createElement('div');
             el.className = 'intro-star';
-            this.world.appendChild(el);
+            fragment.appendChild(el);
             this.items.push({
                 el, type: 'star',
                 x: (Math.random() - 0.5) * 3000,
@@ -803,6 +811,8 @@ class HyperScrollIntro {
                 lastOffset: -1
             });
         }
+
+        this.world.appendChild(fragment);
     }
 
     initLenis() {
