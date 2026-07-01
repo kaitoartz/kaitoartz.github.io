@@ -69,3 +69,6 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+## 2025-02-18 - Unthrottled scroll events
+**Learning:** Unthrottled scroll events that modify the DOM (like toggling classes on every scroll tick) cause layout thrashing and high CPU usage.
+**Action:** Use state tracking to ensure DOM writes (like classList.add/remove) only happen when the state actually changes.
