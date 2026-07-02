@@ -3684,13 +3684,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let isVisible = false;
+        let tickingScrollTop = false;
+
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (tickingScrollTop) return;
+            tickingScrollTop = true;
+
+            requestAnimationFrame(() => {
+                const shouldBeVisible = window.scrollY > 300;
+
+                if (shouldBeVisible !== isVisible) {
+                    isVisible = shouldBeVisible;
+                    if (isVisible) {
+                        scrollTopBtn.classList.add('visible');
+                    } else {
+                        scrollTopBtn.classList.remove('visible');
+                    }
+                }
+                tickingScrollTop = false;
+            });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
@@ -3786,6 +3800,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeObserver.observe(document.body);
 
         let ticking = false;
+        let currentActiveBtn = document.querySelector('.nav-dock .nav-active') || null;
+
         window.addEventListener('scroll', () => {
             if (ticking) return;
             ticking = true;
@@ -3808,8 +3824,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                if (activeBtn !== currentActiveBtn) {
+                    if (currentActiveBtn) currentActiveBtn.classList.remove('nav-active');
+                    activeBtn.classList.add('nav-active');
+                    currentActiveBtn = activeBtn;
+                }
+
                 ticking = false;
             });
         }, { passive: true });
