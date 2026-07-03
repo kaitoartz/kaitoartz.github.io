@@ -3415,6 +3415,20 @@ class ProjectManager {
                 if(typeof audioManager !== 'undefined') audioManager.playClick();
             });
         });
+
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Implemented event delegation on the \`projectsGrid\` container for \`.view-project-btn\` clicks.
+         * 🎯 Why: Instead of attaching an event listener to every project card individually during every render (O(N)), we attach one listener to the container (O(1)).
+         * 📊 Impact: Eliminates redundant O(N) DOM querying (\`querySelectorAll\`) and garbage collection overhead during rapid filtering.
+         */
+        this.container.addEventListener('click', (e) => {
+            if (e.target.closest('.view-project-btn')) {
+                if(typeof audioManager !== 'undefined') {
+                    audioManager.playClick();
+                }
+            }
+        });
     }
 
     renderProjects(projects) {
@@ -3446,15 +3460,6 @@ class ProjectManager {
                 </div>
             </div>
         `).join('');
-
-        // Attach click handlers properly instead of inline 'onclick'
-        this.container.querySelectorAll('.view-project-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if(typeof audioManager !== 'undefined') {
-                    audioManager.playClick();
-                }
-            });
-        });
     }
 
     setFilter(filter) {
