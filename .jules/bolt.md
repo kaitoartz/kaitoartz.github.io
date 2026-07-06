@@ -69,3 +69,7 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+
+## 2026-07-06 - Dirty Checking DOM Class Mutations in Scroll Handlers
+**Learning:** Unconditionally removing and adding classes (e.g., `classList.remove('nav-active')`) on multiple elements inside a scroll `requestAnimationFrame` loop forces the browser to evaluate style changes on every frame, even if the active section hasn't changed. This causes unnecessary style recalculations and layout thrashing, which degrades scroll performance.
+**Action:** Always wrap class mutations in scroll/animation loops with a dirty check (e.g., `if (!activeBtn.classList.contains('nav-active'))`) to only write to the DOM when the state actually changes.
