@@ -3672,13 +3672,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Cached visibility state and added { passive: true } to the scroll listener.
+         * 🎯 Why: Avoids continuous DOM classList manipulation on every scroll event and allows the browser to optimize scrolling without waiting for preventDefault().
+         * 📊 Impact: Reduces layout thrashing and main thread blocking during scrolling.
+         */
+        let isVisible = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
+            const shouldBeVisible = window.scrollY > 300;
+            if (shouldBeVisible !== isVisible) {
+                isVisible = shouldBeVisible;
+                if (isVisible) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();

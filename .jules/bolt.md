@@ -69,3 +69,7 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+
+## 2026-06-05 - Avoid continuous DOM classList updates
+**Learning:** Calling `classList.add()` or `classList.remove()` continuously inside a scroll event based on a simple boolean condition causes unnecessary DOM access, even if the browser internally optimizes it. A local state cache ensures zero DOM interaction unless the state changes.
+**Action:** When toggling classes in a scroll or high-frequency event, store the current visual state in a local variable (e.g. `isVisible`) and only interact with the `classList` API if the new computed state differs from the cached state. Combine this with `{ passive: true }` on scroll listeners.
