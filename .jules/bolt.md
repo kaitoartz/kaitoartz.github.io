@@ -69,3 +69,6 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+## 2025-07-04 - Eliminate DOM writes and closures in scroll RAF loops
+**Learning:** `src/scripts/script.js` was unconditionally updating DOM class lists (`classList.remove`, `classList.add`) and using `.forEach()` inside a scroll event `requestAnimationFrame` loop. This caused redundant style recalculations (layout thrashing) and GC allocation from the closure on every frame, even when the active state hadn't changed.
+**Action:** Wrap DOM updates inside the RAF loop with a dirty state check (e.g., `if (!activeBtn.classList.contains('nav-active'))`) so that updates only occur when the state actually changes. Also, replace `.forEach()` with a standard `for` loop to prevent closure creation overhead.

@@ -3795,8 +3795,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                if (!activeBtn.classList.contains('nav-active')) {
+                    /**
+                     * ⚡ Bolt Performance Optimization
+                     * 💡 What: Replaced `.forEach()` with a standard `for` loop and added a dirty check before DOM updates.
+                     * 🎯 Why: `.forEach()` creates a closure every frame, causing GC thrashing. Updating classes unconditionally causes style recalculations.
+                     * 📊 Impact: Eliminates closure allocation and redundant DOM modifications inside the high-frequency scroll RAF loop.
+                     */
+                    for (let i = 0; i < navBtns.length; i++) {
+                        navBtns[i].classList.remove('nav-active');
+                    }
+                    activeBtn.classList.add('nav-active');
+                }
                 ticking = false;
             });
         }, { passive: true });
