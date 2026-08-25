@@ -3672,13 +3672,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Wrapped scroll event listener in `requestAnimationFrame` and added `{ passive: true }`.
+         * 🎯 Why: High-frequency scroll events can cause layout thrashing if DOM manipulations are executed multiple times per frame. `requestAnimationFrame` ensures updates happen only once per frame, and `{ passive: true }` improves scroll performance by indicating the listener will not call `preventDefault()`.
+         * 📊 Impact: Prevents main-thread blocking during scrolling, keeping scroll interactions smooth.
+         */
+        let scrollTopTicking = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (scrollTopTicking) return;
+            scrollTopTicking = true;
+            requestAnimationFrame(() => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+                scrollTopTicking = false;
+            });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();

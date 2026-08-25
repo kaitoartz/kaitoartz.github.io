@@ -69,3 +69,6 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+## 2024-06-24 - Optimized Scroll Event Listener
+**Learning:** Found a high-frequency `scroll` event listener lacking both `requestAnimationFrame` throttling and the `{ passive: true }` flag, leading to potential layout thrashing and main-thread blocking.
+**Action:** When adding scroll or wheel event listeners in the future, always consider if they can be optimized with `requestAnimationFrame` to limit execution to once per frame and add `{ passive: true }` if `preventDefault()` is not called.
