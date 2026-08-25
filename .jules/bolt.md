@@ -69,3 +69,7 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+
+## 2024-05-24 - Event Delegation in Vanilla JS List Rendering
+**Learning:** In a vanilla JS architecture, rendering dynamic lists by using `innerHTML` combined with a `querySelectorAll` loop to attach individual event listeners to each rendered item creates significant memory bloat and garbage collection overhead. Since the elements are repeatedly destroyed and re-created (e.g. during filtering), this pattern results in an O(N) penalty on every render cycle.
+**Action:** Always prefer attaching a single event listener to the parent container using event delegation. This reduces memory footprint and avoids expensive DOM querying loops, especially on lower-end devices or during frequent UI updates.
