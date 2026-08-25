@@ -3672,13 +3672,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        let scrollBtnTicking = false;
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Throttled the `scrollTopBtn` visibility toggle using `requestAnimationFrame`. Added `{ passive: true }` to the scroll event listener.
+         * 🎯 Why: Binding DOM writes (`classList.add`/`remove`) directly to the scroll event without debouncing causes excessive layout thrashing and blocks the main thread.
+         * 📊 Impact: Improves scrolling performance and frame rate by reducing redundant DOM updates.
+         */
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollTopBtn.classList.add('visible');
-            } else {
-                scrollTopBtn.classList.remove('visible');
-            }
-        });
+            if (scrollBtnTicking) return;
+            scrollBtnTicking = true;
+            window.requestAnimationFrame(() => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+                scrollBtnTicking = false;
+            });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();

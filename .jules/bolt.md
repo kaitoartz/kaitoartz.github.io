@@ -69,3 +69,6 @@
 ## 2026-06-02 - Redundant hardware detection calls
 **Learning:** Calling `performanceManager.detectHardware()` repeatedly to check `isMobile` forces unnecessary recalculations of performance scores, CPU core counts, device memory, and connection types, wasting CPU cycles during initialization and UI interactions.
 **Action:** Always use the cached `performanceManager.hardware` object (e.g., `performanceManager.hardware.isMobile`) instead of invoking `detectHardware()` directly when checking system capabilities outside of the initial setup.
+## 2026-07-08 - Throttle Scroll Listeners via requestAnimationFrame
+**Learning:** Attaching DOM writes (like `classList.add`/`remove`) directly inside an unthrottled `scroll` event listener causes layout thrashing and severely blocks the main thread during fast scrolling.
+**Action:** Wrap logic executed inside `scroll` event handlers with a `requestAnimationFrame` and a ticking flag (`scrollTicking = true/false`) to ensure the DOM is manipulated at most once per display frame. Add `{ passive: true }` to the event listener options to prevent scroll blocking.
