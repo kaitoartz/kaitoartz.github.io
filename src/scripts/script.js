@@ -3795,8 +3795,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                /**
+                 * ⚡ Bolt Performance Optimization
+                 * 💡 What: Added a dirty check before updating `nav-active` classes.
+                 * 🎯 Why: Unconditionally removing and adding classes on every frame forces the browser to evaluate style changes, causing unnecessary layout thrashing.
+                 * 📊 Impact: Eliminates redundant DOM mutations when the active section hasn't changed, freeing up main thread time during scroll.
+                 */
+                if (!activeBtn.classList.contains('nav-active')) {
+                    navBtns.forEach(b => b.classList.remove('nav-active'));
+                    activeBtn.classList.add('nav-active');
+                }
+
                 ticking = false;
             });
         }, { passive: true });
