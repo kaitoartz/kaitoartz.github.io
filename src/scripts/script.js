@@ -591,7 +591,6 @@ class AudioManager {
     }
 
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Replaced MutationObserver and individual 'mouseenter' event listeners with a single global 'mouseover' delegation using a stateless relatedTarget check.
      * 🎯 Why: MutationObservers watching the entire body for node additions are expensive. Attaching hundreds of individual event listeners wastes memory and slows down DOM insertion.
      * 📊 Impact: O(1) event listeners instead of O(N). Eliminates constant DOM polling/mutation overhead, reducing idle CPU usage and garbage collection.
@@ -964,14 +963,12 @@ class HyperScrollIntro {
             const fps = Math.round(1000 / delta) || 60;
             
             /**
-             * ⚡ Bolt Performance Optimization
              * 💡 What: Replaced innerText with textContent in the RAF loop.
              * 🎯 Why: innerText triggers synchronous layout calculations (reflow) because it considers CSS styling (hidden text, text-transform). textContent directly modifies the text node, avoiding reflows in this hot path.
              * 📊 Impact: Prevents layout thrashing during the high-frequency HUD updates in the requestAnimationFrame loop.
              */
             // HUD Updates Throttled
             /**
-             * ⚡ Bolt Performance Optimization
              * 💡 What: Replaced layout-aware `.innerText` with layout-agnostic `.textContent` for HUD updates.
              * 🎯 Why: `.innerText` triggers expensive synchronous style recalculations (layout thrashing), which kills frame rates inside requestAnimationFrame loops.
              * 📊 Impact: Prevents forced reflows up to 60 times per second, freeing up main thread CPU time for rendering.
@@ -1126,7 +1123,6 @@ class HyperScrollIntro {
                             // Card Logic
                             if (this.isHyperEnabled) {
                                 /**
-                                 * ⚡ Bolt Performance Optimization
                                  * 💡 What: Replaced DOM query `item.el.querySelector` inside requestAnimationFrame with a cached reference `item.cardEl`, and added state tracking `item.isCardActive` to prevent redundant `classList.toggle` calls.
                                  * 🎯 Why: Querying the DOM and invoking classList operations on every frame (60fps) for multiple elements causes layout thrashing and unnecessary CPU overhead.
                                  * 📊 Impact: Eliminates O(N) DOM queries and DOM writes per frame, ensuring smoother 60fps rendering during the intro sequence.
@@ -1335,7 +1331,6 @@ function startBootSequence() {
 // ========== SYSTEM TIME ==========
 const updateSystemTime = () => {
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Added early return when the document is hidden.
      * 🎯 Why: setInterval runs in the background. Avoiding DOM queries and string manipulation when the tab is hidden saves CPU/battery.
      * 📊 Impact: Zero execution overhead for system time updates when off-screen.
@@ -1357,7 +1352,6 @@ const animateCounter = (element, target, duration = 1500) => {
     let startTimestamp = null;
 
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Replaced setInterval with requestAnimationFrame for UI counting animation.
      * 🎯 Why: setInterval operates independently of the screen refresh rate, causing visual jitter and running even when the tab is backgrounded. requestAnimationFrame guarantees smooth execution matched to the monitor's refresh rate and pauses when off-screen.
      * 📊 Impact: Eliminates micro-stutters during count-up animations and reduces background CPU/battery usage to 0.
@@ -1414,7 +1408,6 @@ const consoleMessages = [
 
 function addConsoleLine() {
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Added early return when the document is hidden.
      * 🎯 Why: setInterval runs in the background. Avoiding DOM element creation and DOM manipulation when the tab is hidden saves CPU/battery and prevents unnecessary reflows/garbage collection.
      * 📊 Impact: Zero execution overhead for console feed updates when off-screen.
@@ -1526,7 +1519,6 @@ console.log(
 // ========== GLITCH EFFECT TRIGGER ==========
 // ========== GLITCH EFFECT TRIGGER & TEXT DECODING ==========
 /**
- * ⚡ Bolt Performance Optimization
  * 💡 What: Replaced setInterval with requestAnimationFrame in triggerGlitch text animation.
  * 🎯 Why: setInterval operates independently of screen refresh rate, causing visual jitter and running off-screen. RAF ensures smooth execution and pauses when off-screen.
  * 📊 Impact: Eliminates visual jitter and background CPU waste.
@@ -1595,7 +1587,6 @@ function decodeTextElements() {
 }
 
 /**
- * ⚡ Bolt Performance Optimization
  * 💡 What: Cached the DOM element and conditionally triggered the glitch interval.
  * 🎯 Why: Querying the DOM via querySelector every 10 seconds and firing the interval when the document is hidden consumes unnecessary cycles.
  * 📊 Impact: O(1) DOM lookup instead of O(N), plus zero background CPU usage when off-screen.
@@ -1651,7 +1642,6 @@ document.querySelectorAll('.link-block').forEach((link, index) => {
 if ('PerformanceObserver' in window) {
     const perfObserver = new PerformanceObserver((list) => {
         /**
-         * ⚡ Bolt Performance Optimization
          * 💡 What: Use `getEntriesByType('largest-contentful-paint')` instead of iterating and filtering over `getEntries()`.
          * 🎯 Why: `getEntries()` returns an array of all performance entries. Iterating and filtering this array in Javascript adds unnecessary overhead. `getEntriesByType` performs the filtering natively and more efficiently.
          * 📊 Impact: Eliminates a potentially large and redundant array iteration loop, reducing CPU overhead during performance monitoring callbacks.
@@ -1987,7 +1977,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== TERMINAL SYSTEM ==========
 class Terminal {
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Store static file content on the class instead of recreating it inside `readFile()`.
      * 🎯 Why: Re-declaring object literals inside methods that can be called repeatedly wastes memory and forces the garbage collector to work harder.
      * 📊 Impact: O(1) memory allocation vs O(N) allocations for repeated file reading.
@@ -2457,7 +2446,6 @@ class TechnicalBackground {
     }
 
     /**
-     * ⚡ Bolt Performance Optimization
      * 💡 What: Replaced setInterval with a requestAnimationFrame loop gated by IntersectionObserver and cached DOM references.
      * 🎯 Why: setInterval runs unconditionally, even when the background is off-screen or the tab is inactive. Querying the DOM every second is also inefficient.
      * 📊 Impact: Prevents wasted CPU cycles and layout thrashing by only updating the DOM when the component is visible, and eliminates O(N) DOM queries by caching elements on initialization.
@@ -3768,7 +3756,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (navSections.length > 0) {
         /**
-         * ⚡ Bolt Performance Optimization
          * 💡 What: Pre-calculated and cached section offsets (`el.offsetTop` equivalent) instead of calling `getBoundingClientRect().top` inside the scroll's `requestAnimationFrame` loop. Added a debounced `resize` listener to update these cached values.
          * 🎯 Why: Calling `getBoundingClientRect()` forces the browser to synchronously recalculate the layout (reflow) on every frame during scrolling, especially when mixed with DOM writes (`classList.add`).
          * 📊 Impact: Eliminates layout thrashing during scroll events, drastically improving scroll performance and achieving a steady 60fps.
