@@ -3795,8 +3795,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                navBtns.forEach(b => b.classList.remove('nav-active'));
-                activeBtn.classList.add('nav-active');
+                /**
+                 * ⚡ Bolt Performance Optimization
+                 * 💡 What: Replaced `.forEach()` with a `for` loop and added dirty checking for `.classList` updates.
+                 * 🎯 Why: `.forEach()` creates a new closure every frame, causing GC thrashing. Unconditional `.classList.remove()` and `.add()` can trigger unnecessary DOM mutation events even if the class is already set/removed.
+                 * 📊 Impact: Eliminates GC allocation per frame and reduces redundant DOM operations.
+                 */
+                for (let i = 0; i < navBtns.length; i++) {
+                    const btn = navBtns[i];
+                    if (btn.classList.contains('nav-active')) {
+                        btn.classList.remove('nav-active');
+                    }
+                }
+                if (!activeBtn.classList.contains('nav-active')) {
+                    activeBtn.classList.add('nav-active');
+                }
+
                 ticking = false;
             });
         }, { passive: true });
