@@ -3672,13 +3672,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll to Top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
+        /**
+         * ⚡ Bolt Performance Optimization
+         * 💡 What: Added state tracking for the scroll-to-top button visibility.
+         * 🎯 Why: Unthrottled scroll events triggering DOM modifications (classList.add/remove) on every tick cause layout thrashing and high CPU usage.
+         * 📊 Impact: O(1) DOM writes instead of O(N) where N is the number of scroll events, drastically reducing main thread blocking during scrolling.
+         */
+        let isScrollTopBtnVisible = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
+            const shouldBeVisible = window.scrollY > 300;
+            if (shouldBeVisible && !isScrollTopBtnVisible) {
                 scrollTopBtn.classList.add('visible');
-            } else {
+                isScrollTopBtnVisible = true;
+            } else if (!shouldBeVisible && isScrollTopBtnVisible) {
                 scrollTopBtn.classList.remove('visible');
+                isScrollTopBtnVisible = false;
             }
-        });
+        }, { passive: true });
 
         scrollTopBtn.addEventListener('click', () => {
             if (typeof audioManager !== 'undefined') audioManager.playClick();
